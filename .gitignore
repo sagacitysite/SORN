@@ -9,3 +9,5 @@
 *.mat
 # Ignore Backup #
 backup/
+# Ignore PyCharm files #
+.idea/

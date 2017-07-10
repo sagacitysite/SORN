@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 
 # Start debugging mode when an error is raised
 def debugger(type,flag):
-    print 'In debugger! (test_single.py)'
+    print('In debugger! (test_single.py)')
     import ipdb
     ipdb.set_trace()
 #~ np.seterrcall(debugger)    
@@ -87,4 +87,4 @@ experiment.plot_single(dest_directory,
                        os.path.join('common','result.h5'))
 
 # Display figures
-plt.show()
+#plt.show()

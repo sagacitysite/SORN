@@ -88,7 +88,8 @@ class CountingSource(AbstractSource):
         self.N_u_i = int(N_u_i)
         self.avoid = avoid
         self.permute_ambiguous = permute_ambiguous
-        self.alphabet = unique("".join(words))
+        self.alphabet = set("".join(words))
+        #self.alphabet = unique("".join(words))
         self.N_a = len(self.alphabet)
         self.lookup = dict(zip(self.alphabet,range(self.N_a)))
         self.glob_ind = [0]
@@ -192,10 +193,12 @@ class CountingSource(AbstractSource):
         return ans           
             
     def char(self):
+        # self.words contains array of words (ABCD, EFGH) and self.word_index contains the current index (0 or 1)
         word = self.words[self.word_index]
         return word[self.ind]
 
     def index(self):
+        # Get character of char() function
         character = self.char()
         ind = self.lookup[character]
         return ind
