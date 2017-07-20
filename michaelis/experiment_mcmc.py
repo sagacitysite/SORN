@@ -138,7 +138,7 @@ class Experiment_mcmc(AbstractExperiment):
         print('\nRun training:')
         sorn.simulation(c.steps_noplastic_train)
         
-        # Run with spont
+        # Run with spont (input u is always zero)
         spontsource = NoSource(sorn.source.source.N_a)
         sorn.source = spontsource
         shuffle(sorn.x)

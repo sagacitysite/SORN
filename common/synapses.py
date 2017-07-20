@@ -318,15 +318,15 @@ class FullSynapticMatrix(AbstractSynapticMatrix):
             # eta_ds implies that it only converges to scaled version
             Z[:] = 1
         if any(abs(Z-1.0)>eps):
-            print shape(self.W)
-            print self.W.sum(0)
-            print self.W.sum(1)
+            print(shape(self.W))
+            print(self.W.sum(0))
+            print(self.W.sum(1))
             ind = abs(Z-1.0)>eps
-            print find(ind)
-            print ("Difference from 1:",Z[ind]-1.0)
+            print(find(ind))
+            print("Difference from 1:",Z[ind]-1.0)
             self.ss()
             Z = self.W.sum(1)
-            print ("Difference after trying to fix it:",Z[ind]-1.0)
+            print("Difference after trying to fix it:",Z[ind]-1.0)
 
         assert np.all(self.W >= 0.0)
         assert np.all(self.W <= 1.0)
@@ -344,7 +344,7 @@ class SparseSynapticMatrix(AbstractSynapticMatrix):
         if not self.c.has_key('eta_ss'):
             self.c.eta_ss = 1
         (M,N) = shape
-        # c.lamb := number of outgoing synapses
+        # c.lamb := number of outgoing synapses (average number of connections)
         if c.lamb > M:
             p = 1.0
         else:
@@ -369,7 +369,8 @@ class SparseSynapticMatrix(AbstractSynapticMatrix):
             ns[ns<=0] = 1
         else:
             j_s = range(N)
-            
+
+        # Randomly generate weights and assign them to weights matrix
         for i in range(M):
             data = np.random.rand(ns[i])
             data /= sum(data)+1e-10
@@ -444,6 +445,7 @@ class SparseSynapticMatrix(AbstractSynapticMatrix):
             self.struct_p_count = 0
             self.struct_p_list = []
 
+    # Spike Time Dependend Plasticity
     def stdp(self,from_old,from_new,to_old=None,to_new=None):
         c = self.c
         if not c.has_key('eta_stdp'):
@@ -457,8 +459,11 @@ class SparseSynapticMatrix(AbstractSynapticMatrix):
         col = np.repeat(np.arange(N),np.diff(self.W.indptr))
         row = self.W.indices
         data = self.W.data
+
+        # Lazaar 2009, equation 5
         dw = (to_new[row]*from_old[col] - \
                 to_old[row]*from_new[col]) # Suitable for CSC
+
         if c.has_key('weighted_stdp') and c.weighted_stdp:
             dw = dw.astype(float)
             dw[dw>0] = (c.upper_bound-data[dw>0])
@@ -475,11 +480,12 @@ class SparseSynapticMatrix(AbstractSynapticMatrix):
             # triggered depression at this step
             dw[dw<0] *= self.mask[dw<0]
         data += c.eta_stdp*dw
-        self.prune_weights()
+        self.prune_weights() # e.g. remove very small weights
         self.stdp_dw = np.array([sum(dw),sum(dw>0),sum(dw<0)])
 
     def istdp(self,y_old,x):
-        c = self.c
+        print(c.has_key('eta_istdp'))
+
         if not c.has_key('eta_istdp'):
             return
 
@@ -490,7 +496,7 @@ class SparseSynapticMatrix(AbstractSynapticMatrix):
         self.W.data -= c.eta_istdp*\
                        ((1-(x[col]*(1+1.0/c.h_ip)))*y_old[row])
         # can't use W < 0 because W gets 0 often
-        self.W.data[self.W.data<=0] = 0.001 
+        self.W.data[self.W.data<=0] = 0.001
         self.W.data[self.W.data>1.0] = 1.0
         
     def istdp_pos(self,y_old,x):
@@ -507,9 +513,10 @@ class SparseSynapticMatrix(AbstractSynapticMatrix):
         self.W.data[self.W.data<=0] = 0.001 
         self.W.data[self.W.data>1.0] = 1.0
 
+    # Synaptic Scaling
     def ss(self,target=None):
         if target is None:
-            target = abs(self.W).sum(1)
+            target = abs(self.W).sum(1) # sum over axis 1, results in vector, entries should be close to 1
         if self.c.has_key('eta_ds') and self.c.eta_ds > 0:
             (rows,cols) = shape(self.W)
             col = np.repeat(np.arange(cols),np.diff(self.W.indptr))
@@ -613,28 +620,28 @@ class SparseSynapticMatrix2D(SparseSynapticMatrix):
         self.R=np.zeros(shape)
         if c.has_key("periodic") and c.periodic == True:
             for i in xrange(N):
-        		for j in xrange(N):     			
-        			dx = self.X[i]-self.X[j]
-        			dy = self.Y[i]-self.Y[j]
-        			#modify according to periodicity
-        			dhalf = c.A / 2
-        			if dx >= dhalf:
-        				dx = dx - c.A
-        			if dx < -dhalf:
-        				dx = dx + c.A
-        			if dy >= dhalf:
-        				dy = dy - c.A
-        			if dy < -dhalf:
-        				dy = dy + c.A      			
-        			R_2=dx*dx + dy*dy
-        			self.R[i,j] = np.sqrt(R_2)
+                for j in xrange(N):
+                    dx = self.X[i]-self.X[j]
+                    dy = self.Y[i]-self.Y[j]
+                    #modify according to periodicity
+                    dhalf = c.A / 2
+                    if dx >= dhalf:
+                        dx = dx - c.A
+                    if dx < -dhalf:
+                        dx = dx + c.A
+                    if dy >= dhalf:
+                        dy = dy - c.A
+                    if dy < -dhalf:
+                        dy = dy + c.A
+                    R_2=dx*dx + dy*dy
+                    self.R[i,j] = np.sqrt(R_2)
         else:
             for i in xrange(N):
-        		for j in xrange(N):
-        			dx = self.X[i]-self.X[j]
-        			dy = self.Y[i]-self.Y[j]
-        			R_2=dx*dx + dy*dy
-        			self.R[i,j] = np.sqrt(R_2)
+                for j in xrange(N):
+                    dx = self.X[i]-self.X[j]
+                    dy = self.Y[i]-self.Y[j]
+                    R_2=dx*dx + dy*dy
+                    self.R[i,j] = np.sqrt(R_2)
         print "separation matrix:"
         print self.R
         
@@ -659,18 +666,18 @@ class SparseSynapticMatrix2D(SparseSynapticMatrix):
             # check self-connection and unoccupied
             if c.avoid_self_connections:
                 while i==j or W_dok[i,j] != 0:
-                	i = np.random.randint(0,N)
-                	j = np.random.randint(0,N)
+                    i = np.random.randint(0,N)
+                    j = np.random.randint(0,N)
             else:
-            	while W_dok[i,j] != 0:
-            		i = np.random.randint(0,N)
-            		j = np.random.randint(0,N)
+                while W_dok[i,j] != 0:
+                    i = np.random.randint(0,N)
+                    j = np.random.randint(0,N)
             # check probability, generate connection if good
             if self.P[i,j] > 0. and np.random.rand() < self.P[i,j]:
                 W_dok[i,j] = np.random.rand()
-				#print W_dok[i,j]
+                #print(W_dok[i,j])
                 count +=1
-                print count
+                print(count)
        
         #finish it up
         self.W = W_dok.tocsc()

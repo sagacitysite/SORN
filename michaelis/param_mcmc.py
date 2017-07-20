@@ -9,7 +9,7 @@ from common.defaults import *
 c.N_e = 200
 c.N_i = int(np.floor(0.2*c.N_e))
 c.N = c.N_e + c.N_i
-c.N_u_e = np.floor(0.05*c.N_e)
+c.N_u_e = np.floor(0.05*c.N_e) # 10 connections from any input to the excitatory neurons
 c.N_u_i = 0
 
 c.double_synapses = False

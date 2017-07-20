@@ -122,8 +122,10 @@ class Sorn(object):
             noise = c.noise_sig*np.random.randn(c.N_e)
             self.R_x += noise
         if not c.ff_inhibition_broad == 0:
-            self.R_x -= c.ff_inhibition_broad   
-        x_temp = self.R_x+c.input_gain*(self.W_eu*u_new) # Add input to current activation of network
+            self.R_x -= c.ff_inhibition_broad
+
+        # Add input to current activation of network
+        x_temp = self.R_x+c.input_gain*(self.W_eu*u_new)
 
         if c.k_winner_take_all:
             expected = int(round(c.N_e * c.h_ip))

@@ -151,20 +151,26 @@ class CountingSource(AbstractSource):
         return CountingSource(words, probs, N_u_e, N_u_i,avoid=avoiding)
 
     def generate_connection_e(self,N_e):
-        W = zeros((N_e,self.N_a))
+        W = zeros((N_e,self.N_a)) # excitatory neurons X input neurons
 
-        available = set(range(N_e))
+        available = set(range(N_e)) # range from 1 to number of excitatory neurons
         for a in range(self.N_a):
+            # e.g. connections from first input to 10 sampled excitatory neurons (out of 200)
             temp = random.sample(available,self.N_u_e)
+            # Set weight of sampled connections to 1
             W[temp,a] = 1
-            if self.avoid:
+            if self.avoid: # if self-connections should be avoided
                 available = available.difference(temp)
-                
+
+        # Check if the letter underscore _ is part of the letter sequence
+        # If it is part of the sequence, set their weights to zero (no input)
+
         # The underscore has the special property that it doesn't 
         # activate anything:
         if '_' in self.lookup:
             W[:,self.lookup['_']] = 0
 
+        # Instantiate synapses object and add connections to it
         c = utils.Bunch(use_sparse=False,
                         lamb=np.inf,
                         avoid_self_connections=False)
@@ -340,9 +346,11 @@ class TrialSource(AbstractSource):
         return self.source.global_index()
         
     def generate_connection_e(self, N_e):
+        # Calls generate_connection_e from source defined in param_*.py
         return self.source.generate_connection_e(N_e)
         
     def generate_connection_i(self, N_i):
+        # Calls generate_connection_i from source defined in param_*.py
         return self.source.generate_connection_i(N_i)
         
     def update_W_eu(self,W_eu):
