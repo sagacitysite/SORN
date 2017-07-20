@@ -22,9 +22,11 @@ class AbstractExperiment(object):
         '''This is called at every iteration on the cluster.'''
         sorn.update = self.params.c.with_plasticity
         if not self.params.c.with_plasticity:
-            sorn.c.eta_ip = 0
+            sorn.c.eta_ip = 0 # set learning rate to zero => not intrinsic plasticity
         else:
-            sorn.c.eta_ip = self.eta_ip
+            sorn.c.eta_ip = self.eta_ip # set learning rate to eta => intrinsic plasticity
+
+        # Unspecific feed forward (ff) inhibition (?)
         sorn.c.ff_inhibition_broad = self.ff_inhibition_broad
 
     def run(self,sorn):

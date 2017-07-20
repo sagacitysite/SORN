@@ -72,22 +72,26 @@ class Sorn(object):
             self.W_ee_2.c.eta_ss = wee2_etass
 
         # Initialize the activation of neurons
+        # x: activation of excitatory neurons {0,1}, y: activation of inhibitory neurons {0,1}
+        # u: input activation
         self.x = rand(c.N_e)<c.h_ip
         self.y = zeros(c.N_i)
-        self.u = source.next()
+        self.u = source.next()  # Get next input vector
 
-        # Initialize the pre-threshold variables
+        # Initialize the pre-threshold variables (= activation)
         self.R_x = zeros(c.N_e)
         self.R_y = zeros(c.N_i)
 
         # Initialize thresholds
-        if c.ordered_thresholds: # From Lazar2011
+        if c.ordered_thresholds: # From Lazar2011, true: evenly spaced thresholds
+            # Evenly arranged between T_i_min and T_i_max (e.g. 100 values between 0 and 0.35)
             self.T_i = (arange(c.N_i)+0.5)*((c.T_i_max-c.T_i_min)/
                                                    (1.*c.N_i))+c.T_i_min
             self.T_e = (arange(c.N_e)+0.5)*((c.T_e_max-c.T_e_min)/
                                                    (1.*c.N_e))+c.T_e_min
+            # Excitatory thresholds are shuffeld, inhibitory not: TODO Why?
             shuffle(self.T_e)
-        else:
+        else: # false: random thresholds
             self.T_i = c.T_i_min + rand(c.N_i)*(c.T_i_max-c.T_i_min)
             self.T_e = c.T_e_min + rand(c.N_e)*(c.T_e_max-c.T_e_min)
 
@@ -113,13 +117,13 @@ class Sorn(object):
             self.R_x = ((self.W_ee*self.x+self.W_ee_2*self.x)
                         -self.W_ei*self.y-self.T_e)
         else:
-            self.R_x = self.W_ee*self.x-self.W_ei*self.y-self.T_e
+            self.R_x = self.W_ee*self.x-self.W_ei*self.y-self.T_e # Lazar 2009, equation 3
         if not c.noise_sig == 0:
             noise = c.noise_sig*np.random.randn(c.N_e)
             self.R_x += noise
         if not c.ff_inhibition_broad == 0:
             self.R_x -= c.ff_inhibition_broad   
-        x_temp = self.R_x+c.input_gain*(self.W_eu*u_new)
+        x_temp = self.R_x+c.input_gain*(self.W_eu*u_new) # Add input to current activation of network
 
         if c.k_winner_take_all:
             expected = int(round(c.N_e * c.h_ip))
@@ -127,7 +131,7 @@ class Sorn(object):
             # the next line fails when c.h_ip == 1
             x_new = (x_temp > x_temp[ind[-expected-1]])+0 
         else:
-            x_new = (x_temp >= 0.0)+0
+            x_new = (x_temp >= 0.0)+0 # Heaviside step function: 1 if x_temp is greater zero, 0 else
             if not c.noise_sig == 0:
                 self.noise_spikes += sum(abs(x_new-((x_temp-noise)>=0)))
 
@@ -136,12 +140,13 @@ class Sorn(object):
         else:
             x_used = self.x
 
+        # Activation of inhibitory neurons with either calculated x or original x
         self.R_y = self.W_ie*x_used - self.T_i
         if self.c.ff_inhibition:
             self.R_y += self.W_iu*u_new
         if not c.noise_sig == 0:
             self.R_y += c.noise_sig*np.random.randn(c.N_i)
-        y_new = (self.R_y >= 0.0)+0
+        y_new = (self.R_y >= 0.0)+0 # Heaviside step function: 1 if R_y is greater zero, 0 else
 
         # Apply plasticity mechanisms
         # Always apply IP

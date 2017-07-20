@@ -37,8 +37,10 @@ experiment = getattr(experiment_module,experiment_name)(param)
 c = param.c
 c.logfilepath = utils.logfilename('')+'/'
 
+# Initialize experiment (source and statictics)
 (source,stats_single,_) = experiment.start()
 
+# Initialize SORN network, has simulation() and step() function
 sorn = Sorn(c,source)
 
 # Create a StatsCollection and fill it with methods for all statistics
@@ -74,7 +76,7 @@ for key in pickle_objects:
 # according to firing rate for each inputindex
 if sorn.c.stats.control_rates:
     experiment.control_rates(sorn)
-                                    
+
 # Report stats and close
 stats.single_report()
 stats.disable = True

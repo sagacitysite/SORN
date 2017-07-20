@@ -316,6 +316,7 @@ class TrialSource(AbstractSource):
         if not self.source.trial_finished():
             return self.source.next()
         else:
+            # Return blank as long as blank should be returned, else return next value?
             if self.blank_step >= self.blank_length:
                 self.blank_step = 0
                 self._reset_source()

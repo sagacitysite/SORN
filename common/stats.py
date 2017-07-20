@@ -102,7 +102,7 @@ class HistoryStat(AbstractStat):
         try:
             return array(c.history[self.name])
         except ValueError as v:
-            print 'Error in stats.py', v, self.name
+            print('Error in stats.py', v, self.name)
             #~ import pdb
             #~ pdb.set_trace()
 

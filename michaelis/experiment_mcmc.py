@@ -14,7 +14,8 @@ class Experiment_mcmc(AbstractExperiment):
     def start(self):
         super(Experiment_mcmc,self).start()
         c = self.params.c
-        
+
+        # In case we are using cluster calculation?
         if self.cluster_param == 'source.prob':
             prob = c.source.prob
             assert(prob>=0 and prob<=1)
@@ -23,33 +24,43 @@ class Experiment_mcmc(AbstractExperiment):
                                           np.array([[prob,1.0-prob],
                                                     [prob,1.0-prob]]),
                                           c.N_u_e,c.source.avoid)
-        
+
+        # Random source? Parameter is false, so actually not used
         if c.source.use_randsource:
             self.params.source = CountingSource.init_simple(
                     c.source.N_words,
                     c.source.N_letters,c.source.word_length,
                     c.source.max_fold_prob,c.N_u_e,c.N_u_i,
                     c.source.avoid)
-                    
+
+        # Make inputsource out of source by using TrialSource object from sources.py
+        # It now has some nice methods to deal with the network, like generate connections, etc.
         self.inputsource = TrialSource(self.params.source, 
                          c.wait_min_plastic, c.wait_var_plastic, 
                          zeros(self.params.source.N_a), 'reset')
         
         # Stats
-        inputtrainsteps = c.steps_plastic + c.steps_noplastic_train
-        # For PatternProbabilityStat
+        inputtrainsteps = c.steps_plastic + c.steps_noplastic_train  # steps during self-organization + steps for first phase w/o plasticity
+
+        # Begin: For PatternProbabilityStat
+        # Set burn-in phase to half of steps for 2nd phase w/o plasticity, but maximum 3000
         if c.steps_noplastic_test > 6000:
             burnin = 3000
         else:
             burnin = c.steps_noplastic_test//2
+
+        # Shuffle indices of excitatory neurons
         shuffled_indices = arange(c.N_e)
         np.random.shuffle(shuffled_indices)
-        N_subset = 8
-        start_train = c.steps_plastic+burnin
-        half_train = start_train+(inputtrainsteps-start_train)//2
-        start_test = inputtrainsteps+burnin
-        half_test = start_test+(c.N_steps-start_test)//2
-        
+
+        N_subset = 8 # 8
+        start_train = c.steps_plastic+burnin  # step when training begins
+        half_train = start_train+(inputtrainsteps-start_train)//2  # step when network is half trained
+        start_test = inputtrainsteps+burnin  # step when testing begins
+        half_test = start_test+(c.N_steps-start_test)//2  # step when network is half tested
+        # End: For PatternProbabilityStat
+
+        # Initialize statistics
         stats_all = [
                      InputIndexStat(),
                      SpikesStat(),
@@ -67,6 +78,7 @@ class Experiment_mcmc(AbstractExperiment):
                                         c.steps_noplastic_train], 
                                         traintest=c.stats.quenching),
                     ]
+
         stats_single = [
                          ActivityStat(),
                          SpikesStat(inhibitory=True),
@@ -91,9 +103,12 @@ class Experiment_mcmc(AbstractExperiment):
                          WeightHistoryStat('W_eu',
                                            record_every_nth=9999999)
                         ]
-        if c.double_synapses:
+
+        if c.double_synapses:  # if we have two excitatory synapses for each connection
             stats_single += [WeightHistoryStat('W_ee_2',
                                            record_every_nth=100)]
+
+        # Return inputsource and statistics
         return (self.inputsource,stats_all+stats_single,stats_all)
         
     def reset(self,sorn):
@@ -106,17 +121,21 @@ class Experiment_mcmc(AbstractExperiment):
     def run(self,sorn):
         super(Experiment_mcmc,self).run(sorn)
         c = self.params.c
-        
+
+        print('Run self organization:')
         sorn.simulation(c.steps_plastic)
         sorn.update = False
         # Run with trials
+        # self.inputsource.source.N_a: Size of input source (letters, sequences), e.g. 4
         trialsource = TrialSource(self.inputsource.source, 
                                   c.wait_min_train, c.wait_var_train, 
                                   zeros(self.inputsource.source.N_a), 
                                   'reset')
+
         sorn.source = trialsource
-        shuffle(sorn.x)
-        shuffle(sorn.y)
+        shuffle(sorn.x) # {0,1}
+        shuffle(sorn.y) # {0,1}
+        print('\nRun training:')
         sorn.simulation(c.steps_noplastic_train)
         
         # Run with spont
@@ -128,6 +147,8 @@ class Experiment_mcmc(AbstractExperiment):
         sorn.c.ff_inhibition_broad = 0
         if not c.always_ip:
             sorn.c.eta_ip = 0
+
+        print('\nRun testing:')
         sorn.simulation(c.steps_noplastic_test)
         
         return {'source_plastic':self.inputsource,
