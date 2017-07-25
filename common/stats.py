@@ -48,7 +48,7 @@ class AbstractStat(object):
         from self.name and self.collection respectively. Or return a
         list of tuples and give name, collection and data explicitly.'''
         #Called after a block of training has occurred
-        raise NotImplementedError("Bad user!")
+        raise NotImplementedError("Bad user! report function was not implemented in stats method")
 
 class CounterStat(AbstractStat):
     '''A simple stat that counts the number of add() calls.'''

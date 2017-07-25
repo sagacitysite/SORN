@@ -6,10 +6,10 @@ utils.backup(__file__)
 # see this file for parameter descriptions
 from common.defaults import *
 
-c.N_e = 200
+c.N_e = 200 #200
 c.N_i = int(np.floor(0.2*c.N_e))
 c.N = c.N_e + c.N_i
-c.N_u_e = np.floor(0.05*c.N_e) # 10 connections from any input to the excitatory neurons
+c.N_u_e = np.floor(0.05*c.N_e) #np.floor(0.05*c.N_e) # 10 connections from any input to the excitatory neurons
 c.N_u_i = 0
 
 c.double_synapses = False
@@ -38,7 +38,7 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      avoid_self_connections=False)
 
 c.steps_plastic = 5000 #50000
-c.steps_noplastic_train = 20000 #20000
+c.steps_noplastic_train = 10000 #20000
 c.steps_noplastic_test = 5000 #50000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
                             + c.steps_noplastic_test
@@ -84,6 +84,7 @@ c.stats.match = False
 c.stats.lstsq_mue = 1
 c.stats.control_rates = False
 c.stats.ISI_step = 4
+# c.stats.only_last = 3000 # affects many stats: take only last x steps
 
 # Following parameters for randsource
 c.source.use_randsource = False
@@ -110,12 +111,13 @@ c.source.control = False # For sequence_test
 #~ source = RandomLetterSource(c.source.N_letters,c.N_u_e,c.N_u_i,
                             #~ c.source.avoid)
 from common.sources import CountingSource
-source = CountingSource(['A','B','C','D'],
-                         np.array([[0.2, 0.8, 0, 0],
-                                   [0, 0.2, 0.8, 0],
-                                   [0, 0, 0.2, 0.8],
-                                   [0.8, 0, 0, 0.2]]),
-             c.N_u_e,c.N_u_i,c.source.avoid)
+states = ['A','B','C','D']
+c.source.transitions = np.array([[0.2, 0.8, 0, 0],
+                               [0, 0.2, 0.8, 0],
+                               [0, 0, 0.2, 0.8],
+                               [0.8, 0, 0, 0.2]])
+source = CountingSource(states,c.source.transitions,
+                        c.N_u_e,c.N_u_i,c.source.avoid)
                         
 c.wait_min_plastic = 0
 c.wait_var_plastic = 0

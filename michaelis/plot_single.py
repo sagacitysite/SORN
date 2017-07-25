@@ -50,7 +50,7 @@ def parallel_stats(W_ee_h,W_ee2_h):
         # return median development and final means/stds
         return meandiff, medcv, means, stds
 
-def plot_results(result_path,result):
+def plot_results(result_path,result,c):
     pretty_mpl_defaults()
     h5 = tables.openFile(os.path.join(result_path,result),'r')
     data = h5.root 
@@ -1308,54 +1308,13 @@ def plot_results(result_path,result):
 
 
     if data.__contains__('SpontTransition'):
-        print 'plot SpontTransition'
-        transitions = data.SpontTransition[0]
-        for i in range(shape(transitions)[0]):
-            transitions[:,i] /= sum(transitions[:,i])# normalize
-        figure()
-        im = imshow(transitions,interpolation='none',vmin=0, 
-                                                 vmax=1)
-        xlabel('From')
-        ylabel('To')
-        ax = gca()
-        ax.set_xticks(arange(len(words_subscript)))
-        ax.set_xticklabels(array([x for x in words_subscript]))
-        ax.set_yticks(arange(len(words_subscript)))
-        ax.set_yticklabels(array([x for x in words_subscript]))
-        colorbar(im, use_gridspec=True)
-        tight_layout()
-        utils.saveplot('Spont_transitions_%s.%s'\
-                        %(data.c.stats.file_suffix[0],ftype))
-                        
-        # Predict spontpatterns from transitions
-        av_trans = np.zeros(len(words)*2)
-        w_i = 0
-        for (i,word) in enumerate(words):
-            wlen = len(word)
-            for j in range(wlen-1):
-                av_trans[i] += transitions[w_i+j+1,w_i+j]
-                av_trans[i+len(words)] += transitions[w_i+wlen-j-2,
-                                                      w_i+wlen-j-1]
-            w_i += wlen
-            av_trans[i] /= wlen-1
-            av_trans[i+len(words)] /= wlen-1
-        figure()
-        bar(arange(shape(av_trans)[0]),av_trans,\
-            align='center')
-        ax = gca()
-        ax.set_xticks(arange(len(words)*2))
-        ax.set_xticklabels(words + [x[::-1] for x in words],rotation=30)
-        #~ title('Pattern Frequencies')
-        ylabel('Average transition probability')
-        tight_layout()
-        utils.saveplot('AvTrans_%s.%s'\
-                        %(data.c.stats.file_suffix[0],ftype))
+        plotSpontTransition(data, c, words, words_subscript)
     
 ### Plot SpontPCA
     #assumption: if spontpattern, then also spikes and indices
     if (data.__contains__('Spikes') and 
         data.__contains__('SpontPattern')):
-        print 'plot SpontPCA'
+        print('plot SpontPCA')
         steps_noplastic_test = data.c.steps_noplastic_test[0]
         input_spikes = data.Spikes[0][:,0:-steps_noplastic_test]
         spont_spikes = data.Spikes[0][:,-steps_noplastic_test:]
@@ -2404,7 +2363,60 @@ def plot_results(result_path,result):
         utils.saveplot('SVD_pred_%s.%s'\
                         %(data.c.stats.file_suffix[0],ftype))
         
-            
+
+def plotSpontTransition(data, c, words, words_subscript):
+    print('plot SpontTransition')
+    transitions = data.SpontTransition[0]
+    for i in range(shape(transitions)[0]):
+        transitions[:, i] /= sum(transitions[:, i])  # normalize
+    figure()
+    im = imshow(transitions, interpolation='none', vmin=0, vmax=1)
+    xlabel('From')
+    ylabel('To')
+    ax = gca()
+    ax.set_xticks(arange(len(words_subscript)))
+    ax.set_xticklabels(array([x for x in words_subscript]))
+    ax.set_yticks(arange(len(words_subscript)))
+    ax.set_yticklabels(array([x for x in words_subscript]))
+    colorbar(im, use_gridspec=True)
+    tight_layout()
+    utils.saveplot('Spont_transitions_after_%s.%s' \
+                   % (data.c.stats.file_suffix[0], ftype))
+
+    print('original transitions')
+    transitions_org = np.array([[0.2, 0.8, 0, 0],
+                               [0, 0.2, 0.8, 0],
+                               [0, 0, 0.2, 0.8],
+                               [0.8, 0, 0, 0.2]])
+    print(np.transpose(c.source.transitions))
+    im = imshow(np.transpose(c.source.transitions), interpolation='none', vmin=0, vmax=1)
+    utils.saveplot('Spont_transitions_before_%s.%s' \
+                   % (data.c.stats.file_suffix[0], ftype))
+
+    # Predict spontpatterns from transitions
+    av_trans = np.zeros(len(words) * 2)
+    w_i = 0
+    for (i, word) in enumerate(words):
+        wlen = len(word)
+        for j in range(wlen - 1):
+            av_trans[i] += transitions[w_i + j + 1, w_i + j]
+            av_trans[i + len(words)] += transitions[w_i + wlen - j - 2,
+                                                    w_i + wlen - j - 1]
+        w_i += wlen
+        av_trans[i] /= wlen - 1
+        av_trans[i + len(words)] /= wlen - 1
+    figure()
+    bar(arange(shape(av_trans)[0]), av_trans, \
+        align='center')
+    ax = gca()
+    ax.set_xticks(arange(len(words) * 2))
+    ax.set_xticklabels(words + [x[::-1] for x in words], rotation=30)
+    # ~ title('Pattern Frequencies')
+    ylabel('Average transition probability')
+    tight_layout()
+    utils.saveplot('AvTrans_%s.%s' \
+                   % (data.c.stats.file_suffix[0], ftype))
+
 if __name__=='__main__':        
     plot_results(path,datafile)
     show()

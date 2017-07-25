@@ -232,7 +232,7 @@ class SpontPatternStat(AbstractStat):
         # Remove silent periods from spontspikes
         last_spont_spikes = last_spont_spikes[:,sum(last_spont_spikes,0)>0]
         N_comp_spont = shape(last_spont_spikes)[1]
-        
+
         # Find for each spontaneous state the evoked state with the
         # smallest hamming distance and store the corresponding index
         similar_input = zeros(N_comp_spont)
@@ -281,8 +281,10 @@ class SpontTransitionStat(AbstractStat):
         similar_input = c.similar_input # from SpontPatternStat
         maxindex = c.maxindex
         transitions = np.zeros((maxindex+1,maxindex+1))
+
+        # From the last N_comparison steps (see NormLastStat) count transitions
         for (i_from, i_to) in zip(similar_input[:-1],similar_input[1:]):
-            transitions[i_to,i_from] += 1
+            transitions[int(i_to),int(i_from)] += 1
         return transitions
         
 class SpontIndexStat(AbstractStat):

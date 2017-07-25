@@ -3,8 +3,8 @@ from pylab import *
 import utils
 utils.backup(__file__)
 
-from chartmann.plot_single import plot_results as plot_results_single
-from chartmann.plot_cluster import (plot_results 
+from michaelis.plot_single import plot_results as plot_results_single
+from michaelis.plot_cluster import (plot_results
                                     as plot_results_cluster)
 from common.sources import CountingSource, TrialSource, NoSource
 from common.experiments import AbstractExperiment
@@ -75,33 +75,33 @@ class Experiment_mcmc(AbstractExperiment):
                             testtimes =[c.steps_plastic+
                                         c.steps_noplastic_train//2,
                                         c.steps_plastic+
-                                        c.steps_noplastic_train], 
+                                        c.steps_noplastic_train],
                                         traintest=c.stats.quenching),
                     ]
 
         stats_single = [
-                         ActivityStat(),
-                         SpikesStat(inhibitory=True),
-                         ISIsStat(interval=[start_test,c.N_steps]),
-                         ConnectionFractionStat(),
-                         EndWeightStat(),
-                         #~ BalancedStat(), # takes lots of time and mem
-                         CondProbStat(),
-                         SpontIndexStat(),
-                         SVDStat(),
-                         SVDStat_U(),
-                         SVDStat_V(),
-                         SpontTransitionStat(),
-                         InputUnitsStat(),
-                         PatternProbabilityStat(
-                                        [[start_train,half_train],
-                                         [half_train,inputtrainsteps],
-                                         [start_test,half_test],
-                                         [half_test,c.N_steps]],
-                                          shuffled_indices[:N_subset]),
-                         WeightHistoryStat('W_ee',record_every_nth=100),
-                         WeightHistoryStat('W_eu',
-                                           record_every_nth=9999999)
+                         # ActivityStat(),
+                         # SpikesStat(inhibitory=True),
+                         # ISIsStat(interval=[start_test,c.N_steps]),
+                         # ConnectionFractionStat(),
+                         # EndWeightStat(),
+                         # #~ BalancedStat(), # takes lots of time and mem
+                         # CondProbStat(),
+                         # SpontIndexStat(),
+                         # SVDStat(),
+                         # SVDStat_U(),
+                         # SVDStat_V(),
+                         SpontTransitionStat()#,
+                         # InputUnitsStat(),
+                         # PatternProbabilityStat(
+                         #                [[start_train,half_train],
+                         #                 [half_train,inputtrainsteps],
+                         #                 [start_test,half_test],
+                         #                 [half_test,c.N_steps]],
+                         #                  shuffled_indices[:N_subset]),
+                         # WeightHistoryStat('W_ee',record_every_nth=100),
+                         # WeightHistoryStat('W_eu',
+                         #                   record_every_nth=9999999)
                         ]
 
         if c.double_synapses:  # if we have two excitatory synapses for each connection
@@ -156,6 +156,6 @@ class Experiment_mcmc(AbstractExperiment):
                 'source_test':spontsource}
      
     def plot_single(self,path,filename):
-        plot_results_single(path,filename)
+        plot_results_single(path,filename,self.params.c)
     def plot_cluster(self,path,filename):
         plot_results_cluster(path,filename)
