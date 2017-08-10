@@ -157,13 +157,16 @@ class NormLastStat(AbstractStat):
         steps_noplastic_train = sorn.c.steps_noplastic_train
         steps_noplastic_test = sorn.c.steps_noplastic_test
         plastic_train = steps_plastic+steps_noplastic_train
-        input_spikes = c.spikes[:,steps_plastic:plastic_train]
+
+        # Index of input state (e.g. A: 0, B: 1, etc.) while training
         input_index = c.inputindex[steps_plastic:plastic_train]
+        # Active spikes while training
+        input_spikes = c.spikes[:, steps_plastic:plastic_train]
 
         # Filter out empty states
         input_spikes = input_spikes[:,input_index != -1]
         input_index = input_index[input_index != -1]
-        
+
         if sorn.c.stats.has_key('only_last'):
             N_comparison = sorn.c.stats.only_last
         else:
@@ -171,7 +174,7 @@ class NormLastStat(AbstractStat):
         assert(N_comparison > 0)
         assert(N_comparison <= steps_noplastic_test \
              and N_comparison <= steps_noplastic_train)
-        maxindex = int(max(input_index))
+        maxindex = int(max(input_index)) # Highest index of input, e.g. if we have A to D: 3 (equals D) is highest
         
         # Only use spikes that occured at the end of learning and spont
         last_input_spikes = input_spikes[:,-N_comparison:]
@@ -205,8 +208,8 @@ class NormLastStat(AbstractStat):
         norm_last_input_index = norm_last_input_index[indices]
         norm_last_input_spikes = norm_last_input_spikes[:,indices]
         c.norm_last_input_index = norm_last_input_index
-        c.norm_last_input_spikes = norm_last_input_spikes   
-        c.maxindex = maxindex  
+        c.norm_last_input_spikes = norm_last_input_spikes
+        c.maxindex = maxindex
         c.N_comparison = N_comparison
         to_return = array([float(N_comparison)])
         return to_return
@@ -227,19 +230,22 @@ class SpontPatternStat(AbstractStat):
         maxindex = c.maxindex
         N_comparison = c.N_comparison
         
-        last_spont_spikes = spont_spikes[:,-N_comparison:]
+        #last_spont_spikes = spont_spikes[:,-N_comparison:]
+        last_spont_spikes = spont_spikes
                 
         # Remove silent periods from spontspikes
         last_spont_spikes = last_spont_spikes[:,sum(last_spont_spikes,0)>0]
-        N_comp_spont = shape(last_spont_spikes)[1]
+        N_comp_spont = shape(last_spont_spikes)[1] # Number of spontaneous trials which are not silent
 
         # Find for each spontaneous state the evoked state with the
         # smallest hamming distance and store the corresponding index
         similar_input = zeros(N_comp_spont)
         for i in xrange(N_comp_spont):
+            # One spontaneous state is subtracted from all input states (broadcasting is used)
             most_similar = argmin(sum(abs(norm_last_input_spikes.T\
                                 -last_spont_spikes[:,i]),axis=1))
             similar_input[i] = norm_last_input_index[most_similar]
+
         # Count the number of spontaneous states for each index and plot
         index = range(maxindex+1)
         if self.collection == 'gatherv':
@@ -272,20 +278,75 @@ class SpontPatternStat(AbstractStat):
             pattern_freqs[:,-1] = -1
         c.similar_input = similar_input
         return(pattern_freqs)
-        
+
+class SpontTransitionAllStat(AbstractStat):
+    """
+        Evaluates all states in spontaneous activity
+    """
+    def __init__(self):
+        self.name = 'SpontTransitionAll'
+        self.collection = 'gather'
+
+    def getTransition(self, input):
+        maxindex = self.c.maxindex
+        transitions = np.zeros((maxindex + 1, maxindex + 1))
+
+        # From all steps count transitions
+        for (i_from, i_to) in zip(input[:-1], input[1:]):
+            transitions[int(i_to), int(i_from)] += 1
+
+        # Normalize transitions
+        for i in range(shape(transitions)[0]):
+            transitions[:, i] /= sum(transitions[:, i])
+
+        return(transitions)
+
+    def report(self, c, sorn):
+        self.c = c
+        self.sorn = sorn
+        similar_input = c.similar_input  # from SpontPatternStat
+        transition_step_size = sorn.c.stats.transition_step_size
+
+        print(transition_step_size)
+        num_transition_steps = int(round((np.size(similar_input) / transition_step_size) + 0.5))
+        print(num_transition_steps)
+
+        # Split into in equally sized parts and discard the rest, since it's not equal to the others
+        split_input = np.array_split(similar_input, num_transition_steps)[:-1]
+        print(np.shape(split_input))
+
+        sys.exit()
+
+        ### TODO
+
+        transition_matrices = np.zeros(np.shape(split_input))
+
+        for input in split_input:
+            np.append(transition_matrices, getTransition(input))
+
+
+        c.transitions = transitions
+        print('SpontTransitionAllStat')
+        print(np.shape(transitions))
+        return(transitions)
+
 class SpontTransitionStat(AbstractStat):
+    """
+        Evaluates last N_comparison (see NormLastStat) states in spontaneous activity
+    """
     def __init__(self):
         self.name = 'SpontTransition'
         self.collection = 'gather'
-    def report(self,c,sorn):
-        similar_input = c.similar_input # from SpontPatternStat
-        maxindex = c.maxindex
-        transitions = np.zeros((maxindex+1,maxindex+1))
 
-        # From the last N_comparison steps (see NormLastStat) count transitions
-        for (i_from, i_to) in zip(similar_input[:-1],similar_input[1:]):
-            transitions[int(i_to),int(i_from)] += 1
-        return transitions
+    def report(self, c, sorn):
+        if not c.has_key('transitions'):
+            raise Exception('SpontTransitionAllStat() needs to be called before SpontTransitionStat(). Please have a look to your experiment file.')
+
+        N_comparison = c.N_comparison # see NormLastStat
+        transitions = c.transitions
+        print('SpontTransitionStat')
+        print(np.shape(transitions[:,-N_comparison:]))
+        return(transitions[:,-N_comparison:])
         
 class SpontIndexStat(AbstractStat):
     def __init__(self):

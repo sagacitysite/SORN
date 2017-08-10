@@ -91,7 +91,8 @@ class Experiment_mcmc(AbstractExperiment):
                          # SVDStat(),
                          # SVDStat_U(),
                          # SVDStat_V(),
-                         SpontTransitionStat()#,
+                         SpontTransitionAllStat(),
+                         SpontTransitionStat()
                          # InputUnitsStat(),
                          # PatternProbabilityStat(
                          #                [[start_train,half_train],

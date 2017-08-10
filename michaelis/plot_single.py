@@ -2383,12 +2383,16 @@ def plotSpontTransition(data, c, words, words_subscript):
     utils.saveplot('Spont_transitions_after_%s.%s' \
                    % (data.c.stats.file_suffix[0], ftype))
 
-    print('original transitions')
-    transitions_org = np.array([[0.2, 0.8, 0, 0],
-                               [0, 0.2, 0.8, 0],
-                               [0, 0, 0.2, 0.8],
-                               [0.8, 0, 0, 0.2]])
-    print(np.transpose(c.source.transitions))
+    #print('original transitions')
+    #transitions_org = np.array([[0.2, 0.8, 0, 0],
+    #                           [0, 0.2, 0.8, 0],
+    #                           [0, 0, 0.2, 0.8],
+    #                           [0.8, 0, 0, 0.2]])
+    #print(np.transpose(c.source.transitions))
+
+    #print('learned transitions')
+    #print(transitions)
+
     im = imshow(np.transpose(c.source.transitions), interpolation='none', vmin=0, vmax=1)
     utils.saveplot('Spont_transitions_before_%s.%s' \
                    % (data.c.stats.file_suffix[0], ftype))
