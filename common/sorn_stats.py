@@ -304,31 +304,31 @@ class SpontTransitionAllStat(AbstractStat):
     def report(self, c, sorn):
         self.c = c
         self.sorn = sorn
+        maxindex = self.c.maxindex
         similar_input = c.similar_input  # from SpontPatternStat
         transition_step_size = sorn.c.stats.transition_step_size
 
-        print(transition_step_size)
-        num_transition_steps = int(round((np.size(similar_input) / transition_step_size) + 0.5))
-        print(num_transition_steps)
+        print('Initial transistion matrix')
+        print(sorn.c.source.transitions)
 
-        # Split into in equally sized parts and discard the rest, since it's not equal to the others
-        split_input = np.array_split(similar_input, num_transition_steps)[:-1]
-        print(np.shape(split_input))
+        # Calculate number of transitions steps, depending on size per step
+        num_transition_steps = int(round((np.size(similar_input) / transition_step_size) - 0.5))
 
-        sys.exit()
+        # Split into equally sized parts and discard the rest, since it's not equal to the others
+        transition_matrices = np.zeros((num_transition_steps, maxindex + 1, maxindex + 1))
+        for i in range(num_transition_steps):
+            # Get input of current chunk
+            input = similar_input[i*transition_step_size:(i+1)*transition_step_size]
+            # Get transitions for every step
+            transition_matrices[i,] = self.getTransition(input)
 
-        ### TODO
+        #np.set_printoptions(threshold=np.nan)
+        #print('SpontTransitionAllStat')
+        #print(transition_matrices)
 
-        transition_matrices = np.zeros(np.shape(split_input))
+        c.transitions = transition_matrices
 
-        for input in split_input:
-            np.append(transition_matrices, getTransition(input))
-
-
-        c.transitions = transitions
-        print('SpontTransitionAllStat')
-        print(np.shape(transitions))
-        return(transitions)
+        return(transition_matrices)
 
 class SpontTransitionStat(AbstractStat):
     """
@@ -342,11 +342,13 @@ class SpontTransitionStat(AbstractStat):
         if not c.has_key('transitions'):
             raise Exception('SpontTransitionAllStat() needs to be called before SpontTransitionStat(). Please have a look to your experiment file.')
 
-        N_comparison = c.N_comparison # see NormLastStat
+        #N_comparison = c.N_comparison # see NormLastStat
         transitions = c.transitions
-        print('SpontTransitionStat')
-        print(np.shape(transitions[:,-N_comparison:]))
-        return(transitions[:,-N_comparison:])
+
+        #print('SpontTransitionStat')
+        #print(transitions[-1,])
+
+        return(transitions[-1,])
         
 class SpontIndexStat(AbstractStat):
     def __init__(self):
