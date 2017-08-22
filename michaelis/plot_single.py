@@ -1310,6 +1310,9 @@ def plot_results(result_path,result,c):
     if data.__contains__('SpontTransition'):
         plotSpontTransitionGif(data, c, words, words_subscript)
         #plotSpontTransition(data, c, words, words_subscript)
+
+    if data.__contains__('SpontTransitionDistance'):
+        plotSpontTransitionDistances(data, c)
     
 ### Plot SpontPCA
     #assumption: if spontpattern, then also spikes and indices
@@ -2417,6 +2420,10 @@ def plotSpontTransitionGif(data, c, words, words_subscript):
         plotSpontTransition(transition_matrices[i,], c, suffix, i, words, words_subscript)
 
     sys.exit()
+
+def plotSpontTransitionDistances(data, c):
+    distances = data.SpontTransitionDistance[0]
+    # TODO Plot distances
 
 if __name__=='__main__':        
     plot_results(path,datafile)
