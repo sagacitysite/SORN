@@ -2423,7 +2423,14 @@ def plotSpontTransitionGif(data, c, words, words_subscript):
 
 def plotSpontTransitionDistances(data, c):
     distances = data.SpontTransitionDistance[0]
-    # TODO Plot distances
+    suffix = data.c.stats.file_suffix[0]
+
+    figure()
+    x = np.arange(size(distances))
+    mpl.pyplot.plot(x, distances, )
+    xlabel('Steps in spontanous activity')
+    ylabel('Squared distance')
+    utils.saveplot('Spont_transitions_distance_%s.%s' % (suffix, ftype))
 
 if __name__=='__main__':        
     plot_results(path,datafile)
