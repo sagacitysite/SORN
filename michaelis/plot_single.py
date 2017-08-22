@@ -21,6 +21,9 @@ from common.sources import TrialSource
 import os
 import platform
 import matplotlib as mpl
+#import Figtodat
+#from images2gif import writeGif
+import imageio
 
 from utils.plotting import pretty_mpl_defaults
 
@@ -29,7 +32,7 @@ plot_MDS = False # Takes long
 normalize_PCA = False
 use_matlab = False # for FF control and matlab-mds (requires mlabwrap) 
 plot_spikes = True
-ftype = 'pdf' # eps does not support transparency
+ftype = 'png' # eps does not support transparency
 pca_animation = False
 
 # Data to plot
@@ -52,7 +55,7 @@ def parallel_stats(W_ee_h,W_ee2_h):
 
 def plot_results(result_path,result,c):
     pretty_mpl_defaults()
-    h5 = tables.openFile(os.path.join(result_path,result),'r')
+    h5 = tables.open_file(os.path.join(result_path,result),'r')
     data = h5.root 
     pickle_dir = data.c.logfilepath[0]
     if not os.path.isdir(pickle_dir):
@@ -2379,11 +2382,12 @@ def plotSpontTransition(transitions, c, suffix, step, words, words_subscript):
     ax.set_yticklabels(array([x for x in words_subscript]))
     colorbar(im, use_gridspec=True)
     tight_layout()
-    utils.saveplot('Spont_transitions_after_%s.%s' % (suffix + "_" + str(step), ftype))
+    fn = 'transitions/Spont_transitions_after_%s.%s' % (suffix + "_" + str(step), ftype)
+    utils.saveplot(fn)
 
-    if(step == 0):
-        im = imshow(np.transpose(c.source.transitions), interpolation='none', vmin=0, vmax=1)
-        utils.saveplot('Spont_transitions_before_%s.%s' % (suffix, ftype))
+    if step == 0:
+        imshow(np.transpose(c.source.transitions), interpolation='none', vmin=0, vmax=1)
+        utils.saveplot('transitions/Spont_transitions_before_%s.%s' % (suffix, ftype))
 
     # Predict spontpatterns from transitions
     av_trans = np.zeros(len(words) * 2)
@@ -2397,25 +2401,34 @@ def plotSpontTransition(transitions, c, suffix, step, words, words_subscript):
         w_i += wlen
         av_trans[i] /= wlen - 1
         av_trans[i + len(words)] /= wlen - 1
-    figure()
-    bar(arange(shape(av_trans)[0]), av_trans, \
-        align='center')
-    ax = gca()
-    ax.set_xticks(arange(len(words) * 2))
-    ax.set_xticklabels(words + [x[::-1] for x in words], rotation=30)
-    # ~ title('Pattern Frequencies')
-    ylabel('Average transition probability')
-    tight_layout()
-    utils.saveplot('AvTrans_%s.%s' % (suffix + "_" + str(step), ftype))
+    #figure()
+    #bar(arange(shape(av_trans)[0]), av_trans, \
+    #    align='center')
+    #ax = gca()
+    #ax.set_xticks(arange(len(words) * 2))
+    #ax.set_xticklabels(words + [x[::-1] for x in words], rotation=30)
+    ## ~ title('Pattern Frequencies')
+    #ylabel('Average transition probability')
+    #tight_layout()
+    #utils.saveplot('AvTrans_%s.%s' % (suffix + "_" + str(step), ftype))
+
+    return fn
 
 def plotSpontTransitionGif(data, c, words, words_subscript):
-    print('plotSpontTransitionGif')
+    print('plot SpontTransitionGif')
 
     transition_matrices = data.SpontTransitionAll[0]
-    for i in range(np.shape(transition_matrices)[0]):
+    nums = np.shape(transition_matrices)[0]
+    images = []
+    for i in range(nums):
         suffix = data.c.stats.file_suffix[0]
-        plotSpontTransition(transition_matrices[i,], c, suffix, i, words, words_subscript)
+        # Plot transition for current chunk, save as file and get filename
+        filename = plotSpontTransition(transition_matrices[i,], c, suffix, i, words, words_subscript)
+        # Store filename in images array
+        images.append(imageio.imread(utils.logfilename(filename)))
 
+    # Create gif out of images
+    imageio.mimsave(utils.logfilename('transitions/Spont_transitions_after.gif'), images, fps=0.25)
     sys.exit()
 
 if __name__=='__main__':        
