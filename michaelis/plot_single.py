@@ -1313,6 +1313,9 @@ def plot_results(result_path,result,c):
     if data.__contains__('SpontTransition'):
         plotSpontTransitionGif(data, c, words, words_subscript)
         #plotSpontTransition(data, c, words, words_subscript)
+
+    if data.__contains__('SpontTransitionDistance'):
+        plotSpontTransitionDistances(data, c)
     
 ### Plot SpontPCA
     #assumption: if spontpattern, then also spikes and indices
@@ -2430,6 +2433,17 @@ def plotSpontTransitionGif(data, c, words, words_subscript):
     # Create gif out of images
     imageio.mimsave(utils.logfilename('transitions/Spont_transitions_after.gif'), images, fps=0.25)
     sys.exit()
+
+def plotSpontTransitionDistances(data, c):
+    distances = data.SpontTransitionDistance[0]
+    suffix = data.c.stats.file_suffix[0]
+
+    figure()
+    x = np.arange(size(distances))
+    mpl.pyplot.plot(x, distances, )
+    xlabel('Steps in spontanous activity')
+    ylabel('Squared distance')
+    utils.saveplot('Spont_transitions_distance_%s.%s' % (suffix, ftype))
 
 if __name__=='__main__':        
     plot_results(path,datafile)

@@ -349,14 +349,33 @@ class SpontTransitionStat(AbstractStat):
         #print(transitions[-1,])
 
         return(transitions[-1,])
-        
+
+
+class SpontTransitionDistance(AbstractStat):
+    def __init__(self):
+        self.name = 'SpontTransitionDistance'
+        self.collection = 'gather'
+
+    def report(self, c, sorn):
+        if not c.has_key('transitions'):
+            raise Exception(
+                'SpontTransitionAllStat() needs to be called before SpontTransitionDistance(). Please have a look to your experiment file.')
+
+        transitions = c.transitions
+        transitions_org = sorn.c.source.transitions
+
+        # Squared distance between transition matrix in steps and initial transition matrix
+        distances = np.sum(transitions - transitions_org, axis=(2,3))^2
+
+        return(distances)
+
 class SpontIndexStat(AbstractStat):
     def __init__(self):
         self.name = 'SpontIndex'
         self.collection = 'gather'
     def report (self,c,sorn):
         return c.similar_input
-        
+
 class BayesStat(AbstractStat):
     def __init__(self,pred_pos = 0):
         self.name = 'Bayes'
