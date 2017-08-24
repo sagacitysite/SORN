@@ -365,7 +365,7 @@ class SpontTransitionDistance(AbstractStat):
         transitions_org = sorn.c.source.transitions
 
         # Squared distance between transition matrix in steps and initial transition matrix
-        distances = np.sum(transitions - transitions_org, axis=(2,3))^2
+        distances = np.sum(np.square(transitions - transitions_org), axis=(1,2))
 
         return(distances)
 

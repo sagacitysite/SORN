@@ -2371,11 +2371,12 @@ def plot_results(result_path,result,c):
                         %(data.c.stats.file_suffix[0],ftype))
 
 def plotSpontTransition(transitions, c, suffix, step, words, words_subscript):
-    print('plot SpontTransition')
+    print('plot SpontTransition ' + str(step))
     for i in range(shape(transitions)[0]):
         transitions[:, i] /= sum(transitions[:, i])  # normalize
-    figure()
+    figure(figsize = (4,4))
     im = imshow(transitions, interpolation='none', vmin=0, vmax=1)
+    suptitle('Step: ' + str(step))
     xlabel('From')
     ylabel('To')
     ax = gca()
@@ -2431,16 +2432,17 @@ def plotSpontTransitionGif(data, c, words, words_subscript):
         images.append(imageio.imread(utils.logfilename(filename)))
 
     # Create gif out of images
-    imageio.mimsave(utils.logfilename('transitions/Spont_transitions_after.gif'), images, fps=0.25)
-    sys.exit()
+    imageio.mimsave(utils.logfilename('transitions/Spont_transitions_after.gif'), images, fps=3)
 
 def plotSpontTransitionDistances(data, c):
+    print('plot SpontTransitionDistances')
+
     distances = data.SpontTransitionDistance[0]
     suffix = data.c.stats.file_suffix[0]
 
     figure()
-    x = np.arange(size(distances))
-    mpl.pyplot.plot(x, distances, )
+    x = np.arange(size(distances))*data.c.stats.transition_step_size
+    mpl.pyplot.plot(x, distances)
     xlabel('Steps in spontanous activity')
     ylabel('Squared distance')
     utils.saveplot('Spont_transitions_distance_%s.%s' % (suffix, ftype))

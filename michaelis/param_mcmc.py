@@ -37,9 +37,9 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = 50000 #50000
-c.steps_noplastic_train = 20000 #20000
-c.steps_noplastic_test = 100000 #50000
+c.steps_plastic = 10000 #50000
+c.steps_noplastic_train = 5000 #20000
+c.steps_noplastic_test = 500000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
                             + c.steps_noplastic_test
 c.display = True
@@ -84,7 +84,7 @@ c.stats.match = False
 c.stats.lstsq_mue = 1
 c.stats.control_rates = False
 c.stats.ISI_step = 4
-c.stats.transition_step_size = 5000
+c.stats.transition_step_size = 10000 # 5000
 # c.stats.only_last = 3000 # affects many stats: take only last x steps
 
 # Following parameters for randsource
