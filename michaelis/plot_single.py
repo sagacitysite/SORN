@@ -60,7 +60,7 @@ def plot_results(result_path,result,c):
     pickle_dir = data.c.logfilepath[0]
     if not os.path.isdir(pickle_dir):
         pickle_dir = result_path
-    plots_path = os.path.join('..','plots')
+    plots_path = os.path.join('..','results',str(c.steps_plastic))
     if not os.path.exists(plots_path):
         os.mkdir(plots_path)
     os.chdir(plots_path)

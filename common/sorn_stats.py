@@ -328,6 +328,9 @@ class SpontTransitionAllStat(AbstractStat):
 
         c.transitions = transition_matrices
 
+        # Store in numpy file
+        np.save(utils.logfilename('data/transition_matrices.npy'), transition_matrices)
+
         return(transition_matrices)
 
 class SpontTransitionStat(AbstractStat):
@@ -365,7 +368,10 @@ class SpontTransitionDistance(AbstractStat):
         transitions_org = sorn.c.source.transitions
 
         # Squared distance between transition matrix in steps and initial transition matrix
-        distances = np.sum(np.square(transitions - transitions_org), axis=(1,2))
+        distances = np.sum(np.square(transitions - np.transpose(transitions_org)), axis=(1,2))
+
+        # Store in numpy file
+        np.save(utils.logfilename('data/transition_distances.npy'), distances)
 
         return(distances)
 
