@@ -37,14 +37,14 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.arange(5000,10001,5000) #50000 #np.arange(5000,100001,5000)
-c.steps_noplastic_train = 20000 #20000
-c.steps_noplastic_test = 100000 #100000
+c.steps_plastic = np.arange(5000,100001,5000) #20000 #50000 #np.arange(5000,100001,5000)
+c.steps_noplastic_train = 50000 #20000
+c.steps_noplastic_test = 30000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
                             + c.steps_noplastic_test
 c.display = True
 
-c.N_iterations = 20
+c.N_iterations = 1 # 20
 
 # 0.1 -> ~30% noisespikes, 0.05 -> ~15%, 0.01 -> ~2.5%, 0.005 -> ~1% 
 c.noise_sig = 0
@@ -113,10 +113,10 @@ c.source.control = False # For sequence_test
                             #~ c.source.avoid)
 from common.sources import CountingSource
 states = ['A','B','C','D']
-c.source.transitions = np.array([[0, 1/3, 1/3, 1/3],
-                               [0, 0, 1, 0],
+c.source.transitions = np.array([[0, 1, 0, 0],
+                               [0.5, 0, 0.5, 0],
                                [0, 0, 0, 1],
-                               [1, 0, 0, 0]])
+                               [0.5, 0, 0.5, 0]])
 source = CountingSource(states,c.source.transitions,
                         c.N_u_e,c.N_u_i,c.source.avoid)
                         
@@ -126,8 +126,8 @@ c.wait_min_train = 0
 c.wait_var_train = 0
                         
 # Cluster
-c.cluster.vary_param = 'source.prob'#'with_plasticity'#
-c.cluster.params = np.linspace(0.1,0.9,11)#[False,True]#
+c.cluster.vary_param = 'steps_plastic'#'with_plasticity'#
+c.cluster.params = np.linspace(5000,15000,3)#[False,True]#
 if c.imported_mpi:
     c.cluster.NUMBER_OF_SIMS  = len(c.cluster.params)
     c.cluster.NUMBER_OF_CORES = MPI.COMM_WORLD.size

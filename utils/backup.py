@@ -25,7 +25,6 @@ current_time_int = int(time.mktime(time.gmtime()))
 current_time = _now()
 curr_string = ".."
 dest_string = "../backup"
-subdir = ""
 
 curr_directory = None
 dest_directory = None
@@ -33,7 +32,7 @@ initialized = False
 
 copied_files = []
 
-def initialise_backup(mount=None,dest=None,sub=None):
+def initialise_backup(mount=None,dest=None):
     """When backing things up from a folder different from the default use this call.
     Example use (for calling from a subfolder):
     import utils
@@ -41,10 +40,9 @@ def initialise_backup(mount=None,dest=None,sub=None):
     utils.backup()
     This does not need to be called when using the default locations
     """
-    global curr_string, dest_string, subdir
+    global curr_string, dest_string
     curr_string = mount
     dest_string = dest
-    subdir = sub
 
 def _initialize(filename):
     #initialize should only get called once; by the first call to utils.start
@@ -55,7 +53,7 @@ def _initialize(filename):
     (scriptname,_) = splitext(final_name)
 
     dest_base = abspath(expanduser(dest_string))
-    dest_directory = join(dest_base,scriptname,subdir,current_time)
+    dest_directory = join(dest_base,scriptname,current_time)
     if (not imported_mpi or (MPI.COMM_WORLD.rank == 0)) and (not exists(dest_directory)):
         try:
             os.makedirs(dest_directory)

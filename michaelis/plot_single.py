@@ -34,6 +34,7 @@ use_matlab = False # for FF control and matlab-mds (requires mlabwrap)
 plot_spikes = True
 ftype = 'png' # eps does not support transparency
 pca_animation = False
+working_dir = ""
 
 # Data to plot
 path = r'/home/chartmann/Desktop/Meeting Plots/2015-12-08_pcaanimations/nolearning_2015-12-08_11-23-31/common'
@@ -54,16 +55,28 @@ def parallel_stats(W_ee_h,W_ee2_h):
         return meandiff, medcv, means, stds
 
 def plot_results(result_path,result,c):
+    global working_dir
+    if working_dir == '':
+        working_dir = os.getcwd()
+    os.chdir(working_dir)
+
     pretty_mpl_defaults()
     h5 = tables.open_file(os.path.join(result_path,result),'r')
     data = h5.root 
     pickle_dir = data.c.logfilepath[0]
     if not os.path.isdir(pickle_dir):
         pickle_dir = result_path
-    plots_path = os.path.join('..','results',str(c.steps_plastic))
+
+    if c.has_key('multi_name'):
+        plots_path = os.path.join('..','results',c.multi_name)
+    else:
+        plots_path = os.path.join('..','results')
+
     if not os.path.exists(plots_path):
-        os.mkdir(plots_path)
+        os.makedirs(plots_path)
+
     os.chdir(plots_path)
+
     
     ### Plot weight development
     if data.__contains__('W_ee_history'):

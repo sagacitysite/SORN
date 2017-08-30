@@ -158,6 +158,8 @@ class Experiment_mcmc(AbstractExperiment):
                 'source_test':spontsource}
      
     def plot_single(self,path,filename):
-        plot_results_single(path,filename,self.params.c)
+        #plot_results_single(path,filename,self.params.c)
+        pass
     def plot_cluster(self,path,filename):
-        plot_results_cluster(path,filename)
+        #plot_results_cluster(path,filename)
+        pass
