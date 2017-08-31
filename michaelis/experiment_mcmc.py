@@ -11,7 +11,7 @@ from common.experiments import AbstractExperiment
 from common.sorn_stats import *
 
 class Experiment_mcmc(AbstractExperiment):
-    def start(self):
+    def start(self, src):
         super(Experiment_mcmc,self).start()
         c = self.params.c
 
@@ -35,9 +35,9 @@ class Experiment_mcmc(AbstractExperiment):
 
         # Make inputsource out of source by using TrialSource object from sources.py
         # It now has some nice methods to deal with the network, like generate connections, etc.
-        self.inputsource = TrialSource(self.params.source, 
+        self.inputsource = TrialSource(src,
                          c.wait_min_plastic, c.wait_var_plastic, 
-                         zeros(self.params.source.N_a), 'reset')
+                         zeros(src.N_a), 'reset')
         
         # Stats
         inputtrainsteps = c.steps_plastic + c.steps_noplastic_train  # steps during self-organization + steps for first phase w/o plasticity

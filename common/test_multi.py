@@ -15,6 +15,8 @@ utils.backup(__file__)
 from utils.backup import dest_directory
 from common.stats import StatsCollection
 from common.sorn import Sorn
+import datetime
+from common.sources import CountingSource
 import cPickle as pickle
 import gzip
 import numpy as np
@@ -28,9 +30,9 @@ def debugger(type,flag):
 #~ np.seterrcall(debugger)    
 #~ np.seterr(all='call')
 
-def runSORN(c):
+def runSORN(c, src):
     # Initialize experiment (source and statictics)
-    (source,stats_single,_) = experiment.start()
+    (source,stats_single,_) = experiment.start(src)
 
     # Initialize SORN network, has simulation() and step() function
     sorn = Sorn(c,source)
@@ -91,19 +93,38 @@ experiment = getattr(experiment_module, experiment_name)(param)
 
 # Initialize parameters
 c = param.c
+
+# Store states and remove c.states, otherwise bunch will have a problem
+states = c.states
+del c.states
+
 # Set logfilepath
 c.logfilepath = utils.logfilename('') + '/'
 steps_plastic_array = c.steps_plastic
+transitions_array = c.source.transitions
 
 #runSORN(c)
 
 # Run network for current combinations
-for steps in steps_plastic_array:
-    print("### Run network: " + str(steps) + " ###")
-    # Set steps_plastic and correct N_steps
-    c.steps_plastic = steps
-    c.N_steps = c.steps_plastic + c.steps_noplastic_train \
-                                + c.steps_noplastic_test
-    # Name of folder for results in this step
-    c.multi_name = str(steps)
-    runSORN(c)
+i = 1
+for transitions in transitions_array:
+
+    for steps in steps_plastic_array:
+        # Print where we are
+        print("### "+ datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": model "+ str(i) +" / "+ str(steps) +" ###")
+
+        # Set transitions and source
+        c.source.transitions = transitions
+        source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
+
+        # Set steps_plastic and correct N_steps
+        c.steps_plastic = steps
+        c.N_steps = c.steps_plastic + c.steps_noplastic_train \
+                                    + c.steps_noplastic_test
+
+        # Name of folder for results in this step
+        c.multi_name = "model"+str(i)+"_steps"+str(steps)
+        runSORN(c, source)
+
+    # Increase counter
+    i += 1

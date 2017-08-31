@@ -37,9 +37,9 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.arange(5000,100001,5000) #20000 #50000 #np.arange(5000,100001,5000)
-c.steps_noplastic_train = 50000 #20000
-c.steps_noplastic_test = 30000 #100000
+c.steps_plastic = np.arange(5000,30001,5000) #np.array([5000, 10000]) #20000 #50000 #np.arange(5000,100001,5000)
+c.steps_noplastic_train = 20000 #20000
+c.steps_noplastic_test = 100000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
                             + c.steps_noplastic_test
 c.display = True
@@ -112,13 +112,35 @@ c.source.control = False # For sequence_test
 #~ source = RandomLetterSource(c.source.N_letters,c.N_u_e,c.N_u_i,
                             #~ c.source.avoid)
 from common.sources import CountingSource
-states = ['A','B','C','D']
-c.source.transitions = np.array([[0, 1, 0, 0],
-                               [0.5, 0, 0.5, 0],
-                               [0, 0, 0, 1],
-                               [0.5, 0, 0.5, 0]])
-source = CountingSource(states,c.source.transitions,
-                        c.N_u_e,c.N_u_i,c.source.avoid)
+c.states = ['A','B','C','D']
+# c.source.transitions = np.array([
+#                                [0, 1, 0, 0],
+#                                [0, 0, 1, 0],
+#                                [0, 0, 0, 1],
+#                                [0.5, 0, 0.5, 0]])
+c.source.transitions = np.array([
+                               # 1. transition
+                               [[0, 1, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 1],
+                                [0.5, 0, 0.5, 0]],
+                               # 2. transition
+                               [[0, 1, 0, 0],
+                                [0.5, 0, 0.5, 0],
+                                [0, 0, 0, 1],
+                                [0.5, 0, 0.5, 0]],
+                               # 3. transition
+                               [[0, 1, 0, 0],
+                                [0.5, 0, 0.5, 0],
+                                [0, 0.5, 0, 0.5],
+                                [0.5, 0, 0.5, 0]],
+                               # 4. transition
+                               [[0, 0.5, 0, 0.5],
+                                [0.5, 0, 0.5, 0],
+                                [0, 0.5, 0, 0.5],
+                                [0.5, 0, 0.5, 0]]])
+#source = CountingSource(c.states,c.source.transitions,
+#                        c.N_u_e,c.N_u_i,c.source.avoid)
                         
 c.wait_min_plastic = 0
 c.wait_var_plastic = 0
