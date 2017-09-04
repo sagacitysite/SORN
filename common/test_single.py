@@ -41,7 +41,7 @@ c.logfilepath = utils.logfilename('') + '/'
 
 
 # Initialize experiment (source and statictics)
-(source,stats_single,_) = experiment.start()
+(source,stats_single,_) = experiment.start(c.src)
 
 # Initialize SORN network, has simulation() and step() function
 sorn = Sorn(c,source)

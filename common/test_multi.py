@@ -106,25 +106,31 @@ transitions_array = c.source.transitions
 #runSORN(c)
 
 # Run network for current combinations
-i = 1
-for transitions in transitions_array:
 
-    for steps in steps_plastic_array:
-        # Print where we are
-        print("### "+ datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": model "+ str(i) +" / "+ str(steps) +" ###")
+# Averaging
+for j in range(20):
+    i = 1
 
-        # Set transitions and source
-        c.source.transitions = transitions
-        source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
+    # Transitions
+    for transitions in transitions_array:
 
-        # Set steps_plastic and correct N_steps
-        c.steps_plastic = steps
-        c.N_steps = c.steps_plastic + c.steps_noplastic_train \
-                                    + c.steps_noplastic_test
+        # Training steps
+        for steps in steps_plastic_array:
+            # Print where we are
+            print("### "+ datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i) +" / model "+ str(i) +" / "+ str(steps) +" ###")
 
-        # Name of folder for results in this step
-        c.multi_name = "model"+str(i)+"_steps"+str(steps)
-        runSORN(c, source)
+            # Set transitions and source
+            c.source.transitions = transitions
+            source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
 
-    # Increase counter
-    i += 1
+            # Set steps_plastic and correct N_steps
+            c.steps_plastic = steps
+            c.N_steps = c.steps_plastic + c.steps_noplastic_train \
+                                        + c.steps_noplastic_test
+
+            # Name of folder for results in this step
+            c.multi_name = "run"+str(j)+"_model"+str(i)+"_steps"+str(steps)
+            runSORN(c, source)
+
+        # Increase counter
+        i += 1

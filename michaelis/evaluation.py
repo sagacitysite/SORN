@@ -59,6 +59,7 @@ def compare_models_plot(distances):
 
     # Beautify plot and save png file
     plt.legend()
+    plt.ylim(ymin=0)
     plt.xlabel('Training steps')
     plt.ylabel('Mean squared distance to initial transition')
     plt.savefig(plotpath + '/distances_training_steps.png')
@@ -97,6 +98,7 @@ def distance_trace_plot(distances, test_step_size):
 
     # Beautify plot and save png file
     plt.legend()
+    plt.ylim(ymin=0)
     plt.xlabel('Test steps')
     plt.ylabel('Mean squared distance to initial transition')
     plt.savefig(plotpath + '/distances_test_traces.png')
