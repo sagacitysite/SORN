@@ -117,7 +117,7 @@ for j in range(20):
         # Training steps
         for steps in steps_plastic_array:
             # Print where we are
-            print("### "+ datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i) +" / model "+ str(i) +" / "+ str(steps) +" ###")
+            print("### "+ datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(j) +" / model "+ str(i) +" / "+ str(steps) +" ###")
 
             # Set transitions and source
             c.source.transitions = transitions

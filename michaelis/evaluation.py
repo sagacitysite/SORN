@@ -2,8 +2,17 @@ import numpy as np
 import os
 import glob
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import sys
 
-current = "2017-08-31_12-48-13"
+# Parameters for evaluation
+current = "2017-09-04_14-46-05"
+test_step_size = 5000
+train_step_size = 2500
+train_offset = 5000
+num_runs = 11 # How many runs should we evaluate
+
+# Create path and get files
 path = os.getcwd() + "/backup/test_multi/" + current
 datapath = path + "/data"
 plotpath = path + "/plots"
@@ -13,28 +22,52 @@ if not os.path.exists(plotpath):
 
 files = glob.glob(os.path.join(datapath, "transition_distances_*"))
 
+# Prepare data from files to numpy array
 def prepare_data(files):
+    global train_step_size, train_offset
+
     num_files = len(files)
 
-    train_steps = np.empty(num_files)
-    models = np.empty(num_files)
-    distances = [dict() for x in range(num_files)]
+    distances_raw = [dict() for x in range(num_files)]
 
+    # Store file content in dictionary
     for i in range(num_files):
-        models[i] = int(files[i].split('_model')[1].split('_steps')[0])
-        train_steps[i] = int(files[i].split('_steps')[1].split('.')[0])
-        distances[i] = {"model": models[i], "train_step": train_steps[i], "distance": np.load(files[i])}
+        run = int(files[i].split('_run')[1].split('_model')[0])
+        model = int(files[i].split('_model')[1].split('_steps')[0])
+        train_step = int(files[i].split('_steps')[1].split('.')[0])
+        distances_raw[i] = {"run": run, "model": model, "train_step": train_step, "distance": np.load(files[i])}
 
+    # Get sizes
+    num_models = len(np.unique([dist['model'] for dist in distances_raw]))
+    num_train_steps = len(np.unique([dist['train_step'] for dist in distances_raw]))
+    min_num_test_steps = np.min([len(dist['distance']) for dist in distances_raw])
+
+    # Prepare sorted numpy array
+    distances = np.empty((num_runs, num_models, num_train_steps, min_num_test_steps))
+
+    # Store dictionary data in clean numpy array
+    for dist in distances_raw:
+        for i in range(num_runs):
+            for j in range(num_models):
+                for k in range(num_train_steps):
+                    if dist['run'] == i and dist['model'] == (j + 1) and dist['train_step'] == (train_offset + k * train_step_size):
+                        distances[i,j,k] = dist['distance'][0:min_num_test_steps]
+                        break
+                    else:
+                        continue
+
+    # Return sorted and clean data
     return distances
 
-def get_distant_mean_of_model(distances_all, search):
+def get_distant_mean_of_model(distances_raw, search):
     # Initalize arrays
-    num_train_steps = len(np.unique([dist['train_step'] for dist in distances_all]))
+
     steps = np.empty(num_train_steps)
     distances = np.empty(num_train_steps)
 
+
     i=0
-    for dist in distances_all:
+    for dist in distances_raw:
         if dist['model'] == search:
             steps[i] = dist['train_step']
             # Mean is only appropriate if STDP is switched off in testing, otherwise take n-th value (where n is some position)
@@ -47,7 +80,7 @@ def get_distant_mean_of_model(distances_all, search):
 
     return (steps_sorted, distances_sorted)
 
-def compare_models_plot(distances):
+def training_steps_plot(distances):
     global plotpath
 
     # Plot every model
@@ -65,46 +98,98 @@ def compare_models_plot(distances):
     plt.savefig(plotpath + '/distances_training_steps.png')
     plt.close()
 
-def get_last_train_step(distances_all):
-    max_train_step = np.max([dist['train_step'] for dist in distances_all])
+# def get_last_train_step(distances_raw):
+#     global num_runs
+#
+#     max_train_step = np.max([dist['train_step'] for dist in distances_raw])
+#     min_num_test_steps = np.min([len(dist['distance']) for dist in distances_raw])
+#
+#     models = []
+#     distances = []
+#
+#     for i in range(num_runs):
+#         tmp_models = []
+#         tmp_distances = []
+#         for dist in distances_raw:
+#             if dist['train_step'] == max_train_step and dist['run'] == i:
+#                 tmp_models.append(dist['model'])
+#                 tmp_distances.append(dist['distance'][0:min_num_test_steps])
+#
+#         # Convert list to numpy array
+#         tmp_models = np.array(tmp_models)
+#         tmp_distances = np.array(tmp_distances)
+#
+#         # Sort values
+#         models_sorted = np.sort(tmp_models)
+#         distances_sorted = tmp_distances[np.argsort(tmp_models)]
+#
+#         models = models_sorted
+#         distances.append(distances_sorted)
+#
+#     return (models, distances)
+#
+# def test_trace_plot(distances):
+#     global plotpath, test_step_size
+#
+#     (models, dists) = get_last_train_step(distances)
+#     dists_mean = np.mean(dists, axis=0)
+#     test_steps = np.arange(np.shape(dists_mean)[1])*test_step_size
+#
+#     dists_std = np.std(dists, axis=0)
+#
+#     color_palette = cm.rainbow(np.linspace(0,1,len(models)))
+#
+#     for i in range(len(models)):
+#         legend = 'Model '+str(i+1)
+#         plt.errorbar(test_steps, dists_mean[i], label=legend, yerr=dists_std[i], color=color_palette[i])
+#
+#         dists_model = [dist[i] for dist in dists]
+#         for j in range(len(dists_model)):
+#             plt.plot(test_steps, dists_model[j], color=color_palette[i], alpha=0.1)
+#
+#     # Beautify plot and save png file
+#     plt.legend()
+#     plt.ylim(ymin=0)
+#     plt.xlabel('Test steps')
+#     plt.ylabel('Mean squared distance to initial transition')
+#     plt.savefig(plotpath + '/distances_test_traces.png', dpi=144)
+#     plt.close()
 
-    models = []
-    distances = []
+def test_trace_plot(distances):
+    global plotpath, test_step_size
 
-    for dist in distances_all:
-        if dist['train_step'] == max_train_step:
-            models.append(dist['model'])
-            distances.append(dist['distance'])
+    # Get results for highest train step only
+    last_idx_train_steps = np.shape(distances)[2]-1
+    dists = distances[:,:,last_idx_train_steps,:]
 
-    # Convert list to numpy array
-    models = np.asarray(models)
-    distances = np.asarray(distances)
+    # Calculate mean and standard deviation
+    dists_mean = np.mean(dists, axis=0)
+    dists_std = np.std(dists, axis=0)
 
-    # Sort values
-    models_sorted = np.sort(models)
-    distances_sorted = distances[np.argsort(models)]
+    # Get number of original test steps (for x axis)
+    test_steps = np.arange(np.shape(dists)[2]) * test_step_size
 
-    return (models_sorted, distances_sorted)
+    # Define color palette
+    color_palette = cm.rainbow(np.linspace(0, 1, np.shape(dists_mean)[0]))
 
-def distance_trace_plot(distances, test_step_size):
-    global plotpath
+    # Plot mean of every model
+    for i in range(np.shape(dists)[1]):
+        legend = 'Model ' + str(i + 1)
+        plt.errorbar(test_steps, dists_mean[i], label=legend, yerr=dists_std[i], color=color_palette[i])
 
-    (models, dists) = get_last_train_step(distances)
-    test_steps = (np.arange(np.shape(dists)[1])+1)*test_step_size
-
-    for i in range(len(models)):
-        legend = 'Model '+str(i+1)
-        plt.plot(test_steps, dists[i], label=legend)
+        # Plot all runs of every model (transparent in background)
+        for j in range(np.shape(dists)[0]):
+            plt.plot(test_steps, dists[j,i], color=color_palette[i], alpha=0.1)
 
     # Beautify plot and save png file
     plt.legend()
     plt.ylim(ymin=0)
     plt.xlabel('Test steps')
     plt.ylabel('Mean squared distance to initial transition')
-    plt.savefig(plotpath + '/distances_test_traces.png')
+    plt.savefig(plotpath + '/distances_test_traces.png', dpi=144)
     plt.close()
 
-distances = prepare_data(files)
+distances = prepare_data(files) # (runs, models, train steps, test steps)
 
-compare_models_plot(distances)
-distance_trace_plot(distances, 5000)
+#training_steps_plot(distances)
+test_trace_plot(distances)
