@@ -59,45 +59,6 @@ def prepare_data(files):
     # Return sorted and clean data
     return distances
 
-# def get_distant_mean_of_model(distances_raw, search):
-#     # Initalize arrays
-#
-#     steps = np.empty(num_train_steps)
-#     distances = np.empty(num_train_steps)
-#
-#
-#     i=0
-#     for dist in distances_raw:
-#         if dist['model'] == search:
-#             steps[i] = dist['train_step']
-#             # Mean is only appropriate if STDP is switched off in testing, otherwise take n-th value (where n is some position)
-#             distances[i] = np.mean(dist['distance'])
-#             i += 1
-#
-#     # Sort values
-#     steps_sorted = np.sort(steps)
-#     distances_sorted = distances[np.argsort(steps)]
-#
-#     return (steps_sorted, distances_sorted)
-
-# def training_steps_plot(distances):
-#     global plotpath
-#
-#     # Plot every model
-#     num_models = len(np.unique([dist['model'] for dist in distances]))
-#     for i in range(num_models):
-#         (steps, dists) = get_distant_mean_of_model(distances, i + 1)
-#         legend = 'Model '+str(i+1)
-#         plt.plot(steps, dists, label=legend)
-#
-#     # Beautify plot and save png file
-#     plt.legend()
-#     plt.ylim(ymin=0)
-#     plt.xlabel('Training steps')
-#     plt.ylabel('Mean squared distance to initial transition')
-#     plt.savefig(plotpath + '/distances_training_steps.png')
-#     plt.close()
-
 def training_steps_plot(distances):
     global plotpath
 
@@ -119,10 +80,8 @@ def training_steps_plot(distances):
     # Plot influence of training steps for every model
     for i in range(num_models):
         legend = 'Model '+str(i+1)
-        (_, caps, _) = plt.errorbar(train_steps, dists_mean[i,:], label=legend, yerr=dists_std[i], color=color_palette[i])
-
-        for cap in caps:
-            cap.set_markeredgewidth(0.1)
+        plt.errorbar(train_steps, dists_mean[i,:], label=legend, yerr=dists_std[i], color=color_palette[i],
+                     elinewidth=1, ecolor=np.append(color_palette[i][0:3], 0.5))
 
         # Plot all runs of every model (transparent in background)
         for j in range(np.shape(dists_mean_single)[0]):
@@ -156,7 +115,8 @@ def test_trace_plot(distances):
     # Plot mean of every model
     for i in range(np.shape(dists)[1]):
         legend = 'Model ' + str(i + 1)
-        plt.errorbar(test_steps, dists_mean[i], label=legend, yerr=dists_std[i], color=color_palette[i])
+        plt.errorbar(test_steps, dists_mean[i], label=legend, yerr=dists_std[i], color=color_palette[i],
+                     elinewidth=1, ecolor=np.append(color_palette[i][0:3], 0.5))
 
         # Plot all runs of every model (transparent in background)
         for j in range(np.shape(dists)[0]):
@@ -173,4 +133,4 @@ def test_trace_plot(distances):
 distances = prepare_data(files) # (runs, models, train steps, test steps)
 
 training_steps_plot(distances)
-#test_trace_plot(distances)
+test_trace_plot(distances)
