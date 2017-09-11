@@ -6,10 +6,11 @@ utils.backup(__file__)
 # see this file for parameter descriptions
 from common.defaults import *
 
-c.N_e = 200 #200
-c.N_i = int(np.floor(0.2*c.N_e))
-c.N = c.N_e + c.N_i
-c.N_u_e = np.floor(0.05*c.N_e) #np.floor(0.05*c.N_e) # 10 connections from any input to the excitatory neurons
+c.N_e = np.arange(100,801,100) #np.arange(100,1001,50) #200
+#c.N_i = int(np.floor(0.2*c.N_e))
+#c.N = c.N_e + c.N_i
+c.N_u_e_coverage = np.arange(0.01,0.26,0.02) #np.arange(0.01,0.26,0.01) # 0.25 is max for 4 states, change value if num of states change!
+#c.N_u_e = np.floor(coverage*c.N_e) #np.floor(0.05*c.N_e) # 10 connections from any input to the excitatory neurons
 c.N_u_i = 0
 
 c.double_synapses = False
@@ -54,9 +55,9 @@ c.with_plasticity = True
 c.input_gain = 0.5
 
 c.eta_ip = 0.001
-h_ip_mean = float(2*c.N_u_e)/float(c.N_e)
-h_ip_range = 0.01
-c.h_ip = np.random.rand(c.N_e)*h_ip_range*2 + h_ip_mean - h_ip_range
+#h_ip_mean = float(2*c.N_u_e)/float(c.N_e)
+#h_ip_range = 0.01
+#c.h_ip = np.random.rand(c.N_e)*h_ip_range*2 + h_ip_mean - h_ip_range
 c.always_ip = True
 c.synaptic_scaling = True
 
@@ -111,14 +112,28 @@ c.source.control = False # For sequence_test
 #~ from common.sources import RandomLetterSource
 #~ source = RandomLetterSource(c.source.N_letters,c.N_u_e,c.N_u_i,
                             #~ c.source.avoid)
-from common.sources import CountingSource
-states = ['A','B','C','D']
-c.source.transitions = np.array([[0, 1, 0, 0],
+c.states = ['A','B','C','D']
+c.source.transitions = np.array([
+                               # 1. transition
+                               [[0, 1, 0, 0],
                                 [0, 0, 1, 0],
                                 [0, 0, 0, 1],
-                                [0.5, 0, 0.5, 0]])
-source = CountingSource(states,c.source.transitions,
-                        c.N_u_e,c.N_u_i,c.source.avoid)
+                                [0.5, 0, 0.5, 0]],
+                               # 2. transition
+                               [[0, 1, 0, 0],
+                                [0.5, 0, 0.5, 0],
+                                [0, 0, 0, 1],
+                                [0.5, 0, 0.5, 0]],
+                               # 3. transition
+                               [[0, 1, 0, 0],
+                                [0.5, 0, 0.5, 0],
+                                [0, 0.5, 0, 0.5],
+                                [0.5, 0, 0.5, 0]],
+                               # 4. transition
+                               [[0, 0.5, 0, 0.5],
+                                [0.5, 0, 0.5, 0],
+                                [0, 0.5, 0, 0.5],
+                                [0.5, 0, 0.5, 0]]])
 
 c.wait_min_plastic = 0
 c.wait_var_plastic = 0
@@ -126,10 +141,10 @@ c.wait_min_train = 0
 c.wait_var_train = 0
                         
 # Cluster
-c.cluster.vary_param = 'steps_plastic'#'with_plasticity'#
-c.cluster.params = np.linspace(5000,15000,3)#[False,True]#
-if c.imported_mpi:
-    c.cluster.NUMBER_OF_SIMS  = len(c.cluster.params)
-    c.cluster.NUMBER_OF_CORES = MPI.COMM_WORLD.size
-    c.cluster.NUMBER_LOCAL = c.cluster.NUMBER_OF_SIMS\
-                             // c.cluster.NUMBER_OF_CORES
+#c.cluster.vary_param = 'steps_plastic'#'with_plasticity'#
+#c.cluster.params = np.linspace(5000,15000,3)#[False,True]#
+#if c.imported_mpi:
+#    c.cluster.NUMBER_OF_SIMS  = len(c.cluster.params)
+#    c.cluster.NUMBER_OF_CORES = MPI.COMM_WORLD.size
+#    c.cluster.NUMBER_LOCAL = c.cluster.NUMBER_OF_SIMS\
+#                             // c.cluster.NUMBER_OF_CORES

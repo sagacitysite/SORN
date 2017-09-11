@@ -308,8 +308,9 @@ class SpontTransitionAllStat(AbstractStat):
         similar_input = c.similar_input  # from SpontPatternStat
         transition_step_size = sorn.c.stats.transition_step_size
 
-        print('Initial transistion matrix')
-        print(sorn.c.source.transitions)
+        if sorn.c.display == True:
+            print('Initial transistion matrix')
+            print(sorn.c.source.transitions)
 
         # Calculate number of transitions steps, depending on size per step
         num_transition_steps = int(round((np.size(similar_input) / transition_step_size) - 0.5))

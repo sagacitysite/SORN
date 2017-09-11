@@ -15,6 +15,9 @@ class Experiment_mcmc(AbstractExperiment):
         super(Experiment_mcmc,self).start()
         c = self.params.c
 
+        if not c.has_key('display'):
+            c.showPrint = True
+
         # In case we are using cluster calculation?
         if self.cluster_param == 'source.prob':
             prob = c.source.prob
@@ -124,7 +127,8 @@ class Experiment_mcmc(AbstractExperiment):
         super(Experiment_mcmc,self).run(sorn)
         c = self.params.c
 
-        print('Run self organization:')
+        if c.display == True:
+            print('Run self organization:')
         sorn.simulation(c.steps_plastic)
         sorn.update = False
         # Run with trials
@@ -137,7 +141,9 @@ class Experiment_mcmc(AbstractExperiment):
         sorn.source = trialsource
         shuffle(sorn.x) # {0,1}
         shuffle(sorn.y) # {0,1}
-        print('\nRun training:')
+
+        if c.display == True:
+            print('\nRun training:')
         sorn.simulation(c.steps_noplastic_train)
         
         # Run with spont (input u is always zero)
@@ -150,7 +156,8 @@ class Experiment_mcmc(AbstractExperiment):
         if not c.always_ip:
             sorn.c.eta_ip = 0
 
-        print('\nRun testing:')
+        if c.display == True:
+            print('\nRun testing:')
         sorn.simulation(c.steps_noplastic_test)
         
         return {'source_plastic':self.inputsource,

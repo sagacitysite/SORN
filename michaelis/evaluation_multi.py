@@ -10,7 +10,7 @@ current = "2017-09-04_14-46-05"
 test_step_size = 5000
 train_step_size = 2500
 train_offset = 5000
-num_runs = 11 # How many runs should we evaluate
+num_runs = 20 # How many runs should we evaluate
 
 # Create path and get files
 path = os.getcwd() + "/backup/test_multi/" + current
