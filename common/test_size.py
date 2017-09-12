@@ -90,10 +90,6 @@ def runAll(i):
             l = 0
             # Number of input neurons
             for num_input in num_input_array:
-                # Print where we are
-                print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")+": run "+str(i+1)+" / model "+str(j+1)+
-                      " / neurons "+str(num_neurons)+" / input "+str(int(num_input)))
-
                 # Set number of excitatory neurons and calculate inhibitory and overall number of neurons
                 c.N_e = num_neurons
                 c.N_i = int(np.floor(0.2*c.N_e))
@@ -113,6 +109,10 @@ def runAll(i):
 
                 # Correct connection matrix lamb value
                 c.W_ee.lamb = 0.1*c.N_e
+
+                # Print where we are
+                print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") + ": run " + str(i + 1) + " / model "+
+                      str(j + 1) +" / neurons " + str(num_neurons) + " / input " + str(int(np.floor(num_input * c.N_e))))
 
                 # Name of folder for results in this step
                 c.multi_name = "run" + str(i) + "_model" + str(j) + "_neurons" + str(k) + "_input" + str(l)
@@ -156,7 +156,7 @@ total = len(num_iterations) * len(transitions_array) * len(num_neurons_array) * 
 c.display = False
 
 # Start multi processing
-pool = Pool(4)
+pool = Pool(1)
 pool.map(runAll, num_iterations)
 pool.close()
 pool.join()
