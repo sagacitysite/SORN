@@ -4,6 +4,7 @@ from __future__ import division # has to be reimported in every file
 import ipdb # prettier debugger
 import os
 import sys
+import gc
 from importlib import import_module
 sys.path.insert(1,"../")
 
@@ -115,8 +116,11 @@ def runAll(i):
                       str(j + 1) +" / neurons " + str(num_neurons) + " / input " + str(int(np.floor(num_input * c.N_e))))
 
                 # Name of folder for results in this step
-                c.multi_name = "run" + str(i) + "_model" + str(j) + "_neurons" + str(k) + "_input" + str(l)
+                c.multi_name = "run" + str(i) + "_model" + str(j) + "_neurons" + str(num_neurons) + "_input" + str(int(np.floor(num_input * c.N_e)))
                 runSORN(c, source)
+
+                # Free memory
+                gc.collect()
 
                 # Increase number of inputs counter
                 l += 1
@@ -155,8 +159,11 @@ total = len(num_iterations) * len(transitions_array) * len(num_neurons_array) * 
 # Stop printing
 c.display = False
 
+for i in num_iterations:
+    runAll(i)
+
 # Start multi processing
-pool = Pool(1)
-pool.map(runAll, num_iterations)
-pool.close()
-pool.join()
+#pool = Pool(1)
+#pool.map(runAll, num_iterations)
+#pool.close()
+#pool.join()

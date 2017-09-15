@@ -63,7 +63,7 @@ def training_steps_plot(distances):
     global plotpath
 
     # Get mean over "runs" and over "train_steps"
-    # CAUTION: Mean over "train_steps" is only appropriate if STDP is switched off in test phase
+    # CAUTION: Mean over "test_steps" is only appropriate if STDP is switched off in test phase
     dists_mean = np.mean(distances, axis=(0,3))
     dists_std = np.std(distances, axis=(0,3))
 
