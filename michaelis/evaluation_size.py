@@ -7,11 +7,12 @@ import matplotlib.cm as cm
 import sys
 
 # Parameters for evaluation
-current = "2017-09-14_15-11-39"
+current = "2017-09-19_22-25-51"
 test_step_size = 5000
-network_size = np.arange(100,401,50)
-input_perc = np.arange(0.01,0.10,0.01)
-num_runs = 5 # How many runs should we evaluate
+network_size = np.arange(100,501,50)
+input_perc = np.arange(0.03,0.091,0.01)
+num_runs = np.array([0,1,2,3,4]) # How many runs should we evaluate
+# Bad: 8-14
 
 # Create path and get files
 path = os.getcwd() + "/backup/test_size/" + current
@@ -29,7 +30,8 @@ def prepare_data(files):
 
     num_files = len(files)
 
-    distances_raw = [dict() for x in range(num_files)]
+    #distances_raw = [dict() for x in range(num_files)]
+    distances_raw = []
 
     # Store file content in dictionary
     for i in range(num_files):
@@ -37,7 +39,9 @@ def prepare_data(files):
         model = int(files[i].split('_model')[1].split('_neurons')[0])
         neurons = int(files[i].split('_neurons')[1].split('_input')[0])
         input = int(files[i].split('_input')[1].split('.')[0])
-        distances_raw[i] = {"run": run, "model": model, "neurons": neurons, "input": input, "distance": np.load(files[i])}
+        if (run in num_runs) and (neurons in network_size) and (input in np.floor(input_perc*neurons)):
+            #distances_raw[i] = {"run": run, "model": model, "neurons": neurons, "input": input, "distance": np.load(files[i])}
+            distances_raw.append({"run": run, "model": model, "neurons": neurons, "input": input, "distance": np.load(files[i])})
 
     # Get sizes
     num_models = len(np.unique([dist['model'] for dist in distances_raw]))
@@ -47,18 +51,23 @@ def prepare_data(files):
     num_input = len(input_perc)
     min_num_test_steps = np.min([len(dist['distance']) for dist in distances_raw])
 
+    #for dist in distances_raw:
+    #    perc = np.ceil(100*dist['input']/dist['neurons'])/100
+    #    #print(perc)
+    #    if perc == 0.09:
+    #        print('Model: ' + str(dist['model']) + ', Neurons: ' + str(dist['neurons']) + ', Input: ')
+
     # Prepare sorted numpy array
-    distances = np.empty((num_runs, num_models, num_neurons, num_input, min_num_test_steps))
+    distances = np.empty((len(num_runs), num_models, num_neurons, num_input, min_num_test_steps))
 
     # Store dictionary data in clean numpy array
     for dist in distances_raw:
-        for i in range(num_runs):
+        for i in range(len(num_runs)):
             for j in range(num_models):
                 for k in range(num_neurons):
                     for l in range(num_input):
-
-                        input_size = np.floor(input_perc[l]*network_size[k])
-                        if dist['run'] == i and dist['model'] == j and dist['neurons'] == network_size[k] and dist['input'] == input_size:
+                        cur_input_size = np.floor(input_perc[l]*network_size[k])
+                        if dist['run'] == i and dist['model'] == j and dist['neurons'] == network_size[k] and dist['input'] == cur_input_size:
                             distances[i,j,k,l] = dist['distance'][0:min_num_test_steps]
                             break
                         else:
@@ -93,7 +102,9 @@ def plot_2d(distances):
         # Add a color bar which maps values to colors.
         fig.colorbar(surf, shrink=0.5, aspect=5)
 
-        # TODO Store in file
+        # Store in file
+        plt.savefig(plotpath + '/distances_size_inputs_' + str(i) + '.png', dpi=144)
+        plt.close()
 
 distances = prepare_data(files) # (runs, models, neurons, input, test steps)
 

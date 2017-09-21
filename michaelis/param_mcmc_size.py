@@ -6,10 +6,10 @@ utils.backup(__file__)
 # see this file for parameter descriptions
 from common.defaults import *
 
-c.N_e = np.arange(100,401,50) #np.arange(100,1001,50) #200
+c.N_e = np.arange(100,501,50) #np.arange(100,1001,50) #200
 #c.N_i = int(np.floor(0.2*c.N_e))
 #c.N = c.N_e + c.N_i
-c.N_u_e_coverage = np.arange(0.01,0.10,0.01) #np.arange(0.01,0.26,0.01) # 0.25 is max for 4 states, change value if num of states change!
+c.N_u_e_coverage = np.arange(0.03,0.151,0.01) #np.arange(0.01,0.26,0.01) # 0.25 is max for 4 states, change value if num of states change!
 #c.N_u_e = np.floor(coverage*c.N_e) #np.floor(0.05*c.N_e) # 10 connections from any input to the excitatory neurons
 c.N_u_i = 0
 
