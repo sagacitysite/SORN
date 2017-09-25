@@ -71,8 +71,8 @@ c.k_winner_take_all = False
 c.ff_inhibition = False
 c.ff_inhibition_broad = 0.0
 
-c.experiment.module = 'michaelis.experiment_mcmc'
-c.experiment.name = 'Experiment_mcmc'
+c.experiment.module = 'michaelis.experiment_mcmc_withSTDP' # c.experiment.module = 'michaelis.experiment_mcmc'
+c.experiment.name = 'Experiment_mcmc_withSTDP' # c.experiment.name = 'Experiment_mcmc'
 
 #######################################
 c.stats.file_suffix = 'MCMC_ds_noSTDP'
@@ -119,6 +119,7 @@ c.source.transitions = np.array([[0, 1, 0, 0],
                                 [0.5, 0, 0.5, 0]])
 source = CountingSource(states,c.source.transitions,
                         c.N_u_e,c.N_u_i,c.source.avoid)
+c.src = source
 
 c.wait_min_plastic = 0
 c.wait_var_plastic = 0

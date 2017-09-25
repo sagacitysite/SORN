@@ -11,7 +11,7 @@ current = "2017-09-21_15-14-08"
 test_step_size = 5000
 network_size = np.arange(100,501,50)
 input_perc = np.arange(0.03,0.151,0.01)
-num_runs = np.array([0]) # How many runs should we evaluate
+num_runs = np.array([0,1,2,3,4,5,6,7,8]) # How many runs should we evaluate
 # Bad: 8-14
 
 # Create path and get files
@@ -71,7 +71,7 @@ def prepare_data(files):
                         #cur_input_size = np.floor(input_perc[l]*network_size[k])
                         #if dist['run'] == i and dist['model'] == j and dist['neurons'] == network_size[k] and dist['input'] == cur_input_size:
                         if dist['run'] == i and dist['model'] == j and dist['neurons'] == k and dist['input'] == l:
-                            distances[i,j,k,l] = dist['distance'][0:min_num_test_steps]
+                            distances[i,j,k,l] = dist['distance'][min_num_test_steps-1]
                             break
                         else:
                             continue

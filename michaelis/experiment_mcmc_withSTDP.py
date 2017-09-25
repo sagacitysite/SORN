@@ -10,9 +10,9 @@ from common.sources import CountingSource, TrialSource, NoSource
 from common.experiments import AbstractExperiment
 from common.sorn_stats import *
 
-class Experiment_mcmc(AbstractExperiment):
+class Experiment_mcmc_withSTDP(AbstractExperiment):
     def start(self, src):
-        super(Experiment_mcmc,self).start()
+        super(Experiment_mcmc_withSTDP,self).start()
         c = self.params.c
 
         if not c.has_key('display'):
@@ -118,20 +118,28 @@ class Experiment_mcmc(AbstractExperiment):
         return (self.inputsource,stats_all+stats_single,stats_all)
         
     def reset(self,sorn):
-        super(Experiment_mcmc,self).reset(sorn)
+        super(Experiment_mcmc_withSTDP,self).reset(sorn)
         c = self.params.c
         stats = sorn.stats # init sets sorn.stats to None
         sorn.__init__(c,self.inputsource)
         sorn.stats = stats
             
     def run(self,sorn):
-        super(Experiment_mcmc,self).run(sorn)
+        super(Experiment_mcmc_withSTDP,self).run(sorn)
         c = self.params.c
 
+        # RUN SELF ORGANISATION
         if c.display == True:
             print('Run self organization:')
         sorn.simulation(c.steps_plastic)
+
+        # RUN TRAINING
+        if c.display == True:
+            print('\nRun training:')
+
+        # Stop STDP and synaptic normalization
         sorn.update = False
+
         # Run with trials
         # self.inputsource.source.N_a: Size of input source (letters, sequences), e.g. 4
         trialsource = TrialSource(self.inputsource.source, 
@@ -143,10 +151,15 @@ class Experiment_mcmc(AbstractExperiment):
         shuffle(sorn.x) # {0,1}
         shuffle(sorn.y) # {0,1}
 
-        if c.display == True:
-            print('\nRun training:')
         sorn.simulation(c.steps_noplastic_train)
-        
+
+        # RUN TESTING
+        if c.display == True:
+            print('\nRun testing:')
+
+        # Start STDP and synaptic normalization again
+        sorn.update = True
+
         # Run with spont (input u is always zero)
         spontsource = NoSource(sorn.source.source.N_a)
         sorn.source = spontsource
@@ -157,8 +170,6 @@ class Experiment_mcmc(AbstractExperiment):
         if not c.always_ip:
             sorn.c.eta_ip = 0
 
-        if c.display == True:
-            print('\nRun testing:')
         sorn.simulation(c.steps_noplastic_test)
         
         return {'source_plastic':self.inputsource,

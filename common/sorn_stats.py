@@ -92,7 +92,14 @@ class ActivityStat(AbstractStat):
         else:
             c.activity[self.step] = sum(sorn.x)/sorn.c.N_e
         self.step += 1
+
     def report(self,c,sorn):
+        # Store in numpy file
+        if not sorn.c.has_key('multi_name'):
+            sorn.c.multi_name = ""
+
+        np.save(utils.logfilename("../data/activity_" + sorn.c.multi_name + ".npy"), c.activity)
+
         return c.activity
         
 class InputIndexStat(AbstractStat):
@@ -330,12 +337,10 @@ class SpontTransitionAllStat(AbstractStat):
         c.transitions = transition_matrices
 
         # Store in numpy file
-        if sorn.c.has_key('multi_name'):
-            sorn.c.multi_name = "_" + sorn.c.multi_name
-        else:
+        if not sorn.c.has_key('multi_name'):
             sorn.c.multi_name = ""
 
-        np.save(utils.logfilename("../data/transition_matrices" + sorn.c.multi_name + ".npy"), transition_matrices)
+        #np.save(utils.logfilename("../data/transition_matrices_" + sorn.c.multi_name + ".npy"), transition_matrices)
 
         return(transition_matrices)
 
@@ -368,7 +373,7 @@ class SpontTransitionDistance(AbstractStat):
     def report(self, c, sorn):
         if not c.has_key('transitions'):
             raise Exception(
-                'SpontTransitionAllStat() needs to be called before SpontTransitionDistance(). Please have a look to your experiment file.')
+                'SpontTransitionAllStat() needs to be called before SpontTransitionDistance(). Please have a look at your experiment file.')
 
         transitions = c.transitions
         transitions_org = sorn.c.source.transitions
@@ -380,7 +385,11 @@ class SpontTransitionDistance(AbstractStat):
         distances = (1/num_steps)*np.sum(np.square(transitions - np.transpose(transitions_org)), axis=(1,2))
 
         # Store in numpy file
-        np.save(utils.logfilename("../data/transition_distances" + sorn.c.multi_name + ".npy"), distances)
+        if not sorn.c.has_key('multi_name'):
+            sorn.c.multi_name = ""
+
+        # Store in numpy file
+        np.save(utils.logfilename("../data/transition_distances_" + sorn.c.multi_name + ".npy"), distances)
 
         return(distances)
 

@@ -15,6 +15,7 @@ utils.backup(__file__)
 from utils.backup import dest_directory
 from common.stats import StatsCollection
 from common.sorn import Sorn
+from multiprocessing import Pool
 import datetime
 from common.sources import CountingSource
 import cPickle as pickle
@@ -85,6 +86,38 @@ def runSORN(c, src):
     # Display figures
     #plt.show()
 
+# Run network for current combinations
+def runAll(i):
+
+    j = 0
+    # Transitions
+    for transitions in transitions_array:
+
+        k = 0
+        # Training steps
+        for steps in steps_plastic_array:
+            # Print where we are
+            print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / "+ str(steps))
+
+            # Set transitions and source
+            c.source.transitions = transitions
+            source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
+
+            # Set steps_plastic and correct N_steps
+            c.steps_plastic = steps
+            c.N_steps = c.steps_plastic + c.steps_noplastic_train \
+                                        + c.steps_noplastic_test
+
+            # Name of folder for results in this step
+            c.multi_name = "run"+str(i)+"_model"+str(j)+"_steps"+str(k)
+            runSORN(c, source)
+
+            # Increase counter
+            k += 1
+
+        # Increase counter
+        j += 1
+
 # Parameters are read from the second command line argument
 param = import_module(utils.param_file())
 experiment_module = import_module(param.c.experiment.module)
@@ -103,34 +136,11 @@ c.logfilepath = utils.logfilename('') + '/'
 steps_plastic_array = c.steps_plastic
 transitions_array = c.source.transitions
 
-#runSORN(c)
+# Set values
+num_iterations = range(10)
 
-# Run network for current combinations
-
-# Averaging
-for j in range(20):
-    i = 1
-
-    # Transitions
-    for transitions in transitions_array:
-
-        # Training steps
-        for steps in steps_plastic_array:
-            # Print where we are
-            print("### "+ datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(j) +" / model "+ str(i) +" / "+ str(steps) +" ###")
-
-            # Set transitions and source
-            c.source.transitions = transitions
-            source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
-
-            # Set steps_plastic and correct N_steps
-            c.steps_plastic = steps
-            c.N_steps = c.steps_plastic + c.steps_noplastic_train \
-                                        + c.steps_noplastic_test
-
-            # Name of folder for results in this step
-            c.multi_name = "run"+str(j)+"_model"+str(i)+"_steps"+str(steps)
-            runSORN(c, source)
-
-        # Increase counter
-        i += 1
+# Start multi processing
+pool = Pool(2)
+pool.map(runAll, num_iterations)
+pool.close()
+pool.join()
