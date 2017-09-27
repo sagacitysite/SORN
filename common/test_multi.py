@@ -45,10 +45,10 @@ def runSORN(c, src):
     sorn.stats = stats
 
     # Datalog is used to store all results and parameters
-    stats.dlog.set_handler('*',utils.StoreToH5,
-                           utils.logfilename("result.h5"))
-    stats.dlog.append('c', utils.unbunchify(c))
-    stats.dlog.set_handler('*',utils.TextPrinter)
+    # stats.dlog.set_handler('*',utils.StoreToH5,
+    #                        utils.logfilename("result.h5"))
+    # stats.dlog.append('c', utils.unbunchify(c))
+    # stats.dlog.set_handler('*',utils.TextPrinter)
 
     # Final experimental preparations
     experiment.reset(sorn)
@@ -137,10 +137,10 @@ steps_plastic_array = c.steps_plastic
 transitions_array = c.source.transitions
 
 # Set values
-num_iterations = range(10)
+num_iterations = range(2)
 
 # Start multi processing
-pool = Pool(2)
+pool = Pool(1)
 pool.map(runAll, num_iterations)
 pool.close()
 pool.join()

@@ -94,13 +94,27 @@ class ActivityStat(AbstractStat):
         self.step += 1
 
     def report(self,c,sorn):
-        # Store in numpy file
+        transition_step_size = sorn.c.stats.transition_step_size
+        activity = c.activity
+
+        # File name
         if not sorn.c.has_key('multi_name'):
             sorn.c.multi_name = ""
 
-        np.save(utils.logfilename("../data/activity_" + sorn.c.multi_name + ".npy"), c.activity)
+        # Get activity only for testing phase
+        test_activity = activity[-sorn.c.steps_noplastic_test:]
 
-        return c.activity
+        # Calculate number of transition steps, depending on size per step
+        num_transition_steps = int(round((len(test_activity) / transition_step_size) - 0.5))
+
+        # Seperate activity in chunks and calculate mean for every chunk
+        test_activity_chunks = [test_activity[i*transition_step_size:(i+1)*transition_step_size] for i in range(num_transition_steps)]
+        test_activity_chunks_mean = mean(test_activity_chunks, axis=1)
+
+        # Save mean activity in numpy file
+        np.save(utils.logfilename("../data/activity_" + sorn.c.multi_name + ".npy"), test_activity_chunks_mean)
+
+        return activity
         
 class InputIndexStat(AbstractStat):
     """
@@ -241,19 +255,31 @@ class SpontPatternStat(AbstractStat):
         last_spont_spikes = spont_spikes
                 
         # Remove silent periods from spontspikes
-        last_spont_spikes = last_spont_spikes[:,sum(last_spont_spikes,0)>0]
-        N_comp_spont = shape(last_spont_spikes)[1] # Number of spontaneous trials which are not silent
+        #last_spont_spikes = last_spont_spikes[:,sum(last_spont_spikes,0)>0]
+
+        # Number of spontaneous trials which are not silent
+        N_comp_spont = shape(last_spont_spikes)[1]
 
         # Find for each spontaneous state the evoked state with the
         # smallest hamming distance and store the corresponding index
         similar_input = zeros(N_comp_spont)
         for i in xrange(N_comp_spont):
-            # One spontaneous state is subtracted from all input states (broadcasting is used)
-            most_similar = argmin(sum(abs(norm_last_input_spikes.T\
-                                -last_spont_spikes[:,i]),axis=1))
-            similar_input[i] = norm_last_input_index[most_similar]
+            # If current state is NOT silent
+            if sum(last_spont_spikes[:,i])>0:
+                # One spontaneous state is subtracted from all input states (broadcasting is used)
+                most_similar = argmin(sum(abs(norm_last_input_spikes.T\
+                                    -last_spont_spikes[:,i]),axis=1))
+                similar_input[i] = norm_last_input_index[most_similar]
+            # If current state IS silent
+            else:
+                similar_input[i] = -1
 
-        # Count the number of spontaneous states for each index and plot
+        # If more than 5% of all steps are silent, throw error
+        if np.count_nonzero(similar_input == -1) > 0.05*N_comp_spont:
+            raise Exception(
+                'There are too many silent passes to calculate statistics, please change the parameters')
+
+        # Count the number of spontaneous states for each index
         index = range(maxindex+1)
         if self.collection == 'gatherv':
             adding = 2
@@ -284,6 +310,7 @@ class SpontPatternStat(AbstractStat):
         if self.collection == 'gatherv':
             pattern_freqs[:,-1] = -1
         c.similar_input = similar_input
+        print(pattern_freqs)
         return(pattern_freqs)
 
 class SpontTransitionAllStat(AbstractStat):
@@ -326,7 +353,9 @@ class SpontTransitionAllStat(AbstractStat):
         transition_matrices = np.zeros((num_transition_steps, maxindex + 1, maxindex + 1))
         for i in range(num_transition_steps):
             # Get input of current chunk
-            input = similar_input[i*transition_step_size:(i+1)*transition_step_size]
+            raw_input = similar_input[i*transition_step_size:(i+1)*transition_step_size]
+            # Remove silent passes
+            input = np.delete(raw_input, np.where(raw_input == -1))
             # Get transitions for every step
             transition_matrices[i,] = self.getTransition(input)
 
