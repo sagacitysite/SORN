@@ -4,6 +4,7 @@ from __future__ import division # has to be reimported in every file
 import ipdb # prettier debugger
 import os
 import sys
+import gc
 from importlib import import_module
 sys.path.insert(1,"../")
 
@@ -112,6 +113,9 @@ def runAll(i):
             c.multi_name = "run"+str(i)+"_model"+str(j)+"_steps"+str(k)
             runSORN(c, source)
 
+            # Free memory
+            gc.collect()
+
             # Increase counter
             k += 1
 
@@ -137,10 +141,11 @@ steps_plastic_array = c.steps_plastic
 transitions_array = c.source.transitions
 
 # Set values
-num_iterations = range(2)
+num_iterations = range(20)
 
 # Start multi processing
-pool = Pool(1)
+pool = Pool(2)
 pool.map(runAll, num_iterations)
 pool.close()
 pool.join()
+

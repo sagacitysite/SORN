@@ -37,9 +37,9 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.arange(5000,20001,5000) #np.arange(5000,100001,5000)
+c.steps_plastic = np.array([50000]) #np.arange(5000,100001,5000)
 c.steps_noplastic_train = 20000 #20000
-c.steps_noplastic_test = 50000 #100000
+c.steps_noplastic_test = 100000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
                             + c.steps_noplastic_test
 c.display = False # Stop displaying stuff
@@ -71,8 +71,8 @@ c.k_winner_take_all = False
 c.ff_inhibition = False
 c.ff_inhibition_broad = 0.0
 
-c.experiment.module = 'michaelis.experiment_mcmc_withSTDP' # c.experiment.module = 'michaelis.experiment_mcmc'
-c.experiment.name = 'Experiment_mcmc_withSTDP' # c.experiment.name = 'Experiment_mcmc'
+c.experiment.module = 'michaelis.experiment_mcmc'
+c.experiment.name = 'Experiment_mcmc'
 
 #######################################
 c.stats.file_suffix = 'MCMC_ds_noSTDP'
@@ -114,6 +114,11 @@ c.source.control = False # For sequence_test
 from common.sources import CountingSource
 c.states = ['A','B','C','D']
 c.source.transitions = np.array([
+                               # 0. transition
+                               [[0, 1, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 1],
+                                [1, 0, 0, 0]],
                                # 1. transition
                                [[0, 1, 0, 0],
                                 [0, 0, 1, 0],

@@ -114,8 +114,8 @@ c.source.control = False # For sequence_test
 from common.sources import CountingSource
 states = ['A','B','C','D']
 c.source.transitions = np.array([[0, 1, 0, 0],
-                                [0, 0, 1, 0],
-                                [0, 0, 0, 1],
+                                [0.5, 0, 0.5, 0],
+                                [0, 0.5, 0, 0.5],
                                 [0.5, 0, 0.5, 0]])
 source = CountingSource(states,c.source.transitions,
                         c.N_u_e,c.N_u_i,c.source.avoid)

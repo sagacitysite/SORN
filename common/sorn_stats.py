@@ -195,13 +195,15 @@ class NormLastStat(AbstractStat):
         assert(N_comparison > 0)
         assert(N_comparison <= steps_noplastic_test \
              and N_comparison <= steps_noplastic_train)
+
         maxindex = int(max(input_index)) # Highest index of input, e.g. if we have A to D: 3 (equals D) is highest
-        
+
         # Only use spikes that occured at the end of learning and spont
         last_input_spikes = input_spikes[:,-N_comparison:]
         last_input_index = input_index[-N_comparison:]
 
         # Get the minimal occurence of an index in the last steps
+        # Example: If A occures 102 times and B 112 times, choose 102
         min_letter_count = inf
         for i in range(maxindex+1):
             tmp = sum(last_input_index == i)
@@ -213,6 +215,13 @@ class NormLastStat(AbstractStat):
         norm_last_input_spikes = np.zeros((shape(last_input_spikes)[0],\
                                     min_letter_count*(maxindex+1)))
         norm_last_input_index = np.zeros(min_letter_count*(maxindex+1))
+
+        # Store in numpy file
+        if not sorn.c.has_key('multi_name'):
+            sorn.c.multi_name = ""
+
+        # Store in numpy file
+        np.save(utils.logfilename("../data/hamming_input_data_" + sorn.c.multi_name + ".npy"), np.shape(norm_last_input_index)[0])
 
         for i in range(maxindex+1):
             indices = find(last_input_index == i)
@@ -257,7 +266,7 @@ class SpontPatternStat(AbstractStat):
         # Remove silent periods from spontspikes
         #last_spont_spikes = last_spont_spikes[:,sum(last_spont_spikes,0)>0]
 
-        # Number of spontaneous trials which are not silent
+        # Number of spontaneous trials, including silent ones
         N_comp_spont = shape(last_spont_spikes)[1]
 
         # Find for each spontaneous state the evoked state with the
@@ -274,7 +283,7 @@ class SpontPatternStat(AbstractStat):
             else:
                 similar_input[i] = -1
 
-        # If more than 5% of all steps are silent, throw error
+        # If more than 5% of all trials are silent, throw error
         if np.count_nonzero(similar_input == -1) > 0.05*N_comp_spont:
             raise Exception(
                 'There are too many silent passes to calculate statistics, please change the parameters')
@@ -310,7 +319,7 @@ class SpontPatternStat(AbstractStat):
         if self.collection == 'gatherv':
             pattern_freqs[:,-1] = -1
         c.similar_input = similar_input
-        print(pattern_freqs)
+
         return(pattern_freqs)
 
 class SpontTransitionAllStat(AbstractStat):
