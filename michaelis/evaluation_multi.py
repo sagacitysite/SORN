@@ -8,11 +8,11 @@ import scipy
 from scipy.stats import pearsonr
 
 # Parameters for evaluation
-current = "2017-09-27_14-43-59"
+current = "2017-09-28_15-05-39"
 test_step_size = 5000
 train_step_size = 5000
 train_offset = 5000
-num_runs = 2 # How many runs should we evaluate
+num_runs = 20 # How many runs should we evaluate
 
 # Create path and get files
 path = os.getcwd() + "/backup/test_multi/" + current
@@ -24,8 +24,9 @@ if not os.path.exists(plotpath):
 
 files_distances = glob.glob(os.path.join(datapath, "transition_distances_*"))
 files_activity = glob.glob(os.path.join(datapath, "activity_*"))
+files_ncomparison = glob.glob(os.path.join(datapath, "hamming_input_data_*"))
 
-files = {'distance': files_distances, 'activity': files_activity}
+files = {'distance': files_distances, 'activity': files_activity, 'ncomparison': files_ncomparison}
 
 # Prepare data from files to numpy array
 def prepare_data(files):
@@ -42,13 +43,20 @@ def prepare_data(files):
 
     distances_raw = [dict() for x in range(num_files)]
 
+    # Check if ncomparison is part of the file structure
+    ncomp_exists = True
+    if not files_ncomparison:
+        ncomp_exists = False
+
     # Store file content in dictionary
     for i in range(num_files):
         run = int(files['distance'][i].split('_run')[1].split('_model')[0])
         model = int(files['distance'][i].split('_model')[1].split('_steps')[0])
         train_step = int(files['distance'][i].split('_steps')[1].split('.')[0])
         distances_raw[i] = {"run": run, "model": model, "train_step": train_step,
-                            "distance": np.load(files['distance'][i]), "activity": np.load(files['activity'][i])}
+                            "distance": np.load(files['distance'][i]),
+                            "activity": np.load(files['activity'][i]),
+                            "ncomparison": np.load(files['ncomparison'][i]) if ncomp_exists else None }
 
     # Get sizes
     num_models = len(np.unique([dist['model'] for dist in distances_raw]))
@@ -59,6 +67,11 @@ def prepare_data(files):
     distances = np.empty((num_runs, num_models, num_train_steps, num_test_steps))
     activity = np.copy(distances)
 
+    if ncomp_exists:
+        ncomparison = np.empty((num_runs, num_models, num_train_steps))
+    else:
+        ncomparison = None
+
     # Store dictionary data in clean numpy array
     for dist in distances_raw:
         for i in range(num_runs):
@@ -68,12 +81,15 @@ def prepare_data(files):
                     if dist['run'] == i and dist['model'] == j and dist['train_step'] == k:
                         distances[i,j,k] = dist['distance'][0:num_test_steps]
                         activity[i,j,k] = dist['activity'][0:num_test_steps]
+
+                        if ncomp_exists:
+                            ncomparison[i, j, k] = dist['ncomparison']
                         break
                     else:
                         continue
 
     # Return sorted and clean data
-    return (distances, activity)
+    return (distances, activity, ncomparison)
 
 def training_steps_plot(distances):
     global plotpath
@@ -163,22 +179,54 @@ def activity_distance_correlation_plot(distances, activity):
         x = dists[:,i,:].flatten()
         y = actis[:,i,:].flatten()
         plt.scatter(x, y)
-        plt.title('Correlation (%.2f)' % pearsonr(x, y)[0])
+        plt.title('Correlation Activity/Distances (%.2f)' % pearsonr(x, y)[0])
         plt.xlabel('Mean squared distance to initial transition')
         plt.ylabel('Activity (percentage)')
-        plt.savefig(plotpath + '/correlation_model' + str(i+1) + '.png', dpi=144)
+        plt.savefig(plotpath + '/correlation_activity_model' + str(i+1) + '.png', dpi=144)
         plt.close()
 
+def ncomparison_distance_correlation_plot(distances, ncomparison):
+    global plotpath, test_step_size
+
+    # Get results for highest train step only
+    last_idx_train_steps = np.shape(distances)[2] - 1
+    dists = distances[:, :, last_idx_train_steps, :]
+    ncomp = ncomparison[:, :, last_idx_train_steps]
+
+    num_models = np.shape(dists)[1]
+
+    # Define color palette
+    color_palette = cm.rainbow(np.linspace(0, 1, num_models))
+
+    # Plot
+    plt.figure()
+    for i in range(num_models):
+        x = np.mean(dists[:, i, :], axis=1)
+        y = ncomp[:, i]
+        plt.scatter(x, y, color=color_palette[i], alpha=0.3)
+        plt.errorbar(np.mean(x), np.mean(y), yerr=np.std(y), fmt='o', color=color_palette[i])
+
+    # Add decoration
+    plt.title('Correlation NComparison/Distances (%.2f)' % pearsonr(np.mean(ncomp, axis=0), np.mean(dists, axis=(0,2)))[0])
+    plt.xlabel('Mean squared distance to initial transition')
+    plt.ylabel('Number of comparison states')
+
+    # Save and close plit
+    plt.savefig(plotpath + '/correlation_ncomparison_distances.png', dpi=144)
+    plt.close()
 
 
-(distances, activity) = prepare_data(files) # (runs, models, train steps, test steps)
+(distances, activity, ncomparison) = prepare_data(files) # (runs, models, train steps, test steps)
 
 # Plot performance for different testing conditions
-training_steps_plot(distances)
+if np.shape(distances)[2] > 1:
+    training_steps_plot(distances)
 
 # Plot performance and activity in testing phase
 test_trace_plot(distances, prefix="distances", label="Mean squared distance to initial transition")
 test_trace_plot(activity, prefix="activity", label="Activity (percentage)")
 
-# Plot correlation between performance and activity
+# Plot correlation between performance and activity/ncomparison
 activity_distance_correlation_plot(distances, activity)
+if ncomparison:
+    ncomparison_distance_correlation_plot(distances, ncomparison)

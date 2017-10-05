@@ -198,23 +198,50 @@ class NormLastStat(AbstractStat):
 
         maxindex = int(max(input_index)) # Highest index of input, e.g. if we have A to D: 3 (equals D) is highest
 
-        # Only use spikes that occured at the end of learning and spont
-        last_input_spikes = input_spikes[:,-N_comparison:]
-        last_input_index = input_index[-N_comparison:]
+        if __name__ == '__main__':
+            if not sorn.c.stats.has_key('ncomparison_per_state'):
+                # Only use spikes that occured at the end of learning and spont
+                last_input_spikes = input_spikes[:,-N_comparison:]
+                last_input_index = input_index[-N_comparison:]
 
-        # Get the minimal occurence of an index in the last steps
-        # Example: If A occures 102 times and B 112 times, choose 102
-        min_letter_count = inf
-        for i in range(maxindex+1):
-            tmp = sum(last_input_index == i)
-            if min_letter_count > tmp:
-                min_letter_count = tmp
+                # Get the minimal occurence of an index in the last steps
+                # Example: If A occures 102 times and B 112 times, choose 102
+                min_letter_count = inf
+                for i in range(maxindex+1):
+                    tmp = sum(last_input_index == i)
+                    if min_letter_count > tmp:
+                        min_letter_count = tmp
 
-        # For each index, take the same number of states from the
-        # end phase of learning to avoid a bias in comparing states
-        norm_last_input_spikes = np.zeros((shape(last_input_spikes)[0],\
-                                    min_letter_count*(maxindex+1)))
-        norm_last_input_index = np.zeros(min_letter_count*(maxindex+1))
+                # For each index, take the same number of states from the
+                # end phase of learning to avoid a bias in comparing states
+                norm_last_input_spikes = np.zeros((shape(last_input_spikes)[0],\
+                                            min_letter_count*(maxindex+1)))
+                norm_last_input_index = np.zeros(min_letter_count*(maxindex+1))
+
+                # TODO What happens here exately?
+                for i in range(maxindex + 1):
+                    indices = find(last_input_index == i)
+                    norm_last_input_spikes[:, min_letter_count * i \
+                        : min_letter_count * (i + 1)] \
+                        = last_input_spikes[:, indices[-min_letter_count:]]
+                    norm_last_input_index[min_letter_count * i \
+                        : min_letter_count * (i + 1)] \
+                        = last_input_index[indices[-min_letter_count:]]
+            else:
+                ncomparison_per_state = sorn.c.stats.ncomparison_per_state
+
+                for i in range(maxindex + 1):
+                    state_occurencies = np.where(input_index == i)[0]
+
+                    if len(state_occurencies) < ncomparison_per_state:
+                        raise Exception(
+                            'No enough occurencies in state '+str(i)+', decreae parameter c.stats.ncomparison_per_state or increase number of training steps c.steps_noplastic_train')
+
+                # Get last x value from every input
+                last_input_index = state_occurencies[-ncomparison_per_state:]
+
+                # TODO Go on implementing ..
+
 
         # Store in numpy file
         if not sorn.c.has_key('multi_name'):
@@ -222,15 +249,6 @@ class NormLastStat(AbstractStat):
 
         # Store in numpy file
         np.save(utils.logfilename("../data/hamming_input_data_" + sorn.c.multi_name + ".npy"), np.shape(norm_last_input_index)[0])
-
-        for i in range(maxindex+1):
-            indices = find(last_input_index == i)
-            norm_last_input_spikes[:,min_letter_count*i\
-                                     : min_letter_count*(i+1)]\
-                = last_input_spikes[:, indices[-min_letter_count:]]
-            norm_last_input_index[min_letter_count*i\
-                                     : min_letter_count*(i+1)]\
-                = last_input_index[indices[-min_letter_count:]]
 
         # Shuffle to avoid argmin-problem of selecting only first match
         indices = arange(shape(norm_last_input_index)[0])
