@@ -198,50 +198,52 @@ class NormLastStat(AbstractStat):
 
         maxindex = int(max(input_index)) # Highest index of input, e.g. if we have A to D: 3 (equals D) is highest
 
-        if __name__ == '__main__':
-            if not sorn.c.stats.has_key('ncomparison_per_state'):
-                # Only use spikes that occured at the end of learning and spont
-                last_input_spikes = input_spikes[:,-N_comparison:]
-                last_input_index = input_index[-N_comparison:]
+        norm_last_input_spikes = []
+        norm_last_input_index = []
 
-                # Get the minimal occurence of an index in the last steps
-                # Example: If A occures 102 times and B 112 times, choose 102
-                min_letter_count = inf
-                for i in range(maxindex+1):
-                    tmp = sum(last_input_index == i)
-                    if min_letter_count > tmp:
-                        min_letter_count = tmp
+        if not sorn.c.stats.has_key('ncomparison_per_state'):
+            # Only use spikes that occured at the end of learning and spont
+            last_input_spikes = input_spikes[:,-N_comparison:]
+            last_input_index = input_index[-N_comparison:]
 
-                # For each index, take the same number of states from the
-                # end phase of learning to avoid a bias in comparing states
-                norm_last_input_spikes = np.zeros((shape(last_input_spikes)[0],\
-                                            min_letter_count*(maxindex+1)))
-                norm_last_input_index = np.zeros(min_letter_count*(maxindex+1))
+            # Get the minimal occurence of an index in the last steps
+            # Example: If A occures 102 times and B 112 times, choose 102
+            min_letter_count = inf
+            for i in range(maxindex+1):
+                tmp = sum(last_input_index == i)
+                if min_letter_count > tmp:
+                    min_letter_count = tmp
 
-                # TODO What happens here exately?
-                for i in range(maxindex + 1):
-                    indices = find(last_input_index == i)
-                    norm_last_input_spikes[:, min_letter_count * i \
-                        : min_letter_count * (i + 1)] \
-                        = last_input_spikes[:, indices[-min_letter_count:]]
-                    norm_last_input_index[min_letter_count * i \
-                        : min_letter_count * (i + 1)] \
-                        = last_input_index[indices[-min_letter_count:]]
-            else:
-                ncomparison_per_state = sorn.c.stats.ncomparison_per_state
+            # For each index, take the same number of states from the
+            # end phase of learning to avoid a bias in comparing states
+            norm_last_input_spikes = np.zeros((shape(last_input_spikes)[0],\
+                                        min_letter_count*(maxindex+1)))
+            norm_last_input_index = np.zeros(min_letter_count*(maxindex+1))
 
-                for i in range(maxindex + 1):
-                    state_occurencies = np.where(input_index == i)[0]
+            # Get min_letter_count values from every input state
+            for i in range(maxindex + 1):
+                # Get all indices of states i
+                indices = find(last_input_index == i) # find(arr) equals np.where(arr)[0]
+                norm_last_input_spikes[:, min_letter_count*i:min_letter_count*(i+1)] = last_input_spikes[:, indices[-min_letter_count:]]
+                norm_last_input_index[min_letter_count*i:min_letter_count*(i+1)] = last_input_index[indices[-min_letter_count:]]
+        else:
+            ncom = sorn.c.stats.ncomparison_per_state
 
-                    if len(state_occurencies) < ncomparison_per_state:
-                        raise Exception(
-                            'No enough occurencies in state '+str(i)+', decreae parameter c.stats.ncomparison_per_state or increase number of training steps c.steps_noplastic_train')
+            # Prepare matrices
+            norm_last_input_spikes = np.empty((shape(input_spikes)[0], ncom*(maxindex+1)))
+            norm_last_input_index = np.empty(ncom*(maxindex+1))
 
-                # Get last x value from every input
-                last_input_index = state_occurencies[-ncomparison_per_state:]
+            # Fill matrices with states
+            for i in range(maxindex + 1):
+                state_occurencies = np.where(input_index == i)[0]
 
-                # TODO Go on implementing ..
+                if len(state_occurencies) < ncom:
+                    raise Exception(
+                        'No enough occurencies in state '+str(i)+', decreae parameter c.stats.ncomparison_per_state or increase number of training steps c.steps_noplastic_train')
 
+
+                norm_last_input_spikes[:, ncom*i:ncom*(i+1)] = input_spikes[:,state_occurencies[-ncom:]]
+                norm_last_input_index[ncom*i:ncom*(i+1)] = input_index[state_occurencies[-ncom:]]
 
         # Store in numpy file
         if not sorn.c.has_key('multi_name'):
@@ -255,10 +257,17 @@ class NormLastStat(AbstractStat):
         shuffle(indices)
         norm_last_input_index = norm_last_input_index[indices]
         norm_last_input_spikes = norm_last_input_spikes[:,indices]
+
+        # Define some values in c structur for later use
         c.norm_last_input_index = norm_last_input_index
         c.norm_last_input_spikes = norm_last_input_spikes
         c.maxindex = maxindex
+
         c.N_comparison = N_comparison
+        if sorn.c.stats.has_key('ncomparison_per_state'):
+            c.N_comparison = sorn.c.stats.ncomparison_per_state*(maxindex+1)
+
+        # Define to_retun variable and return it
         to_return = array([float(N_comparison)])
         return to_return
         

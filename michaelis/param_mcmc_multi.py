@@ -37,7 +37,7 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.array([50000]) #np.arange(5000,100001,5000)
+c.steps_plastic = np.arange(5000,80001,5000) #np.array([50000])
 c.steps_noplastic_train = 20000 #20000
 c.steps_noplastic_test = 100000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
@@ -85,6 +85,7 @@ c.stats.lstsq_mue = 1
 c.stats.control_rates = False
 c.stats.ISI_step = 4
 c.stats.transition_step_size = 5000 # 5000
+c.stats.ncomparison_per_state = 500 # If ncomparison or only_last should be used, remove this parameter
 # c.stats.only_last = 3000 # affects many stats: take only last x steps
 
 # Following parameters for randsource
@@ -115,25 +116,25 @@ from common.sources import CountingSource
 c.states = ['A','B','C','D']
 c.source.transitions = np.array([
                                # 0. transition
-                               [[0, 1, 0, 0],
-                                [0, 0, 1, 0],
-                                [0, 0, 0, 1],
-                                [1, 0, 0, 0]],
+                               [[0, 0.9, 0, 0.9],
+                                [0.1, 0, 0.9, 0],
+                                [0, 0.1, 0, 0.1],
+                                [0.1, 0, 0.9, 0]],
                                # 1. transition
-                               [[0, 1, 0, 0],
-                                [0, 0, 1, 0],
-                                [0, 0, 0, 1],
-                                [0.5, 0, 0.5, 0]],
+                               [[0, 0.8, 0, 0.8],
+                                [0.2, 0, 0.8, 0],
+                                [0, 0.2, 0, 0.2],
+                                [0.2, 0, 0.8, 0]],
                                # 2. transition
-                               [[0, 1, 0, 0],
-                                [0.5, 0, 0.5, 0],
-                                [0, 0, 0, 1],
-                                [0.5, 0, 0.5, 0]],
+                               [[0, 0.7, 0, 0.7],
+                                [0.3, 0, 0.7, 0],
+                                [0, 0.3, 0, 0.3],
+                                [0.3, 0, 0.7, 0]],
                                # 3. transition
-                               [[0, 1, 0, 0],
-                                [0.5, 0, 0.5, 0],
-                                [0, 0.5, 0, 0.5],
-                                [0.5, 0, 0.5, 0]],
+                               [[0, 0.6, 0, 0.6],
+                                [0.4, 0, 0.6, 0],
+                                [0, 0.4, 0, 0.4],
+                                [0.4, 0, 0.6, 0]],
                                # 4. transition
                                [[0, 0.5, 0, 0.5],
                                 [0.5, 0, 0.5, 0],
