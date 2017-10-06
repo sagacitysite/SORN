@@ -111,6 +111,7 @@ def runAll(i):
 
             # Name of folder for results in this step
             c.multi_name = "run"+str(i)+"_model"+str(j)+"_steps"+str(k)
+            print(source)
             runSORN(c, source)
 
             # Free memory
@@ -142,10 +143,14 @@ transitions_array = c.source.transitions
 
 # Set values
 num_iterations = range(20)
+print(num_iterations)
+
+for i in num_iterations:
+    runAll(i)
 
 # Start multi processing
-pool = Pool(2)
-pool.map(runAll, num_iterations)
-pool.close()
-pool.join()
+#pool = Pool(2)
+#pool.map(runAll, num_iterations)
+#pool.close()
+#pool.join()
 
