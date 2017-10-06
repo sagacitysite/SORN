@@ -8,7 +8,7 @@ import scipy
 from scipy.stats import pearsonr
 
 # Parameters for evaluation
-current = "2017-09-28_15-05-39"
+current = "2017-10-06_14-48-05"
 test_step_size = 5000
 train_step_size = 5000
 train_offset = 5000
@@ -228,5 +228,5 @@ test_trace_plot(activity, prefix="activity", label="Activity (percentage)")
 
 # Plot correlation between performance and activity/ncomparison
 activity_distance_correlation_plot(distances, activity)
-if ncomparison:
+if not (ncomparison is None):
     ncomparison_distance_correlation_plot(distances, ncomparison)
