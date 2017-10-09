@@ -7,11 +7,25 @@ import sys
 import scipy
 from scipy.stats import pearsonr
 
+# Import parameters
+sys.path.insert(0,"/home/carlo/Projects/SORN/michaelis")
+sys.path.insert(0,"/home/carlo/Projects/SORN/utils")
+import param_mcmc_multi as para
+import stationairy as stationairyDistribution
+
 # Parameters for evaluation
-current = "2017-10-06_14-48-05"
-test_step_size = 5000
-train_step_size = 5000
-train_offset = 5000
+num_states = np.shape(para.c.source.transitions)[1]
+test_step_size = para.c.steps_plastic[1]-para.c.steps_plastic[0] if np.size(para.c.steps_plastic) > 1 else 0
+train_step_size = para.c.steps_noplastic_test[1]-para.c.steps_noplastic_test[0] if np.size(para.c.steps_noplastic_test) > 1 else 0
+train_offset = np.min(para.c.steps_plastic)
+
+# Calculate stationairy distributions from markov chains
+stationaries = [stationairyDistribution.calculate(transition) for transition in para.c.source.transitions]
+variance = np.var(stationaries, axis=1) # TODO maybe choose something else
+entropy = [scipy.stats.entropy(s, np.repeat(0.25, num_states)) for s in stationaries]
+
+# Path and num runs value for evaluation
+current = "2017-10-07_00-26-07_new"
 num_runs = 20 # How many runs should we evaluate
 
 # Create path and get files

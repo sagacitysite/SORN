@@ -37,8 +37,8 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.arange(5000,80001,5000) #np.array([50000])
-c.steps_noplastic_train = 20000 #20000
+c.steps_plastic = np.array([50000]) #np.arange(10000,80001,5000)
+c.steps_noplastic_train = 50000 #20000
 c.steps_noplastic_test = 100000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
                             + c.steps_noplastic_test
@@ -115,27 +115,27 @@ c.source.control = False # For sequence_test
 from common.sources import CountingSource
 c.states = ['A','B','C','D']
 c.source.transitions = np.array([
-                               # 0. transition
-                               [[0, 0.5, 0, 0.5],
-                                [0.1, 0, 0.9, 0],
-                                [0, 0.5, 0, 0.5],
-                                [0.1, 0, 0.9, 0]],
                                # 1. transition
                                [[0, 0.5, 0, 0.5],
-                                [0.2, 0, 0.8, 0],
-                                [0, 0.5, 0, 0.5],
-                                [0.2, 0, 0.8, 0]],
+                                [0.1, 0, 0.9, 0],
+                                [0, 0.1, 0.8, 0.1],
+                                [0.1, 0, 0.9, 0]],
                                # 2. transition
                                [[0, 0.5, 0, 0.5],
-                                [0.3, 0, 0.7, 0],
-                                [0, 0.5, 0, 0.5],
-                                [0.3, 0, 0.7, 0]],
+                                [0.2, 0, 0.8, 0],
+                                [0, 0.2, 0.6, 0.2],
+                                [0.2, 0, 0.8, 0]],
                                # 3. transition
                                [[0, 0.5, 0, 0.5],
-                                [0.4, 0, 0.6, 0],
-                                [0, 0.5, 0, 0.5],
-                                [0.4, 0, 0.6, 0]],
+                                [0.3, 0, 0.7, 0],
+                                [0, 0.3, 0.4, 0.3],
+                                [0.3, 0, 0.7, 0]],
                                # 4. transition
+                               [[0, 0.5, 0, 0.5],
+                                [0.4, 0, 0.6, 0],
+                                [0, 0.4, 0.2, 0.4],
+                                [0.4, 0, 0.6, 0]],
+                               # 5. transition
                                [[0, 0.5, 0, 0.5],
                                 [0.5, 0, 0.5, 0],
                                 [0, 0.5, 0, 0.5],
@@ -147,12 +147,14 @@ c.wait_min_plastic = 0
 c.wait_var_plastic = 0
 c.wait_min_train = 0
 c.wait_var_train = 0
-                        
+
 # Cluster
 c.cluster.vary_param = 'steps_plastic'#'with_plasticity'#
 c.cluster.params = np.linspace(5000,15000,3)#[False,True]#
 if c.imported_mpi:
     c.cluster.NUMBER_OF_SIMS  = len(c.cluster.params)
     c.cluster.NUMBER_OF_CORES = MPI.COMM_WORLD.size
-    c.cluster.NUMBER_LOCAL = c.cluster.NUMBER_OF_SIMS\
-                             // c.cluster.NUMBER_OF_CORES
+    c.cluster.NUMBER_LOCAL = c.cluster.NUMBER_OF_SIMS // c.cluster.NUMBER_OF_CORES
+
+def test():
+    pass

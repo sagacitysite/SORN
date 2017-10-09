@@ -310,8 +310,8 @@ class SpontPatternStat(AbstractStat):
             else:
                 similar_input[i] = -1
 
-        # If more than 5% of all trials are silent, throw error
-        if np.count_nonzero(similar_input == -1) > 0.05*N_comp_spont:
+        # If more than 10% of all trials are silent, throw error
+        if np.count_nonzero(similar_input == -1) > 0.1*N_comp_spont:
             raise Exception(
                 'There are too many silent passes to calculate statistics, please change the parameters')
 
