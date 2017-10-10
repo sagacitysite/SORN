@@ -114,32 +114,42 @@ c.source.control = False # For sequence_test
                             #~ c.source.avoid)
 from common.sources import CountingSource
 c.states = ['A','B','C','D']
-c.source.transitions = np.array([
-                               # 1. transition
-                               [[0, 0.5, 0, 0.5],
-                                [0.1, 0, 0.9, 0],
-                                [0, 0.1, 0.8, 0.1],
-                                [0.1, 0, 0.9, 0]],
-                               # 2. transition
-                               [[0, 0.5, 0, 0.5],
-                                [0.2, 0, 0.8, 0],
-                                [0, 0.2, 0.6, 0.2],
-                                [0.2, 0, 0.8, 0]],
-                               # 3. transition
-                               [[0, 0.5, 0, 0.5],
-                                [0.3, 0, 0.7, 0],
-                                [0, 0.3, 0.4, 0.3],
-                                [0.3, 0, 0.7, 0]],
-                               # 4. transition
-                               [[0, 0.5, 0, 0.5],
-                                [0.4, 0, 0.6, 0],
-                                [0, 0.4, 0.2, 0.4],
-                                [0.4, 0, 0.6, 0]],
-                               # 5. transition
-                               [[0, 0.5, 0, 0.5],
-                                [0.5, 0, 0.5, 0],
-                                [0, 0.5, 0, 0.5],
-                                [0.5, 0, 0.5, 0]]])
+# c.source.transitions = np.array([
+#                                # 1. transition
+#                                [[0, 0.5, 0, 0.5],
+#                                 [0.1, 0, 0.9, 0],
+#                                 [0, 0.1, 0.8, 0.1],
+#                                 [0.1, 0, 0.9, 0]],
+#                                # 2. transition
+#                                [[0, 0.5, 0, 0.5],
+#                                 [0.2, 0, 0.8, 0],
+#                                 [0, 0.2, 0.6, 0.2],
+#                                 [0.2, 0, 0.8, 0]],
+#                                # 3. transition
+#                                [[0, 0.5, 0, 0.5],
+#                                 [0.3, 0, 0.7, 0],
+#                                 [0, 0.3, 0.4, 0.3],
+#                                 [0.3, 0, 0.7, 0]],
+#                                # 4. transition
+#                                [[0, 0.5, 0, 0.5],
+#                                 [0.4, 0, 0.6, 0],
+#                                 [0, 0.4, 0.2, 0.4],
+#                                 [0.4, 0, 0.6, 0]],
+#                                # 5. transition
+#                                [[0, 0.5, 0, 0.5],
+#                                 [0.5, 0, 0.5, 0],
+#                                 [0, 0.5, 0, 0.5],
+#                                 [0.5, 0, 0.5, 0]]])
+
+transitions = []
+iterate = np.arange(0.1,0.51,0.025)
+for it in iterate:
+    transitions.append([[0, 0.5, 0, 0.5],
+                                          [it, 0, 1-it, 0],
+                                          [0, it, 1-(2*it), it],
+                                          [it, 0, 1-it, 0]])
+c.source.transitions = np.array(transitions)
+
 #source = CountingSource(c.states,c.source.transitions,
 #                        c.N_u_e,c.N_u_i,c.source.avoid)
                         

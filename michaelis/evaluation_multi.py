@@ -7,25 +7,8 @@ import sys
 import scipy
 from scipy.stats import pearsonr
 
-# Import parameters
-sys.path.insert(0,"/home/carlo/Projects/SORN/michaelis")
-sys.path.insert(0,"/home/carlo/Projects/SORN/utils")
-import param_mcmc_multi as para
-import stationairy as stationairyDistribution
-
-# Parameters for evaluation
-num_states = np.shape(para.c.source.transitions)[1]
-test_step_size = para.c.steps_plastic[1]-para.c.steps_plastic[0] if np.size(para.c.steps_plastic) > 1 else 0
-train_step_size = para.c.steps_noplastic_test[1]-para.c.steps_noplastic_test[0] if np.size(para.c.steps_noplastic_test) > 1 else 0
-train_offset = np.min(para.c.steps_plastic)
-
-# Calculate stationairy distributions from markov chains
-stationaries = [stationairyDistribution.calculate(transition) for transition in para.c.source.transitions]
-variance = np.var(stationaries, axis=1) # TODO maybe choose something else
-entropy = [scipy.stats.entropy(s, np.repeat(0.25, num_states)) for s in stationaries]
-
 # Path and num runs value for evaluation
-current = "2017-10-07_00-26-07_new"
+current = "2017-10-09_15-12-16_new2"
 num_runs = 20 # How many runs should we evaluate
 
 # Create path and get files
@@ -41,6 +24,18 @@ files_activity = glob.glob(os.path.join(datapath, "activity_*"))
 files_ncomparison = glob.glob(os.path.join(datapath, "hamming_input_data_*"))
 
 files = {'distance': files_distances, 'activity': files_activity, 'ncomparison': files_ncomparison}
+
+# Import parameters
+sys.path.insert(0,path+"/michaelis")
+sys.path.insert(0,os.getcwd()+"/utils")
+import param_mcmc_multi as para
+import stationairy as stationairyDistribution
+
+# Parameters for evaluation
+num_states = np.shape(para.c.source.transitions)[1]
+test_step_size = para.c.stats.transition_step_size
+train_step_size = para.c.steps_noplastic_test[1]-para.c.steps_noplastic_test[0] if np.size(para.c.steps_noplastic_test) > 1 else 0
+train_offset = np.min(para.c.steps_plastic)
 
 # Prepare data from files to numpy array
 def prepare_data(files):
@@ -215,7 +210,7 @@ def ncomparison_distance_correlation_plot(distances, ncomparison):
     # Plot
     plt.figure()
     for i in range(num_models):
-        x = np.mean(dists[:, i, :], axis=1)
+        x = np.mean(dists[:, i, 1:], axis=1) # Exclude first test step
         y = ncomp[:, i]
         plt.scatter(x, y, color=color_palette[i], alpha=0.3)
         plt.errorbar(np.mean(x), np.mean(y), yerr=np.std(y), fmt='o', color=color_palette[i])
@@ -227,6 +222,32 @@ def ncomparison_distance_correlation_plot(distances, ncomparison):
 
     # Save and close plit
     plt.savefig(plotpath + '/correlation_ncomparison_distances.png', dpi=144)
+    plt.close()
+
+def inequality_distance_correlation_plot(distances):
+    global plotpath, test_step_size
+
+    # Calculate stationairy distributions from markov chains
+    stationaries = [stationairyDistribution.calculate(transition) for transition in para.c.source.transitions]
+    variance = np.var(stationaries, axis=1)  # TODO maybe choose something else
+    entropy = [scipy.stats.entropy(s, np.repeat(0.25, num_states)) for s in stationaries]
+
+    # Get results for highest train step only
+    last_idx_train_steps = np.shape(distances)[2] - 1
+    dists = np.mean(distances[:, :, last_idx_train_steps, 1:], axis=2) # Exclude first test step
+
+    plt.errorbar(variance, np.mean(dists, axis=0), yerr=np.std(dists, axis=0), fmt='o')
+    plt.title('Correlation Variance/Distances (%.2f)' % pearsonr(variance, np.mean(dists, axis=0))[0])
+    plt.xlabel('Variance')
+    plt.ylabel('Mean squared distance to initial transition')
+    plt.savefig(plotpath + '/correlation_inequality_variance.png', dpi=144)
+    plt.close()
+
+    plt.errorbar(entropy, np.mean(dists, axis=0), yerr=np.std(dists, axis=0), fmt='o')
+    plt.title('Correlation Entropy/Distances (%.2f)' % pearsonr(entropy, np.mean(dists, axis=0))[0])
+    plt.xlabel('Entropy')
+    plt.ylabel('Mean squared distance to initial transition')
+    plt.savefig(plotpath + '/correlation_inequality_entropy.png', dpi=144)
     plt.close()
 
 
@@ -244,3 +265,4 @@ test_trace_plot(activity, prefix="activity", label="Activity (percentage)")
 activity_distance_correlation_plot(distances, activity)
 if not (ncomparison is None):
     ncomparison_distance_correlation_plot(distances, ncomparison)
+inequality_distance_correlation_plot(distances)
