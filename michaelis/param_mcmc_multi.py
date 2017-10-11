@@ -140,15 +140,23 @@ c.states = ['A','B','C','D']
 #                                 [0.5, 0, 0.5, 0],
 #                                 [0, 0.5, 0, 0.5],
 #                                 [0.5, 0, 0.5, 0]]])
+#
+# transitions = []
+# iterate = np.arange(0.1, 0.51, 0.025)
+# for it in iterate:
+#     transitions.append([[0, 0.5, 0, 0.5],
+#                         [it, 0, 1-it, 0],
+#                         [0, it, 1-(2*it), it],
+#                         [it, 0, 1-it, 0]])
+# c.source.transitions = np.array(transitions)
 
 transitions = []
-iterate = np.arange(0.1,0.51,0.025)
+iterate = np.arange(0.1, 0.51, 0.025)
 for it in iterate:
-    transitions.append([[0, 0.5, 0, 0.5],
-                                          [it, 0, 1-it, 0],
-                                          [0, it, 1-(2*it), it],
-                                          [it, 0, 1-it, 0]])
-c.source.transitions = np.array(transitions)
+    transitions.append([[1-(2*it), it, 0, it],
+                        [0.5, 0, 0.5, 0],
+                        [0, 0.5, 0, 0.5],
+                        [0.5, 0, 0.5, 0]])
 
 #source = CountingSource(c.states,c.source.transitions,
 #                        c.N_u_e,c.N_u_i,c.source.avoid)
