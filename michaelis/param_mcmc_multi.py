@@ -157,6 +157,7 @@ for it in iterate:
                         [0.5, 0, 0.5, 0],
                         [0, 0.5, 0, 0.5],
                         [0.5, 0, 0.5, 0]])
+c.source.transitions = np.array(transitions)
 
 #source = CountingSource(c.states,c.source.transitions,
 #                        c.N_u_e,c.N_u_i,c.source.avoid)
