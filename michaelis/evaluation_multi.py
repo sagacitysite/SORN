@@ -8,7 +8,7 @@ import scipy
 from scipy.stats import pearsonr
 
 # Path and num runs value for evaluation
-current = "2017-10-09_15-12-16_new2"
+current = "2017-10-10_12-15-19_variant3_many"
 num_runs = 20 # How many runs should we evaluate
 
 # Create path and get files
@@ -236,6 +236,7 @@ def inequality_distance_correlation_plot(distances):
     last_idx_train_steps = np.shape(distances)[2] - 1
     dists = np.mean(distances[:, :, last_idx_train_steps, 1:], axis=2) # Exclude first test step
 
+    # Variance
     plt.errorbar(variance, np.mean(dists, axis=0), yerr=np.std(dists, axis=0), fmt='o')
     plt.title('Correlation Variance/Distances (%.2f)' % pearsonr(variance, np.mean(dists, axis=0))[0])
     plt.xlabel('Variance')
@@ -243,11 +244,28 @@ def inequality_distance_correlation_plot(distances):
     plt.savefig(plotpath + '/correlation_inequality_variance.png', dpi=144)
     plt.close()
 
+    plt.scatter(variance, np.std(dists, axis=0))
+    plt.title('Correlation Variance / Deviation of distances (%.2f)' % pearsonr(variance, np.std(dists, axis=0))[0])
+    plt.xlabel('Variance')
+    plt.ylabel('Deviation of mean squared distance to initial transition')
+    plt.ylim(ymin=0)
+    plt.savefig(plotpath + '/correlation_inequality_variance_std.png', dpi=144)
+    plt.close()
+
+    # Entropy
     plt.errorbar(entropy, np.mean(dists, axis=0), yerr=np.std(dists, axis=0), fmt='o')
     plt.title('Correlation Entropy/Distances (%.2f)' % pearsonr(entropy, np.mean(dists, axis=0))[0])
     plt.xlabel('Entropy')
     plt.ylabel('Mean squared distance to initial transition')
     plt.savefig(plotpath + '/correlation_inequality_entropy.png', dpi=144)
+    plt.close()
+
+    plt.scatter(entropy, np.std(dists, axis=0))
+    plt.title('Correlation Entropy / Deviation of distances (%.2f)' % pearsonr(entropy, np.std(dists, axis=0))[0])
+    plt.xlabel('Entropy')
+    plt.ylabel('Deviation of mean squared distance to initial transition')
+    plt.ylim(ymin=0)
+    plt.savefig(plotpath + '/correlation_inequality_entropy_std.png', dpi=144)
     plt.close()
 
 
@@ -262,7 +280,7 @@ test_trace_plot(distances, prefix="distances", label="Mean squared distance to i
 test_trace_plot(activity, prefix="activity", label="Activity (percentage)")
 
 # Plot correlation between performance and activity/ncomparison
-activity_distance_correlation_plot(distances, activity)
+#activity_distance_correlation_plot(distances, activity)
 if not (ncomparison is None):
     ncomparison_distance_correlation_plot(distances, ncomparison)
 inequality_distance_correlation_plot(distances)
