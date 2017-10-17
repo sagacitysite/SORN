@@ -8,11 +8,11 @@ import scipy
 from scipy.stats import pearsonr
 
 # Path and num runs value for evaluation
-current = "2017-10-10_12-15-19_variant3_many"
-num_runs = 20 # How many runs should we evaluate
+current = "2017-10-17_12-57-49"
+num_runs = 2 # How many runs should we evaluate
 
 # Create path and get files
-path = os.getcwd() + "/backup/test_multi/" + current
+path = os.getcwd() + "/backup/test_noplastic_train/" + current
 datapath = path + "/data"
 plotpath = path + "/plots"
 
@@ -28,14 +28,14 @@ files = {'distance': files_distances, 'activity': files_activity, 'ncomparison':
 # Import parameters
 sys.path.insert(0,path+"/michaelis")
 sys.path.insert(0,os.getcwd()+"/utils")
-import param_mcmc_multi as para
+import param_mcmc_noplastic_train as para
 import stationairy as stationairyDistribution
 
 # Parameters for evaluation
 num_states = np.shape(para.c.source.transitions)[1]
 test_step_size = para.c.stats.transition_step_size
-train_step_size = para.c.steps_plastic[1]-para.c.steps_plastic[0] if np.size(para.c.steps_plastic) > 1 else 0
-train_offset = np.min(para.c.steps_plastic)
+train_step_size = para.c.steps_noplastic_train[1]-para.c.steps_noplastic_train[0] if np.size(para.c.steps_noplastic_train) > 1 else 0
+train_offset = np.min(para.c.steps_noplastic_train)
 
 # Prepare data from files to numpy array
 def prepare_data(files):
