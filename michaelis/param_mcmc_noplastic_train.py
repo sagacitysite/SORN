@@ -37,9 +37,9 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = 50000 #np.arange(10000,80001,5000)
+c.steps_plastic = 30000 #np.arange(10000,80001,5000)
 c.steps_noplastic_train = np.arange(5000,100001,5000) #20000
-c.steps_noplastic_test = 100000 #100000
+c.steps_noplastic_test = 50000 #100000
 #c.N_steps = c.steps_plastic + c.steps_noplastic_train + c.steps_noplastic_test
 c.display = False # Stop displaying stuff
 
