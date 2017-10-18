@@ -124,13 +124,16 @@ class Experiment_mcmc(AbstractExperiment):
         sorn.__init__(c,self.inputsource)
         sorn.stats = stats
             
-    def run(self,sorn):
+    def run(self,sorn,only_initalization=False):
         super(Experiment_mcmc,self).run(sorn)
         c = self.params.c
 
-        if c.display == True:
-            print('Run self organization:')
-        sorn.simulation(c.steps_plastic)
+        if not only_initalization:
+            if c.display == True:
+                print('Run self organization:')
+            sorn.simulation(c.steps_plastic)
+
+        # Prepare noplastic training
         sorn.update = False
         # Run with trials
         # self.inputsource.source.N_a: Size of input source (letters, sequences), e.g. 4
@@ -146,7 +149,8 @@ class Experiment_mcmc(AbstractExperiment):
         if c.display == True:
             print('\nRun training:')
         sorn.simulation(c.steps_noplastic_train)
-        
+
+        # Prepare noplastic testing
         # Run with spont (input u is always zero)
         spontsource = NoSource(sorn.source.source.N_a)
         sorn.source = spontsource

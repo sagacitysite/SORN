@@ -124,9 +124,14 @@ class Experiment_mcmc_withSTDP(AbstractExperiment):
         sorn.__init__(c,self.inputsource)
         sorn.stats = stats
             
-    def run(self,sorn):
+    def run(self,sorn,only_initalization=False):
         super(Experiment_mcmc_withSTDP,self).run(sorn)
         c = self.params.c
+
+        if not only_initalization:
+            if c.display == True:
+                print('Run self organization:')
+            sorn.simulation(c.steps_plastic)
 
         # RUN SELF ORGANISATION
         if c.display == True:

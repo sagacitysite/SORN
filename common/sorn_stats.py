@@ -315,6 +315,26 @@ class SpontPatternStat(AbstractStat):
             raise Exception(
                 'There are too many silent passes to calculate statistics, please change the parameters')
 
+
+
+        # transition_step_size = sorn.c.stats.transition_step_size
+        #
+        # # Calculate number of transitions steps, depending on size per step
+        # num_chunks = int(round((np.size(similar_input) / transition_step_size) - 0.5))
+        #
+        # # Split into equally sized parts and discard the rest, since it's not equal to the others
+        # stationairy = np.zeros((num_chunks, maxindex + 1))
+        # for i in range(num_chunks):
+        #     # Get input of current chunk
+        #     raw_input = similar_input[i * transition_step_size:(i + 1) * transition_step_size]
+        #     # Remove silent passes
+        #     input = np.delete(raw_input, np.where(raw_input == -1))
+        #     # Get transitions for every step
+        #     stationairy[i,] = self.getTransition(input)
+        #
+        # # Separate similar_input into chunks of size
+        # similar_input
+
         # Count the number of spontaneous states for each index
         index = range(maxindex+1)
         if self.collection == 'gatherv':
@@ -386,25 +406,27 @@ class SpontTransitionAllStat(AbstractStat):
         num_transition_steps = int(round((np.size(similar_input) / transition_step_size) - 0.5))
 
         # Split into equally sized parts and discard the rest, since it's not equal to the others
-        transition_matrices = np.zeros((num_transition_steps, maxindex + 1, maxindex + 1))
+        transition_matrices = np.empty((num_transition_steps, maxindex + 1, maxindex + 1))
+        stationairies = np.empty((num_transition_steps, maxindex + 1))
         for i in range(num_transition_steps):
             # Get input of current chunk
             raw_input = similar_input[i*transition_step_size:(i+1)*transition_step_size]
             # Remove silent passes
             input = np.delete(raw_input, np.where(raw_input == -1))
+            # Get stationary distibution for every step
+            stationairies[i,:] = [ sum(raw_input == j) for j in range(maxindex+1)]
             # Get transitions for every step
             transition_matrices[i,] = self.getTransition(input)
 
-        #np.set_printoptions(threshold=np.nan)
-        #print('SpontTransitionAllStat')
-        #print(transition_matrices)
-
+        # Stroe transitions in c for later use
         c.transitions = transition_matrices
 
         # Store in numpy file
         if not sorn.c.has_key('multi_name'):
             sorn.c.multi_name = ""
 
+        # Store stationairy
+        np.save(utils.logfilename("../data/stationairies_" + sorn.c.multi_name + ".npy"),stationairies)
         #np.save(utils.logfilename("../data/transition_matrices_" + sorn.c.multi_name + ".npy"), transition_matrices)
 
         return(transition_matrices)

@@ -8,8 +8,8 @@ import scipy
 from scipy.stats import pearsonr
 
 # Path and num runs value for evaluation
-current = "2017-10-17_12-57-49"
-num_runs = 2 # How many runs should we evaluate
+current = "2017-10-17_13-58-27"
+num_runs = 5 # How many runs should we evaluate
 
 # Create path and get files
 path = os.getcwd() + "/backup/test_noplastic_train/" + current
