@@ -29,7 +29,7 @@ def debugger(type,flag):
     print('In debugger! (test_single.py)')
     import ipdb
     ipdb.set_trace()
-#~ np.seterrcall(debugger)    
+#~ np.seterrcall(debugger)
 #~ np.seterr(all='call')
 
 def runSORN(c, src):
@@ -90,40 +90,37 @@ def runSORN(c, src):
 # Run network for current combinations
 def runAll(i):
 
-    # Plastic train active (0) or use only initialization (1)
-    for p in plastic_train:
+    j = 0
+    # Transitions
+    for transitions in transitions_array:
 
-        j = 0
-        # Transitions
-        for transitions in transitions_array:
+        k = 0
+        # Training steps
+        for steps in steps_plastic_array:
+            # Print where we are
+            print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / "+ str(steps))
 
-            k = 0
-            # Training steps
-            for steps in steps_plastic_array:
-                # Print where we are
-                print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / "+ str(steps))
+            # Set transitions and source
+            c.source.transitions = transitions
+            source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
 
-                # Set transitions and source
-                c.source.transitions = transitions
-                source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
+            # Set steps_plastic and correct N_steps
+            c.steps_plastic = steps
+            c.N_steps = c.steps_plastic + c.steps_noplastic_train \
+                                        + c.steps_noplastic_test
 
-                # Set steps_plastic and correct N_steps
-                c.steps_plastic = steps
-                c.N_steps = c.steps_plastic + c.steps_noplastic_train \
-                                            + c.steps_noplastic_test
+            # Name of folder for results in this step
+            c.multi_name = "run"+str(i)+"_model"+str(j)+"_steps"+str(k)
+            runSORN(c, source)
 
-                # Name of folder for results in this step
-                c.multi_name = "plastictrain"+str(p)+"_run"+str(i)+"_model"+str(j)+"_steps"+str(k)
-                runSORN(c, source, p)
-
-                # Free memory
-                gc.collect()
-
-                # Increase counter
-                k += 1
+            # Free memory
+            gc.collect()
 
             # Increase counter
-            j += 1
+            k += 1
+
+        # Increase counter
+        j += 1
 
 # Parameters are read from the second command line argument
 param = import_module(utils.param_file())
@@ -145,7 +142,7 @@ transitions_array = c.source.transitions
 
 # Set values
 num_iterations = range(20)
-plastic_train = range(2) # range(1): Only with plastic train, range(2): Plastic train and only initalization
+#plastic_train = range(2) # range(1): Only with plastic train, range(2): Plastic train and only initalization
 
 # Start multi processing
 pool = Pool(2)
