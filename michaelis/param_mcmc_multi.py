@@ -22,7 +22,7 @@ c.W_ee = utils.Bunch(use_sparse=True,
                      sp_prob = 0.0,
                      sp_initial=0.000,
                      no_prune = True,
-                     upper_bound = 1,   
+                     upper_bound = 1,
                      weighted_stdp = False,
                      eta_ds = 0.1
                      )
@@ -37,7 +37,7 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.array([50000]) #np.arange(10000,80001,5000)
+c.steps_plastic = np.arange(0,80001,5000) #np.array([0, 50000]) #np.arange(10000,80001,5000)
 c.steps_noplastic_train = 50000 #20000
 c.steps_noplastic_test = 100000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \

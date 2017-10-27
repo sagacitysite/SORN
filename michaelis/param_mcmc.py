@@ -39,7 +39,7 @@ c.W_ie = utils.Bunch(use_sparse=False,
 
 c.steps_plastic = 10000 #50000
 c.steps_noplastic_train = 20000 #20000
-c.steps_noplastic_test = 10000 #50000
+c.steps_noplastic_test = 30000 #50000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
                             + c.steps_noplastic_test
 c.display = True
@@ -71,8 +71,8 @@ c.k_winner_take_all = False
 c.ff_inhibition = False
 c.ff_inhibition_broad = 0.0
 
-c.experiment.module = 'michaelis.experiment_mcmc_withSTDP' # c.experiment.module = 'michaelis.experiment_mcmc'
-c.experiment.name = 'Experiment_mcmc_withSTDP' # c.experiment.name = 'Experiment_mcmc'
+c.experiment.module = 'michaelis.experiment_mcmc' # c.experiment.module = 'michaelis.experiment_mcmc'
+c.experiment.name = 'Experiment_mcmc' # c.experiment.name = 'Experiment_mcmc'
 
 #######################################
 c.stats.file_suffix = 'MCMC_ds_noSTDP'
@@ -86,6 +86,7 @@ c.stats.control_rates = False
 c.stats.ISI_step = 4
 c.stats.transition_step_size = 5000 # 5000
 c.stats.ncomparison_per_state = 500 # If ncomparison or only_last should be used, remove this parameter
+c.stats.hamming_threshold = 15 # Find
 # c.stats.only_last = 3000 # affects many stats: take only last x steps
 
 # Following parameters for randsource

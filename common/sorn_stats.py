@@ -286,7 +286,7 @@ class SpontPatternStat(AbstractStat):
         norm_last_input_spikes = c.norm_last_input_spikes
         maxindex = c.maxindex
         N_comparison = c.N_comparison
-        
+
         #last_spont_spikes = spont_spikes[:,-N_comparison:]
         last_spont_spikes = spont_spikes
                 
@@ -296,22 +296,43 @@ class SpontPatternStat(AbstractStat):
         # Number of spontaneous trials, including silent ones
         N_comp_spont = shape(last_spont_spikes)[1]
 
+        # Define empty array for hamming distances
+        hamming_distances = np.empty(N_comp_spont)
+
         # Find for each spontaneous state the evoked state with the
         # smallest hamming distance and store the corresponding index
         similar_input = zeros(N_comp_spont)
         for i in xrange(N_comp_spont):
             # If current state is NOT silent
             if sum(last_spont_spikes[:,i])>0:
-                # One spontaneous state is subtracted from all input states (broadcasting is used)
+                # One spontaneous state is subtracted from all input states from testing phase (broadcasting is used)
                 most_similar = argmin(sum(abs(norm_last_input_spikes.T\
                                     -last_spont_spikes[:,i]),axis=1))
+
+                if not sorn.c.stats.has_key('hamming_threshold'):
+                    # If no threshold is given, just assign states
+                    similar_input[i] = norm_last_input_index[most_similar]
+                else:
+                    # Check if distance reaches threshold distance
+                    hamming_distances[i] = sum(abs(norm_last_input_spikes[:,most_similar] - last_spont_spikes[:, i]))
+
+                    # If threshold was met, apply state otherwise apply silent
+                    similar_input[i] = norm_last_input_index[most_similar] if hamming_distances[i] > sorn.c.stats.hamming_threshold else -1
+
                 similar_input[i] = norm_last_input_index[most_similar]
+
             # If current state IS silent
             else:
                 similar_input[i] = -1
 
-        # If more than 10% of all trials are silent, throw error
-        if np.count_nonzero(similar_input == -1) > 0.1*N_comp_spont:
+        # Store hamming distances for all test states in numpy file
+        if not sorn.c.has_key('multi_name'):
+            sorn.c.multi_name = ""
+        np.save(utils.logfilename("../data/hamming_distances_" + sorn.c.multi_name + ".npy"), hamming_distances)
+
+        # If more than 30% of all trials are silent, throw error
+        # FIXME: Change back to 10%!!
+        if np.count_nonzero(similar_input == -1) > 0.3*N_comp_spont:
             raise Exception(
                 'There are too many silent passes to calculate statistics, please change the parameters')
 

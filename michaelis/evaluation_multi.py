@@ -8,7 +8,7 @@ import scipy
 from scipy.stats import pearsonr
 
 # Path and num runs value for evaluation
-current = "2017-10-10_12-15-19_variant3_many"
+current = "2017-10-20_14-02-16_baseline"
 num_runs = 20 # How many runs should we evaluate
 
 # Create path and get files
@@ -225,48 +225,76 @@ def ncomparison_distance_correlation_plot(distances, ncomparison):
     plt.close()
 
 def inequality_distance_correlation_plot(distances):
-    global plotpath, test_step_size
+    global plotpath, train_step_size, train_offset
 
     # Calculate stationairy distributions from markov chains
     stationaries = [stationairyDistribution.calculate(transition) for transition in para.c.source.transitions]
-    variance = np.var(stationaries, axis=1)  # TODO maybe choose something else
+    variance = np.var(stationaries, axis=1)  # TODO maybe choose some other measure (additionally to variance and entropy)
     entropy = [scipy.stats.entropy(s, np.repeat(0.25, num_states)) for s in stationaries]
 
-    # Get results for highest train step only
-    last_idx_train_steps = np.shape(distances)[2] - 1
-    dists = np.mean(distances[:, :, last_idx_train_steps, 1:], axis=2) # Exclude first test step
+    # Get number of train steps
+    train_steps = np.shape(distances)[2]
 
-    # Variance
-    plt.errorbar(variance, np.mean(dists, axis=0), yerr=np.std(dists, axis=0), fmt='o')
-    plt.title('Correlation Variance/Distances (%.2f)' % pearsonr(variance, np.mean(dists, axis=0))[0])
+    # Exclude first test step and mean over test steps
+    dists = np.mean(distances[:, :, :, 1:], axis=3)
+
+    # Define color palette
+    color_palette = cm.rainbow(np.linspace(0, 1, train_steps))
+
+    for i in range(train_steps):
+        # Variance
+        legend = str(train_offset + train_step_size*i) + ' training steps, r=' + str(np.round(pearsonr(variance, np.mean(dists[:,:,i], axis=0))[0],2))
+        plt.errorbar(variance, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0), fmt='o',
+                     color=color_palette[i], ecolor=np.append(color_palette[i][0:3], 0.5))
+
+    plt.legend()
+    plt.title('Variance/Distances')
     plt.xlabel('Variance')
     plt.ylabel('Mean squared distance to initial transition')
     plt.savefig(plotpath + '/correlation_inequality_variance.png', dpi=144)
     plt.close()
 
-    plt.scatter(variance, np.std(dists, axis=0))
-    plt.title('Correlation Variance / Deviation of distances (%.2f)' % pearsonr(variance, np.std(dists, axis=0))[0])
-    plt.xlabel('Variance')
-    plt.ylabel('Deviation of mean squared distance to initial transition')
+    # Dist baseline plot
+    dists_baseline = np.mean(dists[:,:,0], axis=0)
+    for i in range(train_steps):
+        if i > 0:
+            # Variance with distance difference
+            diff = dists_baseline - np.mean(dists[:, :, i], axis=0)
+            legend = str(train_offset + train_step_size * i) + ' training steps, r=' + str(
+                pearsonr(variance, diff)[0])
+            plt.scatter(variance, diff, label=legend, color=color_palette[i])
+
+    plt.legend()
     plt.ylim(ymin=0)
-    plt.savefig(plotpath + '/correlation_inequality_variance_std.png', dpi=144)
+    plt.title('Baseline: Variance/Distances')
+    plt.xlabel('Variance')
+    plt.ylabel('Performance increase in relation to baseline')
+    plt.savefig(plotpath + '/correlation_inequality_variance_baseline.png', dpi=144)
     plt.close()
+
+    # plt.scatter(variance, np.std(dists, axis=0))
+    # plt.title('Correlation Variance / Deviation of distances (%.2f)' % pearsonr(variance, np.std(dists, axis=0))[0])
+    # plt.xlabel('Variance')
+    # plt.ylabel('Deviation of mean squared distance to initial transition')
+    # plt.ylim(ymin=0)
+    # plt.savefig(plotpath + '/correlation_inequality_variance_std.png', dpi=144)
+    # plt.close()
 
     # Entropy
-    plt.errorbar(entropy, np.mean(dists, axis=0), yerr=np.std(dists, axis=0), fmt='o')
-    plt.title('Correlation Entropy/Distances (%.2f)' % pearsonr(entropy, np.mean(dists, axis=0))[0])
-    plt.xlabel('Entropy')
-    plt.ylabel('Mean squared distance to initial transition')
-    plt.savefig(plotpath + '/correlation_inequality_entropy.png', dpi=144)
-    plt.close()
-
-    plt.scatter(entropy, np.std(dists, axis=0))
-    plt.title('Correlation Entropy / Deviation of distances (%.2f)' % pearsonr(entropy, np.std(dists, axis=0))[0])
-    plt.xlabel('Entropy')
-    plt.ylabel('Deviation of mean squared distance to initial transition')
-    plt.ylim(ymin=0)
-    plt.savefig(plotpath + '/correlation_inequality_entropy_std.png', dpi=144)
-    plt.close()
+    # plt.errorbar(entropy, np.mean(dists, axis=0), yerr=np.std(dists, axis=0), fmt='o')
+    # plt.title('Correlation Entropy/Distances (%.2f)' % pearsonr(entropy, np.mean(dists, axis=0))[0])
+    # plt.xlabel('Entropy')
+    # plt.ylabel('Mean squared distance to initial transition')
+    # plt.savefig(plotpath + '/correlation_inequality_entropy.png', dpi=144)
+    # plt.close()
+    #
+    # plt.scatter(entropy, np.std(dists, axis=0))
+    # plt.title('Correlation Entropy / Deviation of distances (%.2f)' % pearsonr(entropy, np.std(dists, axis=0))[0])
+    # plt.xlabel('Entropy')
+    # plt.ylabel('Deviation of mean squared distance to initial transition')
+    # plt.ylim(ymin=0)
+    # plt.savefig(plotpath + '/correlation_inequality_entropy_std.png', dpi=144)
+    # plt.close()
 
 
 (distances, activity, ncomparison) = prepare_data(files) # (runs, models, train steps, test steps)
@@ -283,4 +311,5 @@ test_trace_plot(activity, prefix="activity", label="Activity (percentage)")
 #activity_distance_correlation_plot(distances, activity)
 if not (ncomparison is None):
     ncomparison_distance_correlation_plot(distances, ncomparison)
-inequality_distance_correlation_plot(distances)
+
+inequality_distance_correlation_plot(distances) # entropy plot
