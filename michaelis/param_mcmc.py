@@ -86,7 +86,7 @@ c.stats.control_rates = False
 c.stats.ISI_step = 4
 c.stats.transition_step_size = 5000 # 5000
 c.stats.ncomparison_per_state = 500 # If ncomparison or only_last should be used, remove this parameter
-c.stats.hamming_threshold = 15 # Find
+c.stats.hamming_threshold = 15 # Remove this line, if no threshold should be set
 # c.stats.only_last = 3000 # affects many stats: take only last x steps
 
 # Following parameters for randsource

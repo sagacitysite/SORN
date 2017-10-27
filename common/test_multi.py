@@ -94,33 +94,47 @@ def runAll(i):
     # Transitions
     for transitions in transitions_array:
 
-        k = 0
-        # Training steps
-        for steps in steps_plastic_array:
-            # Print where we are
-            print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / "+ str(steps))
+        h = 0
+        # Hamming thresholds
+        for hamming_threshold in hamming_threshold_array:
 
-            # Set transitions and source
-            c.source.transitions = transitions
-            source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
 
-            # Set steps_plastic and correct N_steps
-            c.steps_plastic = steps
-            c.N_steps = c.steps_plastic + c.steps_noplastic_train \
-                                        + c.steps_noplastic_test
+            k = 0
+            # Training steps
+            for steps in steps_plastic_array:
+                # Print where we are
+                print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / "+ str(steps))
 
-            # Name of folder for results in this step
-            c.multi_name = "run"+str(i)+"_model"+str(j)+"_steps"+str(k)
-            runSORN(c, source)
+                # Set transitions and source
+                c.source.transitions = transitions
+                source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
 
-            # Free memory
-            gc.collect()
+                # Set steps_plastic and correct N_steps
+                c.steps_plastic = steps
+                c.N_steps = c.steps_plastic + c.steps_noplastic_train \
+                                            + c.steps_noplastic_test
+
+                # Set hamming threshold
+                c.stats.hamming_threshold = hamming_threshold
+
+                #if c.stats.hamming_threshold == -1:
+                #    del c.stats.hamming_threshold
+
+                # Name of folder for results in this step
+                c.multi_name = "run"+str(i)+"_model"+str(j)+"_threshold"+str(h)+"_steps"+str(k)
+                runSORN(c, source)
+
+                # Free memory
+                gc.collect()
+
+                # Increase counter
+                k += 1
 
             # Increase counter
-            k += 1
+            j += 1
 
         # Increase counter
-        j += 1
+        h += 1
 
 # Parameters are read from the second command line argument
 param = import_module(utils.param_file())
@@ -139,13 +153,14 @@ del c.states
 c.logfilepath = utils.logfilename('') + '/'
 steps_plastic_array = c.steps_plastic
 transitions_array = c.source.transitions
+hamming_threshold_array = c.stats.hamming_threshold
 
 # Set values
-num_iterations = range(20)
+num_iterations = range(10)
 #plastic_train = range(2) # range(1): Only with plastic train, range(2): Plastic train and only initalization
 
 # Start multi processing
-pool = Pool(2)
+pool = Pool(1)
 pool.map(runAll, num_iterations)
 pool.close()
 pool.join()

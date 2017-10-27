@@ -313,11 +313,11 @@ class SpontPatternStat(AbstractStat):
                     # If no threshold is given, just assign states
                     similar_input[i] = norm_last_input_index[most_similar]
                 else:
-                    # Check if distance reaches threshold distance
+                    # Calculate hamming distance for the most_similar case
                     hamming_distances[i] = sum(abs(norm_last_input_spikes[:,most_similar] - last_spont_spikes[:, i]))
 
                     # If threshold was met, apply state otherwise apply silent
-                    similar_input[i] = norm_last_input_index[most_similar] if hamming_distances[i] > sorn.c.stats.hamming_threshold else -1
+                    similar_input[i] = norm_last_input_index[most_similar] if hamming_distances[i] < sorn.c.stats.hamming_threshold else -1
 
                 similar_input[i] = norm_last_input_index[most_similar]
 
