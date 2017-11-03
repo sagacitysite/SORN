@@ -8,7 +8,7 @@ import scipy
 from scipy.stats import pearsonr
 
 # Path and num runs value for evaluation
-current = "2017-10-20_14-02-16_baseline"
+current = "2017-10-21_13-51-39_baselinebig"
 num_runs = 20 # How many runs should we evaluate
 
 # Create path and get files
@@ -244,10 +244,12 @@ def inequality_distance_correlation_plot(distances):
     for i in range(train_steps):
         # Variance
         legend = str(train_offset + train_step_size*i) + ' training steps, r=' + str(np.round(pearsonr(variance, np.mean(dists[:,:,i], axis=0))[0],2))
-        plt.errorbar(variance, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0), fmt='o',
+        plt.errorbar(variance, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),# fmt='o',
                      color=color_palette[i], ecolor=np.append(color_palette[i][0:3], 0.5))
 
-    plt.legend()
+    plt.legend(loc=2,prop={'size': 6})
+    plt.ylim(ymin=0)
+    plt.grid()
     plt.title('Variance/Distances')
     plt.xlabel('Variance')
     plt.ylabel('Mean squared distance to initial transition')
@@ -260,12 +262,12 @@ def inequality_distance_correlation_plot(distances):
         if i > 0:
             # Variance with distance difference
             diff = dists_baseline - np.mean(dists[:, :, i], axis=0)
-            legend = str(train_offset + train_step_size * i) + ' training steps, r=' + str(
-                pearsonr(variance, diff)[0])
-            plt.scatter(variance, diff, label=legend, color=color_palette[i])
+            legend = str(train_offset + train_step_size * i) + ' training steps, r=' + str(np.round(pearsonr(variance, diff)[0], 2))
+            plt.plot(variance, diff, label=legend, color=color_palette[i])
 
-    plt.legend()
-    plt.ylim(ymin=0)
+    plt.legend(prop={'size': 6})
+    #plt.ylim(ymin=0)
+    plt.grid()
     plt.title('Baseline: Variance/Distances')
     plt.xlabel('Variance')
     plt.ylabel('Performance increase in relation to baseline')

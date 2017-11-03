@@ -131,10 +131,10 @@ def runAll(i):
                 k += 1
 
             # Increase counter
-            j += 1
+            h += 1
 
         # Increase counter
-        h += 1
+        j += 1
 
 # Parameters are read from the second command line argument
 param = import_module(utils.param_file())
@@ -160,7 +160,7 @@ num_iterations = range(10)
 #plastic_train = range(2) # range(1): Only with plastic train, range(2): Plastic train and only initalization
 
 # Start multi processing
-pool = Pool(1)
+pool = Pool(2)
 pool.map(runAll, num_iterations)
 pool.close()
 pool.join()
