@@ -23,8 +23,9 @@ files_distances = glob.glob(os.path.join(datapath, "transition_distances_*"))
 files_activity = glob.glob(os.path.join(datapath, "activity_*"))
 files_ncomparison = glob.glob(os.path.join(datapath, "hamming_input_data_*"))
 files_hamming = glob.glob(os.path.join(datapath, "hamming_distances_*"))
+files_stationary = glob.glob(os.path.join(datapath, "stationairies_*")) # TODO change to stationaries
 
-files = {'distance': files_distances, 'activity': files_activity, 'ncomparison': files_ncomparison, 'hamming': files_hamming}
+files = {'distance': files_distances, 'activity': files_activity, 'stationary'; stationary, 'ncomparison': files_ncomparison, 'hamming': files_hamming}
 
 # Import parameters
 sys.path.insert(0,path+"/michaelis")
@@ -43,8 +44,6 @@ train_offset = np.min(para.c.steps_plastic)
 # Prepare data from files to numpy array
 def prepare_data(files):
     global test_steps, train_step_size, train_offset
-
-    print('# Prepare files')
 
     num_files_dist = len(files['distance'])
     num_files_act = len(files['activity'])
@@ -78,10 +77,9 @@ def prepare_data(files):
         distances_raw[i] = {"run": run, "model": model, "train_step": train_step, "threshold": threshold,
                             "distance": np.load(files['distance'][i]),
                             "activity": np.load(files['activity'][i]),
+                            "stationary": np.load(files['stationary'][i]),
                             "ncomparison": np.load(files['ncomparison'][i]) if ncomp_exists else None,
                             "hamming": np.load(files['hamming'][i]) if hamming_exists else None }
-
-    print('# Prepare arrays')
 
     # Get sizes
     num_models = len(np.unique([dist['model'] for dist in distances_raw]))
@@ -92,6 +90,7 @@ def prepare_data(files):
     # Prepare sorted numpy array
     distances = np.empty((num_runs, num_models, num_train_steps, num_thresholds, num_test_chunks))
     activity = np.copy(distances)
+    stationary = np.copy(distances)
     ncomparison = np.empty((num_runs, num_models, num_train_steps, num_thresholds)) if ncomp_exists else None
     hamming = np.empty((num_runs, num_models, num_train_steps, num_thresholds, test_steps)) if hamming_exists else None
 
@@ -106,6 +105,7 @@ def prepare_data(files):
                         if dist['run'] == i and dist['model'] == j and dist['train_step'] == k and dist['threshold'] == h:
                             distances[i,j,k,h] = dist['distance'][0:num_test_chunks]
                             activity[i,j,k,h] = dist['activity'][0:num_test_chunks]
+                            stationary[i,j,k,h] = dist['stationary'][0:num_test_chunks]
 
                             if ncomp_exists:
                                 ncomparison[i,j,k,h] = dist['ncomparison']
@@ -117,7 +117,7 @@ def prepare_data(files):
                             continue
 
     # Return sorted and clean data
-    return (distances, activity, ncomparison, hamming)
+    return (distances, activity, stationary, ncomparison, hamming)
 
 def training_steps_plot(distances):
     global plotpath, steps_plastic
@@ -355,7 +355,11 @@ def inequality_distance_correlation_plot(distances):
 def get_max_threshold(arr):
     return arr[:,:,:,np.shape(arr)[3]-1,:]
 
-(distances, activity, ncomparison, hamming) = prepare_data(files) # (runs, models, train steps, thresholds, test steps / test chunks)
+(distances, activity, stationary, ncomparison, hamming) = prepare_data(files) # (runs, models, train steps, thresholds, test steps / test chunks)
+
+# Plot performance for different training steps
+if np.shape(distances)[2] > 1:
+    training_steps_plot(get_max_threshold(distances))
 
 # Plot performance for different training steps
 if np.shape(distances)[2] > 1:

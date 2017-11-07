@@ -112,7 +112,7 @@ class ActivityStat(AbstractStat):
         test_activity_chunks_mean = mean(test_activity_chunks, axis=1)
 
         # Save mean activity in numpy file
-        np.save(utils.logfilename("../data/activity_" + sorn.c.multi_name + ".npy"), test_activity_chunks_mean)
+        np.save(utils.logfilename("../data/activity/" + sorn.c.multi_name + ".npy"), test_activity_chunks_mean)
 
         return activity
         
@@ -250,7 +250,7 @@ class NormLastStat(AbstractStat):
             sorn.c.multi_name = ""
 
         # Store in numpy file
-        np.save(utils.logfilename("../data/hamming_input_data_" + sorn.c.multi_name + ".npy"), np.shape(norm_last_input_index)[0])
+        np.save(utils.logfilename("../data/ncomparison/" + sorn.c.multi_name + ".npy"), np.shape(norm_last_input_index)[0])
 
         # Shuffle to avoid argmin-problem of selecting only first match
         indices = arange(shape(norm_last_input_index)[0])
@@ -338,7 +338,7 @@ class SpontPatternStat(AbstractStat):
         # Store hamming distances for all test states in numpy file
         if not sorn.c.has_key('multi_name'):
             sorn.c.multi_name = ""
-        np.save(utils.logfilename("../data/hamming_distances_" + sorn.c.multi_name + ".npy"), hamming_distances)
+        np.save(utils.logfilename("../data/hamming_distances/" + sorn.c.multi_name + ".npy"), hamming_distances)
 
         # If more than 30% of all trials are silent, throw error
         # FIXME: Change back to 10%!!
@@ -354,14 +354,14 @@ class SpontPatternStat(AbstractStat):
         # num_chunks = int(round((np.size(similar_input) / transition_step_size) - 0.5))
         #
         # # Split into equally sized parts and discard the rest, since it's not equal to the others
-        # stationairy = np.zeros((num_chunks, maxindex + 1))
+        # stationary = np.zeros((num_chunks, maxindex + 1))
         # for i in range(num_chunks):
         #     # Get input of current chunk
         #     raw_input = similar_input[i * transition_step_size:(i + 1) * transition_step_size]
         #     # Remove silent passes
         #     input = np.delete(raw_input, np.where(raw_input == -1))
         #     # Get transitions for every step
-        #     stationairy[i,] = self.getTransition(input)
+        #     stationary[i,] = self.getTransition(input)
         #
         # # Separate similar_input into chunks of size
         # similar_input
@@ -438,14 +438,14 @@ class SpontTransitionAllStat(AbstractStat):
 
         # Split into equally sized parts and discard the rest, since it's not equal to the others
         transition_matrices = np.empty((num_transition_steps, maxindex + 1, maxindex + 1))
-        stationairies = np.empty((num_transition_steps, maxindex + 1))
+        stationaries = np.empty((num_transition_steps, maxindex + 1))
         for i in range(num_transition_steps):
             # Get input of current chunk
             raw_input = similar_input[i*transition_step_size:(i+1)*transition_step_size]
             # Remove silent passes
             input = np.delete(raw_input, np.where(raw_input == -1))
             # Get stationary distibution for every step
-            stationairies[i,:] = [ sum(raw_input == j) for j in range(maxindex+1)]
+            stationaries[i,:] = [ sum(raw_input == j) for j in range(maxindex+1)]
             # Get transitions for every step
             transition_matrices[i,] = self.getTransition(input)
 
@@ -456,9 +456,9 @@ class SpontTransitionAllStat(AbstractStat):
         if not sorn.c.has_key('multi_name'):
             sorn.c.multi_name = ""
 
-        # Store stationairy
-        np.save(utils.logfilename("../data/stationairies_" + sorn.c.multi_name + ".npy"),stationairies)
-        #np.save(utils.logfilename("../data/transition_matrices_" + sorn.c.multi_name + ".npy"), transition_matrices)
+        # Store stationary
+        np.save(utils.logfilename("../data/stationaries/" + sorn.c.multi_name + ".npy"), stationaries)
+        #np.save(utils.logfilename("../data/transition_matrices/" + sorn.c.multi_name + ".npy"), transition_matrices)
 
         return(transition_matrices)
 
@@ -507,7 +507,7 @@ class SpontTransitionDistance(AbstractStat):
             sorn.c.multi_name = ""
 
         # Store in numpy file
-        np.save(utils.logfilename("../data/transition_distances_" + sorn.c.multi_name + ".npy"), distances)
+        np.save(utils.logfilename("../data/transition_distances/" + sorn.c.multi_name + ".npy"), distances)
 
         return(distances)
 
