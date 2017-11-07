@@ -156,7 +156,7 @@ transitions_array = c.source.transitions
 hamming_threshold_array = c.stats.hamming_threshold
 
 # Set values
-num_iterations = range(10)
+num_iterations = range(20)
 #plastic_train = range(2) # range(1): Only with plastic train, range(2): Plastic train and only initalization
 
 # Start multi processing

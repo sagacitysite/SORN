@@ -316,6 +316,16 @@ class SpontPatternStat(AbstractStat):
                     # Calculate hamming distance for the most_similar case
                     hamming_distances[i] = sum(abs(norm_last_input_spikes[:,most_similar] - last_spont_spikes[:, i]))
 
+                    # If hamming distance is larger than size of the network, something went wrong
+                    if hamming_distances[i] > sorn.c.N_e:
+                        raise Exception(
+                            'Hamming distance is larger than number of neurons in the network.')
+
+                    # If hamming distance is larger than size of the network, something went wrong
+                    if hamming_distances[i] == np.nan:
+                        raise Exception(
+                            'Hamming distance is nan.')
+
                     # If threshold was met, apply state otherwise apply silent
                     similar_input[i] = norm_last_input_index[most_similar] if hamming_distances[i] < sorn.c.stats.hamming_threshold else -1
 
