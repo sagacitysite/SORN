@@ -128,6 +128,14 @@ class Experiment_mcmc_withSTDP(AbstractExperiment):
         super(Experiment_mcmc_withSTDP,self).run(sorn)
         c = self.params.c
 
+        # If filename was not set, we are in single mode
+        if not c.has_key('file_name'):
+            c.file_name = "single"
+
+        # If state does not exist, create it
+        if not c.has_key('state'):
+            c.state = utils.Bunch()
+
         if c.display == True:
             print('Run self organization:')
         sorn.simulation(c.steps_plastic)

@@ -8,10 +8,10 @@ import scipy
 from scipy.stats import pearsonr
 
 # Path and num runs value for evaluation
-current = "2017-11-03_13-18-54_hamming"
-num_runs = 10 # How many runs should we evaluate
+current = "2017-11-08_23-40-14_newfile"
+num_runs = 2 # How many runs should we evaluate
 
-# Create path and get files
+# Prepare path and get files
 path = os.getcwd() + "/backup/test_multi/" + current
 datapath = path + "/data"
 plotpath = path + "/plots"
@@ -19,111 +19,37 @@ plotpath = path + "/plots"
 if not os.path.exists(plotpath):
     os.mkdir(plotpath)
 
-files_distances = glob.glob(os.path.join(datapath, "transition_distances_*"))
-files_activity = glob.glob(os.path.join(datapath, "activity_*"))
-files_ncomparison = glob.glob(os.path.join(datapath, "hamming_input_data_*"))
-files_hamming = glob.glob(os.path.join(datapath, "hamming_distances_*"))
-files_stationary = glob.glob(os.path.join(datapath, "stationairies_*")) # TODO change to stationaries
-
-files = {'distance': files_distances, 'activity': files_activity, 'stationary'; stationary, 'ncomparison': files_ncomparison, 'hamming': files_hamming}
-
 # Import parameters
 sys.path.insert(0,path+"/michaelis")
 sys.path.insert(0,os.getcwd()+"/utils")
 import param_mcmc_multi as para
-import stationairy as stationairyDistribution
+import stationary as stationaryDistribution
+
+sources = { 'transition_distances': None, 'activity': None, 'estimated_stationaries': None, 'ncomparison': None, 'hamming_distances': None }
 
 # Parameters for evaluation
-num_states = np.shape(para.c.source.transitions)[1]
-test_step_size = para.c.stats.transition_step_size
-test_steps = para.c.steps_noplastic_test
-steps_plastic = para.c.steps_plastic
-train_step_size = para.c.steps_plastic[1]-para.c.steps_plastic[0] if np.size(para.c.steps_plastic) > 1 else 0
-train_offset = np.min(para.c.steps_plastic)
+#num_states = np.shape(para.c.source.transitions)[1]
+#test_step_size = para.c.stats.transition_step_size
+#steps_plastic = para.c.steps_plastic
+#train_step_size = para.c.steps_plastic[1]-para.c.steps_plastic[0] if np.size(para.c.steps_plastic) > 1 else 0
+#train_offset = np.min(para.c.steps_plastic)
 
 # Prepare data from files to numpy array
-def prepare_data(files):
-    global test_steps, train_step_size, train_offset
-
-    num_files_dist = len(files['distance'])
-    num_files_act = len(files['activity'])
-    num_files = num_files_dist
-
-    # Check if we have equal number of files
-    if num_files_dist != num_files_act:
-        raise Exception(
-            'Number of files differ... something went wrong!')
-
-    distances_raw = [dict() for x in range(num_files)]
-
-    # Check if ncomparison is part of the file structure
-    ncomp_exists = True
-    if not files_ncomparison:
-        ncomp_exists = False
-
-    # Check if hamming is part of the file structure
-    hamming_exists = True
-    if not files_hamming:
-        hamming_exists = False
-
-    print('# Store files in dictionary')
-
-    # Store file content in dictionary
-    for i in range(num_files):
-        run = int(files['distance'][i].split('_run')[1].split('_model')[0])
-        model = int(files['distance'][i].split('_model')[1].split('_threshold')[0])
-        threshold = int(files['distance'][i].split('_threshold')[1].split('_steps')[0])
-        train_step = int(files['distance'][i].split('_steps')[1].split('.')[0])
-        distances_raw[i] = {"run": run, "model": model, "train_step": train_step, "threshold": threshold,
-                            "distance": np.load(files['distance'][i]),
-                            "activity": np.load(files['activity'][i]),
-                            "stationary": np.load(files['stationary'][i]),
-                            "ncomparison": np.load(files['ncomparison'][i]) if ncomp_exists else None,
-                            "hamming": np.load(files['hamming'][i]) if hamming_exists else None }
-
-    # Get sizes
-    num_models = len(np.unique([dist['model'] for dist in distances_raw]))
-    num_train_steps = len(np.unique([dist['train_step'] for dist in distances_raw]))
-    num_test_chunks = np.unique([len(dist['distance']) for dist in distances_raw])[0]
-    num_thresholds = len(np.unique([dist['threshold'] for dist in distances_raw]))
-
-    # Prepare sorted numpy array
-    distances = np.empty((num_runs, num_models, num_train_steps, num_thresholds, num_test_chunks))
-    activity = np.copy(distances)
-    stationary = np.copy(distances)
-    ncomparison = np.empty((num_runs, num_models, num_train_steps, num_thresholds)) if ncomp_exists else None
-    hamming = np.empty((num_runs, num_models, num_train_steps, num_thresholds, test_steps)) if hamming_exists else None
-
-    print('# Store dictionary in arrays')
-    # Store dictionary data in clean numpy array
-    for dist in distances_raw:
-        for i in range(num_runs):
-            for j in range(num_models):
-                for k in range(num_train_steps):
-                    for h in range(num_thresholds):
-                        #if dist['run'] == i and dist['model'] == (j + 1) and dist['train_step'] == (train_offset + k * train_step_size):
-                        if dist['run'] == i and dist['model'] == j and dist['train_step'] == k and dist['threshold'] == h:
-                            distances[i,j,k,h] = dist['distance'][0:num_test_chunks]
-                            activity[i,j,k,h] = dist['activity'][0:num_test_chunks]
-                            stationary[i,j,k,h] = dist['stationary'][0:num_test_chunks]
-
-                            if ncomp_exists:
-                                ncomparison[i,j,k,h] = dist['ncomparison']
-
-                            if hamming_exists:
-                                hamming[i,j,k,h] = dist['hamming']
-                            break
-                        else:
-                            continue
-
-    # Return sorted and clean data
-    return (distances, activity, stationary, ncomparison, hamming)
+def prepare_data(sources):
+    data = sources
+    for d in sources:
+        # Get folder and store files in arrays
+        folder = glob.glob(os.path.join(datapath, d))[0]
+        arrays = [np.load(folder + '/run' + str(run) + '.npy') for run in range(num_runs)]
+        # Stack arrays to one array
+        data[d] = np.stack(arrays, axis=0)
+    return data
 
 def training_steps_plot(distances):
-    global plotpath, steps_plastic
+    global plotpath
 
     # Get mean over "runs" and over "train_steps"
-    # CAUTION: Mean over "test_steps" is only appropriate if STDP is switched off in test phase
+    # CAUTION: Mean over "test steps" is only appropriate if STDP is switched off in test phase
     dists_mean = np.mean(distances, axis=(0,3))
     dists_std = np.std(distances, axis=(0,3))
 
@@ -139,12 +65,12 @@ def training_steps_plot(distances):
     # Plot influence of training steps for every model
     for i in range(num_models):
         legend = 'Model '+str(i+1)
-        plt.errorbar(steps_plastic, dists_mean[i,:], label=legend, yerr=dists_std[i], color=color_palette[i],
+        plt.errorbar(para.c.steps_plastic, dists_mean[i,:], label=legend, yerr=dists_std[i], color=color_palette[i],
                      elinewidth=1, ecolor=np.append(color_palette[i][0:3], 0.5))
 
         # Plot all runs of every model (transparent in background)
         for j in range(np.shape(dists_mean_single)[0]):
-            plt.plot(steps_plastic, dists_mean_single[j, i], color=color_palette[i], alpha=0.1)
+            plt.plot(para.c.steps_plastic, dists_mean_single[j, i], color=color_palette[i], alpha=0.1)
 
     # Beautify plot and save png file
     plt.legend()
@@ -155,7 +81,7 @@ def training_steps_plot(distances):
     plt.close()
 
 def training_steps_plot_hamming(hamming):
-    global plotpath, steps_plastic
+    global plotpath
 
     tt = np.delete(hamming, 5, 0)
 
@@ -178,7 +104,7 @@ def training_steps_plot_hamming(hamming):
     # Plot influence of training steps for every model
     for i in range(num_thresholds):
         legend = 'Threshold ' + str(thresholds[i])
-        plt.errorbar(steps_plastic, h_mean[model, :, i], label=legend, yerr=h_std[i], color=color_palette[i],
+        plt.errorbar(para.c.steps_plastic, h_mean[model, :, i], label=legend, yerr=h_std[i], color=color_palette[i],
                      elinewidth=1, ecolor=np.append(color_palette[i][0:3], 0.5))
 
     # Beautify plot and save png file
@@ -191,7 +117,7 @@ def training_steps_plot_hamming(hamming):
     plt.close()
 
 def test_trace_plot(distances, prefix, label):
-    global plotpath, test_step_size
+    global plotpath, para
 
     # Get results for highest train step only
     last_idx_train_steps = np.shape(distances)[2]-1
@@ -202,7 +128,7 @@ def test_trace_plot(distances, prefix, label):
     dists_std = np.std(dists, axis=0)
 
     # Get number of original test steps (for x axis)
-    test_steps = np.arange(np.shape(dists)[2]) * test_step_size
+    test_steps = np.arange(np.shape(dists)[2]) * para.c.stats.transition_step_size
 
     # Define color palette
     color_palette = cm.rainbow(np.linspace(0, 1, np.shape(dists_mean)[0]))
@@ -279,12 +205,12 @@ def ncomparison_distance_correlation_plot(distances, ncomparison):
     plt.close()
 
 def inequality_distance_correlation_plot(distances):
-    global plotpath, train_step_size, train_offset
+    global plotpath, para
 
-    # Calculate stationairy distributions from markov chains
-    stationaries = [stationairyDistribution.calculate(transition) for transition in para.c.source.transitions]
+    # Calculate stationary distributions from markov chains
+    stationaries = [stationaryDistribution.calculate(transition) for transition in para.c.source.transitions]
     variance = np.var(stationaries, axis=1)  # TODO maybe choose some other measure (additionally to variance and entropy)
-    entropy = [scipy.stats.entropy(s, np.repeat(0.25, num_states)) for s in stationaries]
+    entropy = [scipy.stats.entropy(s, np.repeat(0.25, np.shape(para.c.source.transitions)[1])) for s in stationaries]
 
     # Get number of train steps
     train_steps = np.shape(distances)[2]
@@ -297,8 +223,8 @@ def inequality_distance_correlation_plot(distances):
 
     for i in range(train_steps):
         # Variance
-        legend = str(train_offset + train_step_size*i) + ' training steps, r=' + str(np.round(pearsonr(variance, np.mean(dists[:,:,i], axis=0))[0],2))
-        plt.errorbar(variance, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),# fmt='o',
+        legend = str(para.c.steps_plastic) + ' training steps, r=' + str(np.round(pearsonr(variance, np.mean(dists[:,:,i], axis=0))[0],2))
+        plt.errorbar(variance, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),  # fmt='o',
                      color=color_palette[i], ecolor=np.append(color_palette[i][0:3], 0.5))
 
     plt.legend(loc=2,prop={'size': 6})
@@ -316,7 +242,7 @@ def inequality_distance_correlation_plot(distances):
         if i > 0:
             # Variance with distance difference
             diff = dists_baseline - np.mean(dists[:, :, i], axis=0)
-            legend = str(train_offset + train_step_size * i) + ' training steps, r=' + str(np.round(pearsonr(variance, diff)[0], 2))
+            legend = str(para.c.steps_plastic) + ' training steps, r=' + str(np.round(pearsonr(variance, diff)[0], 2))
             plt.plot(variance, diff, label=legend, color=color_palette[i])
 
     plt.legend(prop={'size': 6})
@@ -355,27 +281,32 @@ def inequality_distance_correlation_plot(distances):
 def get_max_threshold(arr):
     return arr[:,:,:,np.shape(arr)[3]-1,:]
 
-(distances, activity, stationary, ncomparison, hamming) = prepare_data(files) # (runs, models, train steps, thresholds, test steps / test chunks)
+### Evaluate ###
+# transition_distances, activity, estimated_stationaries, ncomparison, hamming_distances
 
-# Plot performance for different training steps
-if np.shape(distances)[2] > 1:
-    training_steps_plot(get_max_threshold(distances))
+# Stationary: Estimatated stationaries
+data = prepare_data(sources)  # (runs, models, train steps, thresholds, test steps / test chunks)
 
-# Plot performance for different training steps
-if np.shape(distances)[2] > 1:
-    training_steps_plot(get_max_threshold(distances))
+# Plot transition performance for different training steps
+if np.shape(data['transition_distances'])[2] > 1:
+    training_steps_plot(get_max_threshold(data['transition_distances']))
+
+# Plot stationary performance for different training steps
+#if np.shape(data['estimated_stationaries'])[2] > 1:
+#    training_steps_plot(get_max_threshold(data['estimated_stationaries']))
 
 # Plot hamming mean for different training steps
-if np.shape(hamming)[2] > 1:
-    training_steps_plot_hamming(hamming)
+if np.shape(data['hamming_distances'])[2] > 1:
+    training_steps_plot_hamming(data['hamming_distances'])
 
 # Plot performance and activity in testing phase
-test_trace_plot(get_max_threshold(distances), prefix="distances", label="Mean squared distance to initial transition")
+test_trace_plot(get_max_threshold(data['transition_distances']), prefix="distances", label="Mean squared distance to initial transition")
 #test_trace_plot(get_max_threshold(activity), prefix="activity", label="Activity (percentage)")
 
 # Plot correlation between performance and activity/ncomparison
 #activity_distance_correlation_plot(distances, activity)
-if not (ncomparison is None):
-    ncomparison_distance_correlation_plot(get_max_threshold(distances), ncomparison[:,:,:,np.shape(ncomparison)[3]-1])
+#ncomparison = get_max_threshold(data['transition_distances']
+#ncomparison_distance_correlation_plot(get_max_threshold(data['transition_distances']), ncomparison[:,:,:,np.shape(ncomparison)[3]-1])
 
-inequality_distance_correlation_plot(get_max_threshold(distances)) # entropy plot
+inequality_distance_correlation_plot(get_max_threshold(data['transition_distances']))  # entropy plot
+

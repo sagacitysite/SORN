@@ -91,17 +91,17 @@ def runSORN(c, src):
 def runAll(i):
 
     j = 0
-    # Transitions
-    for transitions in transitions_array:
+    # Transitions (Models)
+    for transitions in c.source.transitions_array:
 
         h = 0
         # Hamming thresholds
-        for hamming_threshold in hamming_threshold_array:
+        for hamming_threshold in c.stats.hamming_threshold_array:
 
 
             k = 0
             # Training steps
-            for steps in steps_plastic_array:
+            for steps in c.steps_plastic_array:
                 # Print where we are
                 print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / "+ str(steps))
 
@@ -121,7 +121,9 @@ def runAll(i):
                 #    del c.stats.hamming_threshold
 
                 # Name of folder for results in this step
-                c.multi_name = "run"+str(i)+"_model"+str(j)+"_threshold"+str(h)+"_steps"+str(k)
+                #c.multi_name = "run"+str(i)+"_model"+str(j)+"_threshold"+str(h)+"_steps"+str(k)
+                c.file_name = "run"+str(i)
+                c.state.index = (j, k, h)  # models, training steps, threshold
                 runSORN(c, source)
 
                 # Free memory
@@ -144,6 +146,7 @@ experiment = getattr(experiment_module, experiment_name)(param)
 
 # Initialize parameters
 c = param.c
+c.state = utils.Bunch()
 
 # Store states and remove c.states, otherwise bunch will have a problem
 states = c.states
@@ -151,16 +154,17 @@ del c.states
 
 # Set logfilepath
 c.logfilepath = utils.logfilename('') + '/'
-steps_plastic_array = c.steps_plastic
-transitions_array = c.source.transitions
-hamming_threshold_array = c.stats.hamming_threshold
+c.steps_plastic_array = c.steps_plastic
+c.source.transitions_array = c.source.transitions
+c.stats.hamming_threshold_array = c.stats.hamming_threshold
 
 # Set values
 num_iterations = range(20)
-#plastic_train = range(2) # range(1): Only with plastic train, range(2): Plastic train and only initalization
 
 # Start multi processing
 pool = Pool(2)
 pool.map(runAll, num_iterations)
 pool.close()
 pool.join()
+
+#runAll(0)

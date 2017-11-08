@@ -37,9 +37,9 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.array([0, 5000, 10000, 15000, 20000, 30000, 50000]) #np.arange(10000,80001,5000)
+c.steps_plastic = np.array([0, 5000, 10000, 20000, 30000]) #np.array([0, 5000, 10000, 15000, 20000, 30000, 50000]) #np.arange(10000,80001,5000)
 c.steps_noplastic_train = 50000 #20000
-c.steps_noplastic_test = 50000 #100000
+c.steps_noplastic_test = 30000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
                             + c.steps_noplastic_test
 c.display = False # Stop displaying stuff
@@ -86,7 +86,7 @@ c.stats.control_rates = False
 c.stats.ISI_step = 4
 c.stats.transition_step_size = 5000 # 5000
 c.stats.ncomparison_per_state = 500 # If ncomparison or only_last should be used, remove this parameter
-c.stats.hamming_threshold = np.append(np.arange(5,41,5), np.inf) # Remove this line, if no threshold should be set
+c.stats.hamming_threshold = np.append(np.arange(5,41,5), np.inf) # Use not threshold: np.array([np.inf])
 # c.stats.only_last = 3000 # affects many stats: take only last x steps
 
 # Following parameters for randsource

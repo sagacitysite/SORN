@@ -7,6 +7,7 @@ from os.path import *
 import shutil
 import datetime
 import time
+import types
 try:
     from mpi4py import MPI
     imported_mpi = True
@@ -161,6 +162,49 @@ def logfilename(filename):
         except OSError as e:
             print e
     return final_filename
+
+def flatten(T):
+    if type(T) != types.TupleType: return (T,)
+    elif len(T) == 0: return ()
+    else: return flatten(T[0]) + flatten(T[1:])
+
+def fillToArray(file, state):
+    data_shape = np.shape(state.data)
+
+    if len(data_shape) == 0:
+        file[state.index] = state.data
+    elif len(data_shape) == 1:
+        file[flatten((state.index, slice(None)))] = state.data
+    elif len(data_shape) == 2:
+        file[flatten((state.index, slice(None), slice(None)))] = state.data
+    else:
+        raise Exception('state.data array shape is greater than 2, code update in backup.py is necessary.')
+
+    return file
+
+def logdata(path, c):
+    # Create logfilename path
+    logpath = logfilename(path)
+
+    # Check if file already exists
+    if os.path.isfile(logpath):
+        # Get data from file, add data for current parameter configuration and save it again
+        file = np.load(logpath)
+        np.save(logpath, fillToArray(file, c.state))
+    else:
+        file = None
+        if(c.state.has_key('index')):  # Case: test_multi
+            # Create empty array
+            raw_shape = (len(c.source.transitions_array), len(c.steps_plastic_array), len(c.stats.hamming_threshold_array), np.shape(c.state.data))
+            file = np.empty(flatten(raw_shape))  # models, threshold, training steps, *data
+            # Save data for current parameter configuration
+            np.save(logpath, fillToArray(file, c.state))
+        else: # Case: test_singles
+            file = c.state.data
+
+        # Save data array
+        np.save(logpath, file)
+
 
 def saveplot(figurename, f = None):
     '''This is intended to standardise the formatting and

@@ -97,10 +97,6 @@ class ActivityStat(AbstractStat):
         transition_step_size = sorn.c.stats.transition_step_size
         activity = c.activity
 
-        # File name
-        if not sorn.c.has_key('multi_name'):
-            sorn.c.multi_name = ""
-
         # Get activity only for testing phase
         test_activity = activity[-sorn.c.steps_noplastic_test:]
 
@@ -112,7 +108,8 @@ class ActivityStat(AbstractStat):
         test_activity_chunks_mean = mean(test_activity_chunks, axis=1)
 
         # Save mean activity in numpy file
-        np.save(utils.logfilename("../data/activity/" + sorn.c.multi_name + ".npy"), test_activity_chunks_mean)
+        sorn.c.state.data = test_activity_chunks_mean
+        utils.logdata("../data/activity/"+sorn.c.file_name+".npy", sorn.c)
 
         return activity
         
@@ -246,11 +243,8 @@ class NormLastStat(AbstractStat):
                 norm_last_input_index[ncom*i:ncom*(i+1)] = input_index[state_occurencies[-ncom:]]
 
         # Store in numpy file
-        if not sorn.c.has_key('multi_name'):
-            sorn.c.multi_name = ""
-
-        # Store in numpy file
-        np.save(utils.logfilename("../data/ncomparison/" + sorn.c.multi_name + ".npy"), np.shape(norm_last_input_index)[0])
+        sorn.c.state.data = np.array([np.shape(norm_last_input_index)[0]])
+        utils.logdata("../data/ncomparison/"+sorn.c.file_name+".npy", sorn.c)
 
         # Shuffle to avoid argmin-problem of selecting only first match
         indices = arange(shape(norm_last_input_index)[0])
@@ -336,9 +330,8 @@ class SpontPatternStat(AbstractStat):
                 similar_input[i] = -1
 
         # Store hamming distances for all test states in numpy file
-        if not sorn.c.has_key('multi_name'):
-            sorn.c.multi_name = ""
-        np.save(utils.logfilename("../data/hamming_distances/" + sorn.c.multi_name + ".npy"), hamming_distances)
+        sorn.c.state.data = hamming_distances
+        utils.logdata("../data/hamming_distances/"+sorn.c.file_name+".npy", sorn.c)
 
         # If more than 30% of all trials are silent, throw error
         # FIXME: Change back to 10%!!
@@ -452,13 +445,11 @@ class SpontTransitionAllStat(AbstractStat):
         # Stroe transitions in c for later use
         c.transitions = transition_matrices
 
-        # Store in numpy file
-        if not sorn.c.has_key('multi_name'):
-            sorn.c.multi_name = ""
-
         # Store stationary
-        np.save(utils.logfilename("../data/stationaries/" + sorn.c.multi_name + ".npy"), stationaries)
-        #np.save(utils.logfilename("../data/transition_matrices/" + sorn.c.multi_name + ".npy"), transition_matrices)
+        sorn.c.state.data = stationaries
+        utils.logdata("../data/estimated_stationaries/"+sorn.c.file_name+".npy", sorn.c)
+        #sorn.c.state.data = transition_matrices
+        #utils.logdata("../data/transition_matrices/"+sorn.c.file_name+".npy", sorn.c)
 
         return(transition_matrices)
 
@@ -503,11 +494,8 @@ class SpontTransitionDistance(AbstractStat):
         distances = (1/num_steps)*np.sum(np.square(transitions - np.transpose(transitions_org)), axis=(1,2))
 
         # Store in numpy file
-        if not sorn.c.has_key('multi_name'):
-            sorn.c.multi_name = ""
-
-        # Store in numpy file
-        np.save(utils.logfilename("../data/transition_distances/" + sorn.c.multi_name + ".npy"), distances)
+        sorn.c.state.data = distances
+        utils.logdata("../data/transition_distances/" + sorn.c.file_name + ".npy", sorn.c)
 
         return(distances)
 
