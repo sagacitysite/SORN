@@ -8,8 +8,8 @@ import scipy
 from scipy.stats import pearsonr
 
 # Path and num runs value for evaluation
-current = "2017-11-08_23-40-14_newfile"
-num_runs = 2 # How many runs should we evaluate
+current = "2017-11-09_00-07-53"
+num_runs = 9 # How many runs should we evaluate
 
 # Prepare path and get files
 path = os.getcwd() + "/backup/test_multi/" + current
@@ -45,19 +45,20 @@ def prepare_data(sources):
         data[d] = np.stack(arrays, axis=0)
     return data
 
-def training_steps_plot(distances):
+def training_steps_plot(distances, suffix, ytext):
     global plotpath
 
-    # Get mean over "runs" and over "train_steps"
+    # runs, models, train steps, test chunks, dists
+    # Get mean over "runs" and over "test chunks"
     # CAUTION: Mean over "test steps" is only appropriate if STDP is switched off in test phase
     dists_mean = np.mean(distances, axis=(0,3))
     dists_std = np.std(distances, axis=(0,3))
 
-    # Mean just over test phase, not over runs
+    # Mean just over test chunks, not over runs
     dists_mean_single = np.mean(distances, axis=3)
 
     # Get number of models and calculate train steps
-    num_models = np.shape(dists_mean)[0]
+    num_models = np.shape(distances)[1]
 
     # Define color palette
     color_palette = cm.rainbow(np.linspace(0, 1, num_models))
@@ -76,8 +77,8 @@ def training_steps_plot(distances):
     plt.legend()
     plt.ylim(ymin=0)
     plt.xlabel('Training steps')
-    plt.ylabel('Mean squared distance to initial transition')
-    plt.savefig(plotpath + '/distances_training_steps.png', dpi=144)
+    plt.ylabel(ytext)
+    plt.savefig(plotpath + '/distances_training_steps_'+suffix+'.png', dpi=144)
     plt.close()
 
 def training_steps_plot_hamming(hamming):
@@ -116,7 +117,7 @@ def training_steps_plot_hamming(hamming):
     plt.savefig(plotpath + '/distances_training_steps.png', dpi=144)
     plt.close()
 
-def test_trace_plot(distances, prefix, label):
+def test_trace_plot(distances, suffix, label):
     global plotpath, para
 
     # Get results for highest train step only
@@ -148,7 +149,7 @@ def test_trace_plot(distances, prefix, label):
     plt.ylim(ymin=0)
     plt.xlabel('Test steps')
     plt.ylabel(label)
-    plt.savefig(plotpath + '/' + prefix + '_test_traces.png', dpi=144)
+    plt.savefig(plotpath + '/test_traces_'+suffix+'.png', dpi=144)
     plt.close()
 
 def activity_distance_correlation_plot(distances, activity):
@@ -281,26 +282,51 @@ def inequality_distance_correlation_plot(distances):
 def get_max_threshold(arr):
     return arr[:,:,:,np.shape(arr)[3]-1,:]
 
-### Evaluate ###
+def prepare_stationary(estimated_stationaries):
+    global para
+
+    # Calculate stationaries
+    T = para.c.source.transitions
+    stationaries = np.stack([ stationaryDistribution.calculate(trans) for trans in T])
+
+    # Normalize
+    est_norm = estimated_stationaries/np.sum(estimated_stationaries, axis=4)[:,:,:,:,np.newaxis]
+
+    # Calculate distances
+    # runs, models, train steps, thresholds, test chunks, stationary
+    diff = est_norm - stationaries[np.newaxis, :, np.newaxis, np.newaxis, :]
+    distances = np.sum(np.square(diff), axis=4)
+
+    return distances
+
+##################################################
+#################### Evaluate ####################
+##################################################
+
 # transition_distances, activity, estimated_stationaries, ncomparison, hamming_distances
 
 # Stationary: Estimatated stationaries
 data = prepare_data(sources)  # (runs, models, train steps, thresholds, test steps / test chunks)
+# Prepare stationary distances
+stationairy_distances =  prepare_stationary(get_max_threshold(data['estimated_stationaries']))
 
 # Plot transition performance for different training steps
 if np.shape(data['transition_distances'])[2] > 1:
-    training_steps_plot(get_max_threshold(data['transition_distances']))
+    training_steps_plot(get_max_threshold(data['transition_distances']),
+        suffix="transition", ytext="Mean squared distance to initial transition")
 
 # Plot stationary performance for different training steps
-#if np.shape(data['estimated_stationaries'])[2] > 1:
-#    training_steps_plot(get_max_threshold(data['estimated_stationaries']))
+if np.shape(data['estimated_stationaries'])[2] > 1:
+    training_steps_plot(stationairy_distances,
+        suffix = "stationary", ytext = "Mean squared distance to stationary")
 
 # Plot hamming mean for different training steps
-if np.shape(data['hamming_distances'])[2] > 1:
-    training_steps_plot_hamming(data['hamming_distances'])
+#if np.shape(data['hamming_distances'])[2] > 1:
+#    training_steps_plot_hamming(data['hamming_distances'])
 
 # Plot performance and activity in testing phase
-test_trace_plot(get_max_threshold(data['transition_distances']), prefix="distances", label="Mean squared distance to initial transition")
+test_trace_plot(get_max_threshold(data['transition_distances']), suffix="distances", label="Mean squared distance to initial transition")
+test_trace_plot(stationairy_distances, suffix="stationary", label="Mean squared distance to stationary")
 #test_trace_plot(get_max_threshold(activity), prefix="activity", label="Activity (percentage)")
 
 # Plot correlation between performance and activity/ncomparison

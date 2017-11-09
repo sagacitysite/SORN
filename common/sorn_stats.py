@@ -297,33 +297,21 @@ class SpontPatternStat(AbstractStat):
         # smallest hamming distance and store the corresponding index
         similar_input = zeros(N_comp_spont)
         for i in xrange(N_comp_spont):
+            # One spontaneous state is subtracted from all input states from testing phase (broadcasting is used)
+            most_similar = argmin(sum(abs(norm_last_input_spikes.T - last_spont_spikes[:, i]), axis=1))
+
+            hamming_distances[i] = sum(abs(norm_last_input_spikes[:, most_similar] - last_spont_spikes[:, i]))
+
             # If current state is NOT silent
             if sum(last_spont_spikes[:,i])>0:
-                # One spontaneous state is subtracted from all input states from testing phase (broadcasting is used)
-                most_similar = argmin(sum(abs(norm_last_input_spikes.T\
-                                    -last_spont_spikes[:,i]),axis=1))
-
                 if not sorn.c.stats.has_key('hamming_threshold'):
                     # If no threshold is given, just assign states
                     similar_input[i] = norm_last_input_index[most_similar]
                 else:
-                    # Calculate hamming distance for the most_similar case
-                    hamming_distances[i] = sum(abs(norm_last_input_spikes[:,most_similar] - last_spont_spikes[:, i]))
-
-                    # If hamming distance is larger than size of the network, something went wrong
-                    if hamming_distances[i] > sorn.c.N_e:
-                        raise Exception(
-                            'Hamming distance is larger than number of neurons in the network.')
-
-                    # If hamming distance is larger than size of the network, something went wrong
-                    if hamming_distances[i] == np.nan:
-                        raise Exception(
-                            'Hamming distance is nan.')
-
                     # If threshold was met, apply state otherwise apply silent
                     similar_input[i] = norm_last_input_index[most_similar] if hamming_distances[i] < sorn.c.stats.hamming_threshold else -1
 
-                similar_input[i] = norm_last_input_index[most_similar]
+                #similar_input[i] = norm_last_input_index[most_similar]
 
             # If current state IS silent
             else:
