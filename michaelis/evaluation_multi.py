@@ -8,8 +8,8 @@ import scipy
 from scipy.stats import pearsonr
 
 # Path and num runs value for evaluation
-current = "2017-11-09_00-07-53"
-num_runs = 9 # How many runs should we evaluate
+current = "2017-11-09_17-22-00_hamming"
+num_runs = 15 # How many runs should we evaluate
 
 # Prepare path and get files
 path = os.getcwd() + "/backup/test_multi/" + current
@@ -79,42 +79,6 @@ def training_steps_plot(distances, suffix, ytext):
     plt.xlabel('Training steps')
     plt.ylabel(ytext)
     plt.savefig(plotpath + '/distances_training_steps_'+suffix+'.png', dpi=144)
-    plt.close()
-
-def training_steps_plot_hamming(hamming):
-    global plotpath
-
-    tt = np.delete(hamming, 5, 0)
-
-    ttt = [np.nanmax(tt[:,:,:,:,i]) for i in range(np.shape(hamming)[4]-1) ]
-
-    # Get mean over "runs" and "training steps" (hamming distance for every training step)
-    h_mean = np.mean(hamming[:,:,:,:,], axis=0) # results in [models, training steps, thresholds]
-    h_std = np.std(hamming, axis=0)
-
-    # Get number of models and calculate train steps
-    num_models = np.shape(h_mean)[0]
-    num_thresholds = np.shape(h_mean)[2]
-
-    thresholds = para.c.stats.hamming_threshold
-
-    # Define color palette
-    color_palette = cm.rainbow(np.linspace(0, 1, num_models))
-    model = 0
-
-    # Plot influence of training steps for every model
-    for i in range(num_thresholds):
-        legend = 'Threshold ' + str(thresholds[i])
-        plt.errorbar(para.c.steps_plastic, h_mean[model, :, i], label=legend, yerr=h_std[i], color=color_palette[i],
-                     elinewidth=1, ecolor=np.append(color_palette[i][0:3], 0.5))
-
-    # Beautify plot and save png file
-    plt.title('Model ' + str(model))
-    plt.legend()
-    plt.ylim(ymin=0)
-    plt.xlabel('Training steps')
-    plt.ylabel('Mean squared distance to initial transition')
-    plt.savefig(plotpath + '/distances_training_steps.png', dpi=144)
     plt.close()
 
 def test_trace_plot(distances, suffix, label):
@@ -285,6 +249,9 @@ def get_max_threshold(arr):
 def prepare_stationary(estimated_stationaries):
     global para
 
+    # Get values for max threshold
+    estimated_stationaries = get_max_threshold(estimated_stationaries)
+
     # Calculate stationaries
     T = para.c.source.transitions
     stationaries = np.stack([ stationaryDistribution.calculate(trans) for trans in T])
@@ -299,16 +266,36 @@ def prepare_stationary(estimated_stationaries):
 
     return distances
 
+def prepare_hamming(hamming_distances):
+    global para
+
+    # Get values for max threshold
+    hamming_distances = get_max_threshold(hamming_distances)
+    # Form after: runs, models, train steps, hammings
+
+    # Separate in test chunks
+    chunks = para.c.steps_noplastic_test/para.c.stats.transition_step_size
+    hamming_distances = np.moveaxis(np.split(hamming_distances, chunks, axis= 3), 0, 3)
+    # Form after: runs, models, train steps, test chunks, hammings
+
+    # Calculate hamming means
+    return np.mean(hamming_distances, axis=4) / para.c.N_e
+
 ##################################################
 #################### Evaluate ####################
 ##################################################
 
 # transition_distances, activity, estimated_stationaries, ncomparison, hamming_distances
 
-# Stationary: Estimatated stationaries
-data = prepare_data(sources)  # (runs, models, train steps, thresholds, test steps / test chunks)
-# Prepare stationary distances
-stationairy_distances =  prepare_stationary(get_max_threshold(data['estimated_stationaries']))
+#################### Prepare data ####################
+
+data = prepare_data(sources)  # runs, models, train steps, thresholds, test steps / test chunks
+
+stationairy_distances = prepare_stationary(data['estimated_stationaries'])
+hamming_means = prepare_hamming(data['hamming_distances'])
+#ncomparison = get_max_threshold(data['ncomparison'])
+
+#################### Training step plots ####################
 
 # Plot transition performance for different training steps
 if np.shape(data['transition_distances'])[2] > 1:
@@ -321,18 +308,76 @@ if np.shape(data['estimated_stationaries'])[2] > 1:
         suffix = "stationary", ytext = "Mean squared distance to stationary")
 
 # Plot hamming mean for different training steps
-#if np.shape(data['hamming_distances'])[2] > 1:
-#    training_steps_plot_hamming(data['hamming_distances'])
+if np.shape(data['hamming_distances'])[2] > 1:
+    training_steps_plot(hamming_means,
+        suffix="hamming", ytext="Relative mean hamming distance")
 
-# Plot performance and activity in testing phase
-test_trace_plot(get_max_threshold(data['transition_distances']), suffix="distances", label="Mean squared distance to initial transition")
-test_trace_plot(stationairy_distances, suffix="stationary", label="Mean squared distance to stationary")
-#test_trace_plot(get_max_threshold(activity), prefix="activity", label="Activity (percentage)")
+#################### Test chunk plots ####################
 
-# Plot correlation between performance and activity/ncomparison
+test_trace_plot(get_max_threshold(data['transition_distances']),
+                suffix="distances", label="Mean squared distance to initial transition")
+test_trace_plot(stationairy_distances,
+                suffix="stationary", label="Mean squared distance to stationary")
+#test_trace_plot(get_max_threshold(activity),
+#                suffix="activity", label="Activity (percentage)")
+
+#################### Hamming Distancs evaluation ####################
+
+def hamming_histogram(hamming_distances):
+    global plotpath
+
+    # Mean over runs
+    hamming_mean = np.mean(hamming_distances, axis=0)
+    # Form after: models, train steps, hammings
+
+    # Get largest, middle and smallest training run
+    hms = np.shape(hamming_mean)
+    hmean_maxmin = np.empty((hms[0], 3, hms[2]))
+    maxmin_idx = np.array([0, (hms[1]-1)/2, hms[1]-1])
+    hmean_maxmin[:, 0, :] = hamming_mean[:, maxmin_idx[0], :]
+    hmean_maxmin[:, 1, :] = hamming_mean[:, maxmin_idx[1], :]
+    hmean_maxmin[:, 2, :] = hamming_mean[:, maxmin_idx[2], :]
+    # Form after: models, min/middle/max train steps, hammings
+
+    # Plot preparation
+    bar_width = 0.15  # width of bar
+    intra_bar_space = 0.05  # space between multi bars
+    coeff = np.array([-1, 0, 1])  # left, middle, right from tick
+
+    # Get overal max hamming value and frequency, used for axis
+    max_freq = np.max([np.max(np.bincount(hmean_maxmin[i, j, :].astype(int))) for j in range(3) for i in range(hms[0])])
+    max_val = np.max(hmean_maxmin)
+
+    # Check normality (TODO already calculated, can be used if necessary)
+    #pvalues = [scipy.stats.kstest(hmean_maxmin[i, j, :], 'norm')[0] for j in range(3) for i in range(hms[0])]
+
+    for i in range(hms[0]):
+        for j in range(3):
+            # Calculate frequencies
+            hamming_freqs = np.bincount(hmean_maxmin[i, j, :].astype(int))
+            # Calculate x positions
+            x = np.arange(len(hamming_freqs)) + (coeff[j] * (bar_width + intra_bar_space))
+            # Plot barplot with legend
+            legend = str(para.c.steps_plastic[maxmin_idx[j]]) + ' training steps'
+            plt.bar(x, hamming_freqs, bar_width, label=legend)
+        # Adjust plot
+        plt.ylim(ymax=max_freq)
+        plt.xlim(xmax=max_val)
+        plt.legend()
+        plt.title('Model: ' + str(i+1))
+        plt.xlabel('Hamming distance')
+        plt.ylabel('Frequency')
+        plt.savefig(plotpath + '/hamming_freqs_model'+str(i+1)+'.png', dpi=144)
+        plt.close()
+
+hamming_histogram(get_max_threshold(data['hamming_distances']))
+
+#################### Activity/NComparison ####################
+
 #activity_distance_correlation_plot(distances, activity)
-#ncomparison = get_max_threshold(data['transition_distances']
 #ncomparison_distance_correlation_plot(get_max_threshold(data['transition_distances']), ncomparison[:,:,:,np.shape(ncomparison)[3]-1])
 
-inequality_distance_correlation_plot(get_max_threshold(data['transition_distances']))  # entropy plot
+#################### Variance / Entropy ####################
+
+inequality_distance_correlation_plot(get_max_threshold(data['transition_distances']))
 
