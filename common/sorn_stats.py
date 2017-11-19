@@ -321,9 +321,9 @@ class SpontPatternStat(AbstractStat):
         sorn.c.state.data = hamming_distances
         utils.logdata("../data/hamming_distances/"+sorn.c.file_name+".npy", sorn.c)
 
-        # If more than 50% of all trials are silent, throw error
+        # If more than 90% of all trials are silent, throw error
         # FIXME: Change back to 10%!!
-        if np.count_nonzero(similar_input == -1) > 0.5*N_comp_spont:
+        if np.count_nonzero(similar_input == -1) > 0.90*N_comp_spont:
             raise Exception(
                 'There are too many silent passes to calculate statistics, please change the parameters')
 

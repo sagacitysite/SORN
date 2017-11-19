@@ -3,13 +3,15 @@ import os
 import glob
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import matplotlib.patheffects as pe
 import sys
 import scipy
 from scipy.stats import pearsonr
+from mpl_toolkits.mplot3d import Axes3D
 
 # Path and num runs value for evaluation
 current = "2017-11-09_17-22-00_hamming"
-num_runs = 15 # How many runs should we evaluate
+num_runs = 10  # How many runs should we evaluate
 
 # Prepare path and get files
 path = os.getcwd() + "/backup/test_multi/" + current
@@ -26,13 +28,6 @@ import param_mcmc_multi as para
 import stationary as stationaryDistribution
 
 sources = { 'transition_distances': None, 'activity': None, 'estimated_stationaries': None, 'ncomparison': None, 'hamming_distances': None }
-
-# Parameters for evaluation
-#num_states = np.shape(para.c.source.transitions)[1]
-#test_step_size = para.c.stats.transition_step_size
-#steps_plastic = para.c.steps_plastic
-#train_step_size = para.c.steps_plastic[1]-para.c.steps_plastic[0] if np.size(para.c.steps_plastic) > 1 else 0
-#train_offset = np.min(para.c.steps_plastic)
 
 # Prepare data from files to numpy array
 def prepare_data(sources):
@@ -79,6 +74,43 @@ def training_steps_plot(distances, suffix, ytext):
     plt.xlabel('Training steps')
     plt.ylabel(ytext)
     plt.savefig(plotpath + '/distances_training_steps_'+suffix+'.png', dpi=144)
+    plt.close()
+
+def training_steps_plot_thresholds(distances):
+    global plotpath
+
+    # runs, models, train steps, thresholds, test steps
+    # Get mean over "runs" and over "test steps"
+    # CAUTION: Mean over "test steps" is only appropriate if STDP is switched off in test phase
+    dists_mean = np.mean(distances, axis=(0, 4))
+    # Format after: models, train steps, thresholds
+
+    # Get number of models and number of thresholds
+    num_models = np.shape(distances)[1]
+    num_thresh = np.shape(distances)[3]
+
+    # Define color palette
+    thresh_colors = cm.rainbow(np.linspace(0, 1, num_thresh))
+    model_colors = cm.rainbow(np.linspace(0, 1, num_models))
+
+    # Plot influence of training steps for every model
+    for i in range(num_models):
+        for j in range(num_thresh):
+            opacity = 1 if j == num_thresh-1 else 0.2
+            legend = None
+            if j == 0:
+                legend = 'Model '+str(i+1)+', Threshold finite'
+            elif j == num_thresh-1:
+                legend = 'Model '+str(i+1)+', Threshold inf'
+            plt.errorbar(para.c.steps_plastic, dists_mean[i,:,j], label=legend, color=np.append(model_colors[i][0:3], opacity))
+                         #path_effects=[pe.SimpleLineShadow(shadow_color=thresh_colors[j]), pe.Normal()])
+
+    # Beautify plot and save png file
+    plt.legend(prop={'size': 6})
+    plt.ylim(ymin=0)
+    plt.xlabel('Training steps')
+    plt.ylabel('Error')
+    plt.savefig(plotpath + '/distances_training_steps_with_thresholds.png', dpi=144)
     plt.close()
 
 def test_trace_plot(distances, suffix, label):
@@ -243,6 +275,53 @@ def inequality_distance_correlation_plot(distances):
     # plt.savefig(plotpath + '/correlation_inequality_entropy_std.png', dpi=144)
     # plt.close()
 
+def hamming_histogram(hamming_distances):
+    global plotpath
+
+    # Mean over runs
+    hamming_mean = np.mean(hamming_distances, axis=0)
+    # Form after: models, train steps, hammings
+
+    # Get largest, middle and smallest training run
+    hms = np.shape(hamming_mean)
+    hmean_maxmin = np.empty((hms[0], 3, hms[2]))
+    maxmin_idx = np.array([0, (hms[1]-1)/2, hms[1]-1])
+    hmean_maxmin[:, 0, :] = hamming_mean[:, maxmin_idx[0], :]
+    hmean_maxmin[:, 1, :] = hamming_mean[:, maxmin_idx[1], :]
+    hmean_maxmin[:, 2, :] = hamming_mean[:, maxmin_idx[2], :]
+    # Form after: models, min/middle/max train steps, hammings
+
+    # Plot preparation
+    bar_width = 0.15  # width of bar
+    intra_bar_space = 0.05  # space between multi bars
+    coeff = np.array([-1, 0, 1])  # left, middle, right from tick
+
+    # Get overal max hamming value and frequency, used for axis
+    max_freq = np.max([np.max(np.bincount(hmean_maxmin[i, j, :].astype(int))) for j in range(3) for i in range(hms[0])])
+    max_val = np.max(hmean_maxmin)
+
+    # Check normality (TODO already calculated, can be used if necessary)
+    #pvalues = [scipy.stats.kstest(hmean_maxmin[i, j, :], 'norm')[0] for j in range(3) for i in range(hms[0])]
+
+    for i in range(hms[0]):
+        for j in range(3):
+            # Calculate frequencies
+            hamming_freqs = np.bincount(hmean_maxmin[i, j, :].astype(int))
+            # Calculate x positions
+            x = np.arange(len(hamming_freqs)) + (coeff[j] * (bar_width + intra_bar_space))
+            # Plot barplot with legend
+            legend = str(para.c.steps_plastic[maxmin_idx[j]]) + ' training steps'
+            plt.bar(x, hamming_freqs, bar_width, label=legend)
+        # Adjust plot
+        plt.ylim(ymax=max_freq)
+        plt.xlim(xmax=max_val)
+        plt.legend()
+        plt.title('Model: ' + str(i+1))
+        plt.xlabel('Hamming distance')
+        plt.ylabel('Frequency')
+        plt.savefig(plotpath + '/hamming_freqs_model'+str(i+1)+'.png', dpi=144)
+        plt.close()
+
 def get_max_threshold(arr):
     return arr[:,:,:,np.shape(arr)[3]-1,:]
 
@@ -323,54 +402,8 @@ test_trace_plot(stationairy_distances,
 
 #################### Hamming Distancs evaluation ####################
 
-def hamming_histogram(hamming_distances):
-    global plotpath
-
-    # Mean over runs
-    hamming_mean = np.mean(hamming_distances, axis=0)
-    # Form after: models, train steps, hammings
-
-    # Get largest, middle and smallest training run
-    hms = np.shape(hamming_mean)
-    hmean_maxmin = np.empty((hms[0], 3, hms[2]))
-    maxmin_idx = np.array([0, (hms[1]-1)/2, hms[1]-1])
-    hmean_maxmin[:, 0, :] = hamming_mean[:, maxmin_idx[0], :]
-    hmean_maxmin[:, 1, :] = hamming_mean[:, maxmin_idx[1], :]
-    hmean_maxmin[:, 2, :] = hamming_mean[:, maxmin_idx[2], :]
-    # Form after: models, min/middle/max train steps, hammings
-
-    # Plot preparation
-    bar_width = 0.15  # width of bar
-    intra_bar_space = 0.05  # space between multi bars
-    coeff = np.array([-1, 0, 1])  # left, middle, right from tick
-
-    # Get overal max hamming value and frequency, used for axis
-    max_freq = np.max([np.max(np.bincount(hmean_maxmin[i, j, :].astype(int))) for j in range(3) for i in range(hms[0])])
-    max_val = np.max(hmean_maxmin)
-
-    # Check normality (TODO already calculated, can be used if necessary)
-    #pvalues = [scipy.stats.kstest(hmean_maxmin[i, j, :], 'norm')[0] for j in range(3) for i in range(hms[0])]
-
-    for i in range(hms[0]):
-        for j in range(3):
-            # Calculate frequencies
-            hamming_freqs = np.bincount(hmean_maxmin[i, j, :].astype(int))
-            # Calculate x positions
-            x = np.arange(len(hamming_freqs)) + (coeff[j] * (bar_width + intra_bar_space))
-            # Plot barplot with legend
-            legend = str(para.c.steps_plastic[maxmin_idx[j]]) + ' training steps'
-            plt.bar(x, hamming_freqs, bar_width, label=legend)
-        # Adjust plot
-        plt.ylim(ymax=max_freq)
-        plt.xlim(xmax=max_val)
-        plt.legend()
-        plt.title('Model: ' + str(i+1))
-        plt.xlabel('Hamming distance')
-        plt.ylabel('Frequency')
-        plt.savefig(plotpath + '/hamming_freqs_model'+str(i+1)+'.png', dpi=144)
-        plt.close()
-
 hamming_histogram(get_max_threshold(data['hamming_distances']))
+training_steps_plot_thresholds(data['transition_distances'])
 
 #################### Activity/NComparison ####################
 
