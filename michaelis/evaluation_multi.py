@@ -201,80 +201,6 @@ def ncomparison_distance_correlation_plot(distances, ncomparison):
     plt.savefig(plotpath + '/correlation_ncomparison_distances.png', dpi=144)
     plt.close()
 
-def inequality_distance_correlation_plot(distances):
-    global plotpath, para
-
-    # Calculate stationary distributions from markov chains
-    stationaries = [stationaryDistribution.calculate(transition) for transition in para.c.source.transitions]
-    variance = np.var(stationaries, axis=1)  # TODO maybe choose some other measure (additionally to variance and entropy)
-    entropy = [scipy.stats.entropy(s, np.repeat(0.25, np.shape(para.c.source.transitions)[1])) for s in stationaries]
-
-    # Get number of train steps
-    train_steps = np.shape(distances)[2]
-
-    # Exclude first test step and mean over test steps
-    dists = np.mean(distances[:, :, :, 1:], axis=3)
-
-    # Define color palette
-    color_palette = cm.rainbow(np.linspace(0, 1, train_steps))
-
-    for i in range(train_steps):
-        # Variance
-        legend = str(para.c.steps_plastic) + ' training steps, r=' + str(np.round(pearsonr(variance, np.mean(dists[:,:,i], axis=0))[0],2))
-        plt.errorbar(variance, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),  # fmt='o',
-                     color=color_palette[i], ecolor=np.append(color_palette[i][0:3], 0.5))
-
-    plt.legend(loc=2,prop={'size': 6})
-    plt.ylim(ymin=0)
-    plt.grid()
-    plt.title('Variance/Distances')
-    plt.xlabel('Variance')
-    plt.ylabel('Mean squared distance to initial transition')
-    plt.savefig(plotpath + '/correlation_inequality_variance.png', dpi=144)
-    plt.close()
-
-    # Dist baseline plot
-    dists_baseline = np.mean(dists[:,:,0], axis=0)
-    for i in range(train_steps):
-        if i > 0:
-            # Variance with distance difference
-            diff = dists_baseline - np.mean(dists[:, :, i], axis=0)
-            legend = str(para.c.steps_plastic) + ' training steps, r=' + str(np.round(pearsonr(variance, diff)[0], 2))
-            plt.plot(variance, diff, label=legend, color=color_palette[i])
-
-    plt.legend(prop={'size': 6})
-    #plt.ylim(ymin=0)
-    plt.grid()
-    plt.title('Baseline: Variance/Distances')
-    plt.xlabel('Variance')
-    plt.ylabel('Performance increase in relation to baseline')
-    plt.savefig(plotpath + '/correlation_inequality_variance_baseline.png', dpi=144)
-    plt.close()
-
-    # plt.scatter(variance, np.std(dists, axis=0))
-    # plt.title('Correlation Variance / Deviation of distances (%.2f)' % pearsonr(variance, np.std(dists, axis=0))[0])
-    # plt.xlabel('Variance')
-    # plt.ylabel('Deviation of mean squared distance to initial transition')
-    # plt.ylim(ymin=0)
-    # plt.savefig(plotpath + '/correlation_inequality_variance_std.png', dpi=144)
-    # plt.close()
-
-    # Entropy
-    # plt.errorbar(entropy, np.mean(dists, axis=0), yerr=np.std(dists, axis=0), fmt='o')
-    # plt.title('Correlation Entropy/Distances (%.2f)' % pearsonr(entropy, np.mean(dists, axis=0))[0])
-    # plt.xlabel('Entropy')
-    # plt.ylabel('Mean squared distance to initial transition')
-    # plt.savefig(plotpath + '/correlation_inequality_entropy.png', dpi=144)
-    # plt.close()
-    #
-    # plt.scatter(entropy, np.std(dists, axis=0))
-    # plt.title('Correlation Entropy / Deviation of distances (%.2f)' % pearsonr(entropy, np.std(dists, axis=0))[0])
-    # plt.xlabel('Entropy')
-    # plt.ylabel('Deviation of mean squared distance to initial transition')
-    # plt.ylim(ymin=0)
-    # plt.savefig(plotpath + '/correlation_inequality_entropy_std.png', dpi=144)
-    # plt.close()
-
 def hamming_histogram(hamming_distances):
     global plotpath
 
@@ -322,21 +248,169 @@ def hamming_histogram(hamming_distances):
         plt.savefig(plotpath + '/hamming_freqs_model'+str(i+1)+'.png', dpi=144)
         plt.close()
 
+def inequality_distance_correlation_plot(distances):
+    global plotpath, para
+
+    # Calculate stationary distributions from markov chains
+    stationaries = np.array([stationaryDistribution.calculate(transition) for transition in para.c.source.transitions])
+
+    # Get variance, entropy and gini
+    states = np.arange(np.shape(stationaries)[1])+1
+    variance = np.sum(np.multiply(stationaries, (states - np.mean(states)) ** 2), axis=1)
+    entropy = [scipy.stats.entropy(s, np.repeat(0.25, np.shape(para.c.source.transitions)[1])) for s in stationaries]
+    ginis = [calc_gini(x) for x in stationaries]
+
+    # Get number of train steps
+    train_steps = np.shape(distances)[2]
+
+    # Exclude first test step and mean over test steps
+    dists = np.mean(distances[:, :, :, 1:], axis=3)
+
+    # Define color palette
+    color_palette = cm.rainbow(np.linspace(0, 1, train_steps))
+
+    # Variance
+    for i in range(train_steps):
+        legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, np.mean(dists[:,:,i], axis=0))[0],2))
+        plt.errorbar(variance, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),  # fmt='o',
+                     color=color_palette[i], ecolor=np.append(color_palette[i][0:3], 0.5))
+
+    plt.legend(loc=2,prop={'size': 6})
+    plt.ylim(ymin=0)
+    plt.grid()
+    plt.title('Variance/Distances')
+    plt.xlabel('Variance')
+    plt.ylabel('Mean squared distance to initial transition')
+    plt.savefig(plotpath + '/correlation_inequality_variance.png', dpi=144)
+    plt.close()
+
+    # Variance baseline plot
+    if para.c.steps_plastic[0] == 0:  # only if first training step is zero (baseline)
+        dists_baseline = np.mean(dists[:,:,0], axis=0)
+        for i in range(train_steps):
+            if i > 0:
+                # Variance with distance difference
+                diff = dists_baseline - np.mean(dists[:, :, i], axis=0)
+                legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, diff)[0], 2))
+                plt.plot(variance, diff, label=legend, color=color_palette[i])
+
+        plt.legend(prop={'size': 6})
+        #plt.ylim(ymin=0)
+        plt.grid()
+        plt.title('Baseline: Variance/Distances')
+        plt.xlabel('Variance')
+        plt.ylabel('Performance increase in relation to baseline')
+        plt.savefig(plotpath + '/correlation_inequality_variance_baseline.png', dpi=144)
+        plt.close()
+
+    # Entropy
+    for i in range(train_steps):
+        legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(entropy, np.mean(dists[:,:,i], axis=0))[0],2))
+        plt.errorbar(entropy, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),  # fmt='o',
+                     color=color_palette[i], ecolor=np.append(color_palette[i][0:3], 0.5))
+
+    plt.legend(loc=2,prop={'size': 6})
+    plt.ylim(ymin=0)
+    plt.grid()
+    plt.title('KL/Distances')
+    plt.xlabel('KL')
+    plt.ylabel('Mean squared distance to initial transition')
+    plt.savefig(plotpath + '/correlation_inequality_kl.png', dpi=144)
+    plt.close()
+
+    # Entropy baseline plot
+    if para.c.steps_plastic[0] == 0:  # only if first training step is zero (baseline)
+        dists_baseline = np.mean(dists[:, :, 0], axis=0)
+        for i in range(train_steps):
+            if i > 0:
+                # Variance with distance difference
+                diff = dists_baseline - np.mean(dists[:, :, i], axis=0)
+                legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(entropy, diff)[0], 2))
+                plt.plot(entropy, diff, label=legend, color=color_palette[i])
+
+        plt.legend(prop={'size': 6})
+        # plt.ylim(ymin=0)
+        plt.grid()
+        plt.title('Baseline: KL/Distances')
+        plt.xlabel('KL')
+        plt.ylabel('Performance increase in relation to baseline')
+        plt.savefig(plotpath + '/correlation_inequality_kl_baseline.png', dpi=144)
+        plt.close()
+
+    # Gini
+    for i in range(train_steps):
+        legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(ginis, np.mean(dists[:,:,i], axis=0))[0],2))
+        plt.errorbar(ginis, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),  # fmt='o',
+                     color=color_palette[i], ecolor=np.append(color_palette[i][0:3], 0.5))
+
+    plt.legend(loc=2,prop={'size': 6})
+    plt.ylim(ymin=0)
+    plt.grid()
+    plt.title('Gini/Distances')
+    plt.xlabel('Gini')
+    plt.ylabel('Mean squared distance to initial transition')
+    plt.savefig(plotpath + '/correlation_inequality_gini.png', dpi=144)
+    plt.close()
+
+def calc_gini(x):
+    # Mean absolute difference
+    mad = np.abs(np.subtract.outer(x, x)).mean()
+    # Relative mean absolute difference
+    rmad = mad / np.mean(x)
+    # Gini coefficient
+    g = 0.5 * rmad
+    return g
+
+def lorenz_plot(normed_stationaries):
+    global plotpath, para
+    # runs, models, train steps, test chunks, stationary
+
+    # Calculate stationary distributions from markov chains
+    stationaries = np.array([stationaryDistribution.calculate(transition) for transition in para.c.source.transitions])
+
+    # Preparation
+    n = np.shape(stationaries)[1]
+    num_models = np.shape(stationaries)[0]
+    x = np.repeat(1 / float(n), n)
+
+    # Define color palette
+    color_palette = cm.rainbow(np.linspace(0, 1, num_models))
+
+    x0 = np.append(0, np.cumsum(x))
+    plt.plot(x0, x0, color='black')
+
+    for i in range(num_models):
+        y = np.sort(stationaries[i])
+        y0 = np.append(0, np.cumsum(y))
+        plt.plot(x0, y0, label= 'Model'+str(i+1), color=color_palette[i])
+
+    plt.legend(loc=2, prop={'size': 6})
+    plt.ylim(ymax=1)
+    plt.grid()
+    plt.title('Lorenz curve: Stationary distributions')
+    plt.xlabel('States')
+    plt.ylabel('Cumulative probability')
+    plt.savefig(plotpath + '/lorenz-curve.png', dpi=144)
+    plt.close()
+
 def get_max_threshold(arr):
     return arr[:,:,:,np.shape(arr)[3]-1,:]
 
-def prepare_stationary(estimated_stationaries):
-    global para
-
+def norm_stationaries(estimated_stationaries):
     # Get values for max threshold
     estimated_stationaries = get_max_threshold(estimated_stationaries)
 
+    # Normalize
+    est_norm = estimated_stationaries / np.sum(estimated_stationaries, axis=4)[:, :, :, :, np.newaxis]
+
+    return est_norm
+
+def stationariy_distances(est_norm):
+    global para
+
     # Calculate stationaries
     T = para.c.source.transitions
-    stationaries = np.stack([ stationaryDistribution.calculate(trans) for trans in T])
-
-    # Normalize
-    est_norm = estimated_stationaries/np.sum(estimated_stationaries, axis=4)[:,:,:,:,np.newaxis]
+    stationaries = np.stack([stationaryDistribution.calculate(trans) for trans in T])
 
     # Calculate distances
     # runs, models, train steps, thresholds, test chunks, stationary
@@ -370,7 +444,8 @@ def prepare_hamming(hamming_distances):
 
 data = prepare_data(sources)  # runs, models, train steps, thresholds, test steps / test chunks
 
-stationairy_distances = prepare_stationary(data['estimated_stationaries'])
+normed_stationaries = norm_stationaries(data['estimated_stationaries'])
+stationairy_distances = stationariy_distances(normed_stationaries)
 hamming_means = prepare_hamming(data['hamming_distances'])
 #ncomparison = get_max_threshold(data['ncomparison'])
 
@@ -410,7 +485,7 @@ training_steps_plot_thresholds(data['transition_distances'])
 #activity_distance_correlation_plot(distances, activity)
 #ncomparison_distance_correlation_plot(get_max_threshold(data['transition_distances']), ncomparison[:,:,:,np.shape(ncomparison)[3]-1])
 
-#################### Variance / Entropy ####################
+#################### Variance, Entropy, Gini / Lorenz####################
 
 inequality_distance_correlation_plot(get_max_threshold(data['transition_distances']))
-
+lorenz_plot(normed_stationaries)
