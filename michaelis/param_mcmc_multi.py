@@ -37,7 +37,7 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.array([0, 5000, 10000, 20000, 30000, 40000, 50000]) #np.array([0, 5000, 10000, 15000, 20000, 30000, 50000]) #np.arange(10000,80001,5000)
+c.steps_plastic = np.array([50000]) #np.array([0, 5000, 10000, 20000, 30000, 40000, 50000]) #np.array([0, 5000, 10000, 15000, 20000, 30000, 50000]) #np.arange(10000,80001,5000)
 c.steps_noplastic_train = 50000 #20000
 c.steps_noplastic_test = 40000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
@@ -86,7 +86,7 @@ c.stats.control_rates = False
 c.stats.ISI_step = 4
 c.stats.transition_step_size = 5000 # 5000
 c.stats.ncomparison_per_state = 500 # If ncomparison or only_last should be used, remove this parameter
-c.stats.hamming_threshold = np.append(np.arange(12,23,2), np.inf) # Use not threshold: np.array([np.inf])
+c.stats.hamming_threshold = np.array([np.inf]) #np.append(np.arange(12,23,2), np.inf) # Use not threshold: np.array([np.inf])
 # c.stats.only_last = 3000 # affects many stats: take only last x steps
 
 # Following parameters for randsource
@@ -153,12 +153,20 @@ c.states = ['A','B','C','D']
 
 transitions = []
 #iterate = np.arange(0.1, 0.51, 0.025)
-iterate = np.arange(0.1, 0.51, 0.1)
+iterate = np.arange(0.1, 0.51, 0.05)
 for it in iterate:
     transitions.append([[1-(2*it), it, 0, it],
                         [0.5, 0, 0.5, 0],
                         [0, 0.5, 0, 0.5],
                         [0.5, 0, 0.5, 0]])
+
+iterate = np.arange(0.1, 0.51, 0.05)
+for it in iterate:
+    transitions.append([[0, 0.5, 0, 0.5],
+                        [it, 0, 1-it, 0],
+                        [0, it, 1-(2*it), it],
+                        [it, 0, 1-it, 0]])
+
 c.source.transitions = np.array(transitions)
 
 #source = CountingSource(c.states,c.source.transitions,
