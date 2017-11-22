@@ -1,13 +1,18 @@
 import numpy as np
 import os
 import glob
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import matplotlib.patheffects as pe
 import sys
 import scipy
 from scipy.stats import pearsonr
+
+# Import and initalize matplotlib
+from matplotlib import rcParams
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib.patheffects as pe
 from mpl_toolkits.mplot3d import Axes3D
+
+rcParams['font.family'] = 'CMU Serif'
 
 # Path and num runs value for evaluation
 current = "2017-11-09_17-22-00_hamming"
@@ -69,7 +74,7 @@ def training_steps_plot(distances, suffix, ytext):
             plt.plot(para.c.steps_plastic, dists_mean_single[j, i], color=color_palette[i], alpha=0.1)
 
     # Beautify plot and save png file
-    plt.legend()
+    plt.legend(prop={'size': 7})
     plt.ylim(ymin=0)
     plt.xlabel('Training steps')
     plt.ylabel(ytext)
@@ -106,7 +111,7 @@ def training_steps_plot_thresholds(distances):
                          #path_effects=[pe.SimpleLineShadow(shadow_color=thresh_colors[j]), pe.Normal()])
 
     # Beautify plot and save png file
-    plt.legend(prop={'size': 6})
+    plt.legend(prop={'size': 7})
     plt.ylim(ymin=0)
     plt.xlabel('Training steps')
     plt.ylabel('Error')
@@ -141,7 +146,7 @@ def test_trace_plot(distances, suffix, label):
             plt.plot(test_steps, dists[j,i], color=color_palette[i], alpha=0.1)
 
     # Beautify plot and save png file
-    plt.legend()
+    plt.legend(prop={'size': 7})
     plt.ylim(ymin=0)
     plt.xlabel('Test steps')
     plt.ylabel(label)
@@ -226,6 +231,9 @@ def hamming_histogram(hamming_distances):
     max_freq = np.max([np.max(np.bincount(hmean_maxmin[i, j, :].astype(int))) for j in range(3) for i in range(hms[0])])
     max_val = np.max(hmean_maxmin)
 
+    # Define color palette
+    color_palette = cm.copper(np.linspace(0, 1, 3))
+
     # Check normality (TODO already calculated, can be used if necessary)
     #pvalues = [scipy.stats.kstest(hmean_maxmin[i, j, :], 'norm')[0] for j in range(3) for i in range(hms[0])]
 
@@ -237,11 +245,11 @@ def hamming_histogram(hamming_distances):
             x = np.arange(len(hamming_freqs)) + (coeff[j] * (bar_width + intra_bar_space))
             # Plot barplot with legend
             legend = str(para.c.steps_plastic[maxmin_idx[j]]) + ' training steps'
-            plt.bar(x, hamming_freqs, bar_width, label=legend)
+            plt.bar(x, hamming_freqs, bar_width, label=legend, linewidth=0, color=color_palette[j])
         # Adjust plot
         plt.ylim(ymax=max_freq)
-        plt.xlim(xmax=max_val)
-        plt.legend()
+        plt.xlim(xmin=0, xmax=max_val)
+        plt.legend(prop={'size': 7})
         plt.title('Model: ' + str(i+1))
         plt.xlabel('Hamming distance')
         plt.ylabel('Frequency')
@@ -275,7 +283,7 @@ def inequality_distance_correlation_plot(distances):
         plt.errorbar(variance, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),  # fmt='o',
                      color=color_palette[i], ecolor=np.append(color_palette[i][0:3], 0.5))
 
-    plt.legend(loc=2,prop={'size': 6})
+    plt.legend(loc=2,prop={'size': 7})
     plt.ylim(ymin=0)
     plt.grid()
     plt.title('Variance/Distances')
@@ -294,7 +302,7 @@ def inequality_distance_correlation_plot(distances):
                 legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, diff)[0], 2))
                 plt.plot(variance, diff, label=legend, color=color_palette[i])
 
-        plt.legend(prop={'size': 6})
+        plt.legend(prop={'size': 7})
         #plt.ylim(ymin=0)
         plt.grid()
         plt.title('Baseline: Variance/Distances')
@@ -309,7 +317,7 @@ def inequality_distance_correlation_plot(distances):
         plt.errorbar(entropy, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),  # fmt='o',
                      color=color_palette[i], ecolor=np.append(color_palette[i][0:3], 0.5))
 
-    plt.legend(loc=2,prop={'size': 6})
+    plt.legend(loc=2,prop={'size': 7})
     plt.ylim(ymin=0)
     plt.grid()
     plt.title('KL/Distances')
@@ -328,7 +336,7 @@ def inequality_distance_correlation_plot(distances):
                 legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(entropy, diff)[0], 2))
                 plt.plot(entropy, diff, label=legend, color=color_palette[i])
 
-        plt.legend(prop={'size': 6})
+        plt.legend(prop={'size': 7})
         # plt.ylim(ymin=0)
         plt.grid()
         plt.title('Baseline: KL/Distances')
@@ -343,7 +351,7 @@ def inequality_distance_correlation_plot(distances):
         plt.errorbar(ginis, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),  # fmt='o',
                      color=color_palette[i], ecolor=np.append(color_palette[i][0:3], 0.5))
 
-    plt.legend(loc=2,prop={'size': 6})
+    plt.legend(loc=2,prop={'size': 7})
     plt.ylim(ymin=0)
     plt.grid()
     plt.title('Gini/Distances')
@@ -384,7 +392,7 @@ def lorenz_plot(normed_stationaries):
         y0 = np.append(0, np.cumsum(y))
         plt.plot(x0, y0, label= 'Model'+str(i+1), color=color_palette[i])
 
-    plt.legend(loc=2, prop={'size': 6})
+    plt.legend(loc=2, prop={'size': 7})
     plt.ylim(ymax=1)
     plt.grid()
     plt.title('Lorenz curve: Stationary distributions')
