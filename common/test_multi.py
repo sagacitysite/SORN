@@ -98,44 +98,50 @@ def runAll(i):
         # Hamming thresholds
         for hamming_threshold in c.stats.hamming_threshold_array:
 
+            # H_IP thresholds
+            for l in range(np.shape(c.h_ip_array)[1]):
 
-            k = 0
-            # Training steps
-            for steps in c.steps_plastic_array:
-                # Print where we are
-                print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / "+ str(steps))
 
-                # Set transitions and source
-                c.source.transitions = transitions
-                source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
+                k = 0
+                # Training steps
+                for steps in c.steps_plastic_array:
 
-                # Set steps_plastic and correct N_steps
-                c.steps_plastic = steps
-                c.N_steps = c.steps_plastic + c.steps_noplastic_train \
-                                            + c.steps_noplastic_test
+                    # Set H_IP
+                    c.h_ip = c.h_ip_array[:,l]
 
-                # Set hamming threshold
-                c.stats.hamming_threshold = hamming_threshold
+                    # Print where we are
+                    print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / h_ip "+ str(np.mean(np.around(c.h_ip, 2))) +" / "+ str(steps))
 
-                #if c.stats.hamming_threshold == -1:
-                #    del c.stats.hamming_threshold
+                    # Set transitions and source
+                    c.source.transitions = transitions
+                    source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
 
-                # Name of folder for results in this step
-                #c.multi_name = "run"+str(i)+"_model"+str(j)+"_threshold"+str(h)+"_steps"+str(k)
-                c.file_name = "run"+str(i)
-                c.state.index = (j, k, h)  # models, training steps, threshold
-                runSORN(c, source)
+                    # Set steps_plastic and correct N_steps
+                    c.steps_plastic = steps
+                    c.N_steps = c.steps_plastic + c.steps_noplastic_train \
+                                                + c.steps_noplastic_test
 
-                # Free memory
-                gc.collect()
+                    # Set hamming threshold
+                    c.stats.hamming_threshold = hamming_threshold
 
-                # Increase counter
-                k += 1
+                    # Name of folder for results in this step
+                    #c.multi_name = "run"+str(i)+"_model"+str(j)+"_threshold"+str(h)+"_steps"+str(k)
+                    c.file_name = "run"+str(i)
+                    c.state.index = (j, k, h, l)  # models, training steps, threshold, h_ip
+                    runSORN(c, source)
 
-            # Increase counter
+                    # Free memory
+                    gc.collect()
+
+                    # Increase trainig steps counter
+                    k += 1
+
+                # H_IP counter needs no increase (is range)
+
+            # Increase hamming threshold counter
             h += 1
 
-        # Increase counter
+        # Increase models counter
         j += 1
 
 # Parameters are read from the second command line argument
@@ -157,6 +163,7 @@ c.logfilepath = utils.logfilename('') + '/'
 c.steps_plastic_array = c.steps_plastic
 c.source.transitions_array = c.source.transitions
 c.stats.hamming_threshold_array = c.stats.hamming_threshold
+c.h_ip_array = c.h_ip
 
 # Set values
 num_iterations = range(20)

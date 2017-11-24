@@ -54,9 +54,10 @@ c.with_plasticity = True
 c.input_gain = 0.5
 
 c.eta_ip = 0.001
-h_ip_mean = float(2*c.N_u_e)/float(c.N_e)
+c.h_ip_factor = np.arange(0.5,3.51,0.5) # Default: np.array([2])
+h_ip_mean = c.h_ip_factor*float(c.N_u_e)/float(c.N_e)
 h_ip_range = 0.01
-c.h_ip = np.random.rand(c.N_e)*h_ip_range*2 + h_ip_mean - h_ip_range
+c.h_ip = np.broadcast_to(np.random.rand(c.N_e), (7,200)).T*h_ip_range*2 + np.broadcast_to(h_ip_mean, (200,7)) - h_ip_range
 c.always_ip = True
 c.synaptic_scaling = True
 
@@ -152,21 +153,12 @@ c.states = ['A','B','C','D']
 # c.source.transitions = np.array(transitions)
 
 transitions = []
-#iterate = np.arange(0.1, 0.51, 0.025)
-iterate = np.arange(0.1, 0.51, 0.05)
+iterate = np.arange(0.1, 0.51, 0.025)
 for it in iterate:
     transitions.append([[1-(2*it), it, 0, it],
                         [0.5, 0, 0.5, 0],
                         [0, 0.5, 0, 0.5],
                         [0.5, 0, 0.5, 0]])
-
-iterate = np.arange(0.1, 0.51, 0.05)
-for it in iterate:
-    transitions.append([[0, 0.5, 0, 0.5],
-                        [it, 0, 1-it, 0],
-                        [0, it, 1-(2*it), it],
-                        [it, 0, 1-it, 0]])
-
 c.source.transitions = np.array(transitions)
 
 #source = CountingSource(c.states,c.source.transitions,

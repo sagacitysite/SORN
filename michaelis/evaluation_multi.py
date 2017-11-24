@@ -15,8 +15,8 @@ from mpl_toolkits.mplot3d import Axes3D
 rcParams['font.family'] = 'CMU Serif'
 
 # Path and num runs value for evaluation
-current = "2017-11-09_17-22-00_hamming"
-num_runs = 10  # How many runs should we evaluate
+current = "2017-11-22_13-35-23_gini"
+num_runs = 20  # How many runs should we evaluate
 
 # Prepare path and get files
 path = os.getcwd() + "/backup/test_multi/" + current
@@ -264,7 +264,8 @@ def inequality_distance_correlation_plot(distances):
 
     # Get variance, entropy and gini
     states = np.arange(np.shape(stationaries)[1])+1
-    variance = np.sum(np.multiply(stationaries, (states - np.mean(states)) ** 2), axis=1)
+    variance = np.var(stationaries, axis=1)
+    #variance = np.sum(np.multiply(stationaries, (states - np.mean(states)) ** 2), axis=1)
     entropy = [scipy.stats.entropy(s, np.repeat(0.25, np.shape(para.c.source.transitions)[1])) for s in stationaries]
     ginis = [calc_gini(x) for x in stationaries]
 
@@ -280,7 +281,7 @@ def inequality_distance_correlation_plot(distances):
     # Variance
     for i in range(train_steps):
         legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, np.mean(dists[:,:,i], axis=0))[0],2))
-        plt.errorbar(variance, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),  # fmt='o',
+        plt.errorbar(variance, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0), fmt='o',
                      color=color_palette[i], ecolor=np.append(color_palette[i][0:3], 0.5))
 
     plt.legend(loc=2,prop={'size': 7})
@@ -314,7 +315,7 @@ def inequality_distance_correlation_plot(distances):
     # Entropy
     for i in range(train_steps):
         legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(entropy, np.mean(dists[:,:,i], axis=0))[0],2))
-        plt.errorbar(entropy, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),  # fmt='o',
+        plt.errorbar(entropy, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),  fmt='o',
                      color=color_palette[i], ecolor=np.append(color_palette[i][0:3], 0.5))
 
     plt.legend(loc=2,prop={'size': 7})
@@ -348,7 +349,7 @@ def inequality_distance_correlation_plot(distances):
     # Gini
     for i in range(train_steps):
         legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(ginis, np.mean(dists[:,:,i], axis=0))[0],2))
-        plt.errorbar(ginis, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),  # fmt='o',
+        plt.errorbar(ginis, np.mean(dists[:,:,i], axis=0), label=legend, yerr=np.std(dists[:,:,i], axis=0),  fmt='o',
                      color=color_palette[i], ecolor=np.append(color_palette[i][0:3], 0.5))
 
     plt.legend(loc=2,prop={'size': 7})
@@ -485,8 +486,11 @@ test_trace_plot(stationairy_distances,
 
 #################### Hamming Distancs evaluation ####################
 
-hamming_histogram(get_max_threshold(data['hamming_distances']))
-training_steps_plot_thresholds(data['transition_distances'])
+if np.shape(data['hamming_distances'])[3] > 1:
+    hamming_histogram(get_max_threshold(data['hamming_distances']))
+
+if np.shape(data['transition_distances'])[2] > 1:
+    training_steps_plot_thresholds(data['transition_distances'])
 
 #################### Activity/NComparison ####################
 

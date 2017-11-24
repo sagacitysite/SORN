@@ -195,7 +195,7 @@ def logdata(path, c):
         file = None
         if(c.state.has_key('index')):  # Case: test_multi
             # Create empty array
-            raw_shape = (len(c.source.transitions_array), len(c.steps_plastic_array), len(c.stats.hamming_threshold_array), np.shape(c.state.data))
+            raw_shape = (len(c.source.transitions_array), len(c.steps_plastic_array), len(c.stats.hamming_threshold_array), len(c.h_ip_factor), np.shape(c.state.data))
             file = np.empty(flatten(raw_shape))  # models, threshold, training steps, *data
             # Save data for current parameter configuration
             np.save(logpath, fillToArray(file, c.state))
