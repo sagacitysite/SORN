@@ -110,7 +110,7 @@ def runAll(i):
                     c.h_ip = c.h_ip_array[:,l]
 
                     # Print where we are
-                    print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / h_ip "+ str(np.mean(np.around(c.h_ip, 2))) +" / "+ str(steps))
+                    print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / h_ip "+ str(np.round(np.mean(c.h_ip), 3)) +" / "+ str(steps))
 
                     # Set transitions and source
                     c.source.transitions = transitions
