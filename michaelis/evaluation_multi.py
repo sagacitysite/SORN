@@ -118,7 +118,7 @@ def training_steps_plot_thresholds(distances):
     plt.savefig(plotpath + '/distances_training_steps_with_thresholds.png', dpi=144)
     plt.close()
 
-def test_trace_plot(distances, suffix, label):
+def test_trace_plot(distances, suffix, ylabel, title=None):
     global plotpath, para
 
     # Get results for highest train step only
@@ -147,9 +147,11 @@ def test_trace_plot(distances, suffix, label):
 
     # Beautify plot and save png file
     plt.legend(prop={'size': 7})
+    if title:
+        plt.title(title)
     plt.ylim(ymin=0)
     plt.xlabel('Test steps')
-    plt.ylabel(label)
+    plt.ylabel(ylabel)
     plt.savefig(plotpath + '/test_traces_'+suffix+'.png', dpi=144)
     plt.close()
 
@@ -492,10 +494,14 @@ if np.shape(data['hamming_distances'])[2] > 1:
 
 #################### Test chunk plots ####################
 
+if len(para.c.h_ip_factor) > 1:
+    test_trace_plot(data['transition_distances'][:,:,:,mxthresh_idx,0,:],
+                    suffix="distances_smallhip", ylabel="Transition error", title="small h_ip")
+
 test_trace_plot(data['transition_distances'][:,:,:,mxthresh_idx,hpos_idx,:],
-                suffix="distances", label="Transition error")
+                suffix="distances", ylabel="Transition error")
 test_trace_plot(stationairy_distances,
-                suffix="stationary", label="Stationary error")
+                suffix="stationary", ylabel="Stationary error")
 #test_trace_plot(activity[:,:,:,mxthresh_idx,hpos_idx,:],
 #                suffix="activity", label="Activity (percentage)")
 
