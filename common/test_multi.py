@@ -98,45 +98,54 @@ def runAll(i):
         # Hamming thresholds
         for hamming_threshold in c.stats.hamming_threshold_array:
 
-            # H_IP thresholds
-            for l in range(np.shape(c.h_ip_array)[1]):
+            g = 0
+            # Average number of EE-connections
+            for connections_density in c.connections_density_array:
 
+                # H_IP thresholds
+                for l in range(np.shape(c.h_ip_array)[1]):
 
-                k = 0
-                # Training steps
-                for steps in c.steps_plastic_array:
+                    k = 0
+                    # Training steps
+                    for steps in c.steps_plastic_array:
 
-                    # Set H_IP
-                    c.h_ip = c.h_ip_array[:,l]
+                        # Set H_IP
+                        c.h_ip = c.h_ip_array[:,l]
 
-                    # Print where we are
-                    print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / h_ip "+ str(np.round(np.mean(c.h_ip), 3)) +" / "+ str(steps))
+                        # Print where we are
+                        print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / h_ip "+ str(np.round(np.mean(c.h_ip), 3)) +" / #connections "+ str(connections_density*c.N_e) +" / "+ str(steps))
 
-                    # Set transitions and source
-                    c.source.transitions = transitions
-                    source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
+                        # Set transitions and source
+                        c.source.transitions = transitions
+                        source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
 
-                    # Set steps_plastic and correct N_steps
-                    c.steps_plastic = steps
-                    c.N_steps = c.steps_plastic + c.steps_noplastic_train \
-                                                + c.steps_noplastic_test
+                        # Set steps_plastic and correct N_steps
+                        c.steps_plastic = steps
+                        c.N_steps = c.steps_plastic + c.steps_noplastic_train \
+                                                    + c.steps_noplastic_test
 
-                    # Set hamming threshold
-                    c.stats.hamming_threshold = hamming_threshold
+                        # Set hamming threshold
+                        c.stats.hamming_threshold = hamming_threshold
 
-                    # Name of folder for results in this step
-                    #c.multi_name = "run"+str(i)+"_model"+str(j)+"_threshold"+str(h)+"_steps"+str(k)
-                    c.file_name = "run"+str(i)
-                    c.state.index = (j, k, h, l)  # models, training steps, threshold, h_ip
-                    runSORN(c, source)
+                        # Set number of average EE-connections
+                        c.W_ee.lamb = connections_density*c.N_e
 
-                    # Free memory
-                    gc.collect()
+                        # Name of folder for results in this step
+                        #c.multi_name = "run"+str(i)+"_model"+str(j)+"_threshold"+str(h)+"_steps"+str(k)
+                        c.file_name = "run"+str(i)
+                        c.state.index = (j, k, h, l, g)  # models, training steps, threshold, h_ip, #EE-connections
+                        runSORN(c, source)
 
-                    # Increase trainig steps counter
-                    k += 1
+                        # Free memory
+                        gc.collect()
 
-                # H_IP counter needs no increase (is range)
+                        # Increase trainig steps counter
+                        k += 1
+
+                    # H_IP counter needs no increase (is range)
+
+                # Increase average # EE-connections counter
+                g += 1
 
             # Increase hamming threshold counter
             h += 1
@@ -164,9 +173,10 @@ c.steps_plastic_array = c.steps_plastic
 c.source.transitions_array = c.source.transitions
 c.stats.hamming_threshold_array = c.stats.hamming_threshold
 c.h_ip_array = c.h_ip
+c.connections_density_array = c.connections_density
 
 # Set values
-num_iterations = range(20)
+num_iterations = range(c.N_iterations)
 
 # Start multi processing
 pool = Pool(2)
@@ -175,3 +185,4 @@ pool.close()
 pool.join()
 
 #runAll(0)
+#runAll(1)

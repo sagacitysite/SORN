@@ -487,6 +487,28 @@ class SpontTransitionDistance(AbstractStat):
 
         return(distances)
 
+class EEWeightStats(AbstractStat):
+    def __init__(self):
+        self.name = 'EEWeightStats'
+        self.collection = 'gather'
+    def clear(self,c,sorn):
+        pass
+    def add(self,c,sorn):
+        pass
+    def report(self,c,sorn):
+        #weights = {'EE': sorn.W_ee.get_synapses(), 'EU': sorn.W_eu.get_synapses()}
+        #utils.logdata("../data/weights/" + sorn.c.file_name + ".npy", sorn.c)
+
+        # Return excitatory-excitatory weights
+        sorn.c.state.data = sorn.W_ee.get_synapses()
+        utils.logdata("../data/weights_ee/" + sorn.c.file_name + ".npy", sorn.c)
+
+        # Return excitatory-input weights
+        sorn.c.state.data = sorn.W_eu.get_synapses()
+        utils.logdata("../data/weights_eu/" + sorn.c.file_name + ".npy", sorn.c)
+
+        return(sorn.W_ee.get_synapses())
+
 class SpontIndexStat(AbstractStat):
     def __init__(self):
         self.name = 'SpontIndex'
@@ -1202,7 +1224,6 @@ class InputStat(AbstractStat):
         self.step += 1
     def report(self,c,sorn):
         return c.inputs
-        
 
 class FullEndWeightStat(AbstractStat):
     def __init__(self):
