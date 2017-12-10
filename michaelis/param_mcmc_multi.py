@@ -17,7 +17,7 @@ c.N_u_i = 0
 c.double_synapses = False
 
 # used Bunch (https://pypi.python.org/pypi/bunch)
-c.connections_density = np.array([0.05,0.075,0.1,0.125,0.15,0.2,0.3,0.4,0.5])  # default: np.array([0.1])
+c.connections_density = np.array([0.1]) #np.array([0.05,0.075,0.1,0.125,0.15,0.2,0.3,0.4,0.5])  # default: np.array([0.1])
 c.W_ee = utils.Bunch(use_sparse=True,
                      lamb=c.connections_density*c.N_e,
                      avoid_self_connections=True,
@@ -40,7 +40,7 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.array([50000]) #np.array([0, 5000, 10000, 20000, 30000, 40000, 50000]) #np.array([0, 5000, 10000, 15000, 20000, 30000, 50000]) #np.arange(10000,80001,5000)
+c.steps_plastic = np.array([0, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]) #np.array([0, 5000, 10000, 20000, 30000, 40000, 50000]) #np.array([0, 5000, 10000, 15000, 20000, 30000, 50000]) # default: np.array([50000])
 c.steps_noplastic_train = 50000 #20000
 c.steps_noplastic_test = 40000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
@@ -117,6 +117,32 @@ c.source.control = False # For sequence_test
                             #~ c.source.avoid)
 from common.sources import CountingSource
 c.states = ['A','B','C','D']
+c.source.transitions = np.array([
+                               # 0. transition
+                               [[0, 1, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 1],
+                                [1, 0, 0, 0]],
+                               # 1. transition
+                               [[0, 1, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 1],
+                                [0.5, 0, 0.5, 0]],
+                               # 2. transition
+                               [[0, 1, 0, 0],
+                                [0.5, 0, 0.5, 0],
+                                [0, 0, 0, 1],
+                                [0.5, 0, 0.5, 0]],
+                               # 3. transition
+                               [[0, 1, 0, 0],
+                                [0.5, 0, 0.5, 0],
+                                [0, 0.5, 0, 0.5],
+                                [0.5, 0, 0.5, 0]],
+                               # 4. transition
+                               [[0, 0.5, 0, 0.5],
+                                [0.5, 0, 0.5, 0],
+                                [0, 0.5, 0, 0.5],
+                                [0.5, 0, 0.5, 0]]])
 # c.source.transitions = np.array([
 #                                # 1. transition
 #                                [[0, 0.5, 0, 0.5],
@@ -153,14 +179,14 @@ c.states = ['A','B','C','D']
 #                         [it, 0, 1-it, 0]])
 # c.source.transitions = np.array(transitions)
 
-transitions = []
-iterate = np.arange(0.1, 0.51, 0.05) # 0.025
-for it in iterate:
-    transitions.append([[1-(2*it), it, 0, it],
-                        [0.5, 0, 0.5, 0],
-                        [0, 0.5, 0, 0.5],
-                        [0.5, 0, 0.5, 0]])
-c.source.transitions = np.array(transitions)
+#transitions = []
+#iterate = np.arange(0.1, 0.51, 0.05) # 0.025
+#for it in iterate:
+#    transitions.append([[1-(2*it), it, 0, it],
+#                        [0.5, 0, 0.5, 0],
+#                        [0, 0.5, 0, 0.5],
+#                        [0.5, 0, 0.5, 0]])
+#c.source.transitions = np.array(transitions)
 
 #source = CountingSource(c.states,c.source.transitions,
 #                        c.N_u_e,c.N_u_i,c.source.avoid)
