@@ -38,8 +38,8 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      avoid_self_connections=False)
 
 c.steps_plastic = 50000 #50000
-c.steps_noplastic_train = 20000 #20000
-c.steps_noplastic_test = 20000 #50000
+c.steps_noplastic_train = 50000 #20000
+c.steps_noplastic_test = 40000 #50000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
                             + c.steps_noplastic_test
 c.display = True

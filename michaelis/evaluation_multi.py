@@ -13,6 +13,10 @@ import matplotlib.patheffects as pe
 from mpl_toolkits.mplot3d import Axes3D
 
 rcParams['font.family'] = 'CMU Serif'
+rcParams['axes.edgecolor'] = '#ffffff'
+rcParams['xtick.color'] = '#ffffff'
+rcParams['ytick.color'] = '#ffffff'
+rcParams['grid.color'] = '#ffffff'
 
 # Path and num runs value for evaluation
 current = "2017-11-24_14-41-36_spontaneous"
