@@ -6,7 +6,9 @@ utils.backup(__file__)
 # see this file for parameter descriptions
 from common.defaults import *
 
-c.N_e = 200 #200
+c.N_iterations = 20 # 20
+
+c.N_e = 200 #200 # TODO if this is changed, eta_stdp has also to change ??
 c.N_i = int(np.floor(0.2*c.N_e))
 c.N = c.N_e + c.N_i
 c.N_u_e = np.floor(0.05*c.N_e) #np.floor(0.05*c.N_e) # 10 connections from any input to the excitatory neurons
@@ -15,8 +17,9 @@ c.N_u_i = 0
 c.double_synapses = False
 
 # used Bunch (https://pypi.python.org/pypi/bunch)
+c.connections_density = np.array([0.05,0.075,0.1,0.125,0.15,0.2,0.3,0.4,0.5])  # default: np.array([0.1])
 c.W_ee = utils.Bunch(use_sparse=True,
-                     lamb=0.1*c.N_e,
+                     lamb=c.connections_density*c.N_e,
                      avoid_self_connections=True,
                      eta_stdp = 0.001,
                      sp_prob = 0.0,
@@ -44,20 +47,18 @@ c.N_steps = c.steps_plastic + c.steps_noplastic_train \
                             + c.steps_noplastic_test
 c.display = False # Stop displaying stuff
 
-c.N_iterations = 1 # 20
-
 # 0.1 -> ~30% noisespikes, 0.05 -> ~15%, 0.01 -> ~2.5%, 0.005 -> ~1% 
-c.noise_sig = 0
+c.noise_sig = 0 #0.045
 
 c.with_plasticity = True
 
 c.input_gain = 0.5
 
 c.eta_ip = 0.001
-c.h_ip_factor = np.arange(0.5,3.51,0.5) # Default: np.array([2])
+c.h_ip_factor = np.array([2]) #np.arange(0.5,3.51,0.5) # Default: np.array([2])
 h_ip_mean = c.h_ip_factor*float(c.N_u_e)/float(c.N_e)
 h_ip_range = 0.01
-c.h_ip = np.broadcast_to(np.random.rand(c.N_e), (7,200)).T*h_ip_range*2 + np.broadcast_to(h_ip_mean, (200,7)) - h_ip_range
+c.h_ip = np.broadcast_to(np.random.rand(c.N_e), (len(c.h_ip_factor),200)).T*h_ip_range*2 + np.broadcast_to(h_ip_mean, (200,len(c.h_ip_factor))) - h_ip_range
 c.always_ip = True
 c.synaptic_scaling = True
 
@@ -153,7 +154,7 @@ c.states = ['A','B','C','D']
 # c.source.transitions = np.array(transitions)
 
 transitions = []
-iterate = np.arange(0.1, 0.51, 0.025)
+iterate = np.arange(0.1, 0.51, 0.05) # 0.025
 for it in iterate:
     transitions.append([[1-(2*it), it, 0, it],
                         [0.5, 0, 0.5, 0],
@@ -170,12 +171,12 @@ c.wait_min_train = 0
 c.wait_var_train = 0
 
 # Cluster
-c.cluster.vary_param = 'steps_plastic'#'with_plasticity'#
-c.cluster.params = np.linspace(5000,15000,3)#[False,True]#
-if c.imported_mpi:
-    c.cluster.NUMBER_OF_SIMS  = len(c.cluster.params)
-    c.cluster.NUMBER_OF_CORES = MPI.COMM_WORLD.size
-    c.cluster.NUMBER_LOCAL = c.cluster.NUMBER_OF_SIMS // c.cluster.NUMBER_OF_CORES
+#c.cluster.vary_param = 'steps_plastic'#'with_plasticity'#
+#c.cluster.params = np.linspace(5000,15000,3)#[False,True]#
+#if c.imported_mpi:
+#    c.cluster.NUMBER_OF_SIMS  = len(c.cluster.params)
+#    c.cluster.NUMBER_OF_CORES = MPI.COMM_WORLD.size
+#    c.cluster.NUMBER_LOCAL = c.cluster.NUMBER_OF_SIMS // c.cluster.NUMBER_OF_CORES
 
 def test():
     pass

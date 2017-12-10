@@ -462,7 +462,7 @@ def prepare_hamming(hamming_distances):
 
 #################### Prepare data ####################
 
-data = prepare_data(sources)  # runs, models, train steps, thresholds, h_ip, test steps / test chunks
+data = prepare_data(sources)  # runs, models, train steps, thresholds, h_ip, #ee-connections, test steps / test chunks
 
 # Indices
 hpos_idx = np.where(para.c.h_ip_factor == 2.0)[0][0]  # index where h_ip = 2.0
@@ -523,6 +523,25 @@ if np.shape(data['transition_distances'])[2] > 1:
 inequality_distance_correlation_plot(data['transition_distances'][:,:,:,mxthresh_idx,:,:], hpos_idx)
 lorenz_plot(normed_stationaries)
 
-#################### Intrinsic Plasticity ####################
+#################### weight strength ####################
 
+# stationary [ 0.25 ,  0.375,  0.25 ,  0.125]
 
+# cluster_coefficient = np.zeros((len(para.c.states),len(para.c.states)))
+# for i in range(len(c.states)): #range(len(c.states)):
+#     for j in range(len(c.states)):
+#         # Get weights of neurons for input state i and j
+#         # and make boolean out of it ('true' if neuron has input, 'false' if not)
+#         idx_i = weights_eu[:, i].astype(bool)
+#         idx_j = weights_eu[:, j].astype(bool)
+#         # Weights between neurons of state i and state j
+#         weights_ij = weights_ee[idx_i, :][:, idx_j]
+#         # Sum all weights to obtain coefficient
+#         cluster_coefficient[i,j] = np.sum(weights_ij)
+#
+#     plt.imshow(cluster_coefficient, origin='upper', cmap='copper', interpolation='none')
+#     plt.xticks(np.arange(len(para.c.states)), para.c.states)
+#     plt.yticks(np.arange(len(para.c.states)), para.c.states)
+#     plt.colorbar()
+#
+#     scipy.stats.pearsonr(cluster_coefficient.flatten(), transitions.flatten())[0]
