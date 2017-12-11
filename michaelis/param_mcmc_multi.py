@@ -40,7 +40,7 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.array([0, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]) #np.array([0, 5000, 10000, 20000, 30000, 40000, 50000]) #np.array([0, 5000, 10000, 15000, 20000, 30000, 50000]) # default: np.array([50000])
+c.steps_plastic = np.array([50000]) #np.array([0, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]) # default: np.array([50000])
 c.steps_noplastic_train = 50000 #20000
 c.steps_noplastic_test = 40000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
@@ -54,7 +54,10 @@ c.with_plasticity = True
 
 c.input_gain = 0.5
 
-c.eta_ip = 0.001
+c.eta_ip = 0.001 #np.arange(0.0002,0.0021,0.0002) # Default: np.array([0.001])
+#h_ip_mean = float(2*c.N_u_e)/float(c.N_e)
+#h_ip_range = 0.01
+#c.h_ip = np.random.rand(c.N_e)*h_ip_range*2 + h_ip_mean - h_ip_range
 c.h_ip_factor = np.array([2]) #np.arange(0.5,3.51,0.5) # Default: np.array([2])
 h_ip_mean = c.h_ip_factor*float(c.N_u_e)/float(c.N_e)
 h_ip_range = 0.01
@@ -117,32 +120,32 @@ c.source.control = False # For sequence_test
                             #~ c.source.avoid)
 from common.sources import CountingSource
 c.states = ['A','B','C','D']
-c.source.transitions = np.array([
-                               # 0. transition
-                               [[0, 1, 0, 0],
-                                [0, 0, 1, 0],
-                                [0, 0, 0, 1],
-                                [1, 0, 0, 0]],
-                               # 1. transition
-                               [[0, 1, 0, 0],
-                                [0, 0, 1, 0],
-                                [0, 0, 0, 1],
-                                [0.5, 0, 0.5, 0]],
-                               # 2. transition
-                               [[0, 1, 0, 0],
-                                [0.5, 0, 0.5, 0],
-                                [0, 0, 0, 1],
-                                [0.5, 0, 0.5, 0]],
-                               # 3. transition
-                               [[0, 1, 0, 0],
-                                [0.5, 0, 0.5, 0],
-                                [0, 0.5, 0, 0.5],
-                                [0.5, 0, 0.5, 0]],
-                               # 4. transition
-                               [[0, 0.5, 0, 0.5],
-                                [0.5, 0, 0.5, 0],
-                                [0, 0.5, 0, 0.5],
-                                [0.5, 0, 0.5, 0]]])
+# c.source.transitions = np.array([
+#                                # 0. transition
+#                                [[0, 1, 0, 0],
+#                                 [0, 0, 1, 0],
+#                                 [0, 0, 0, 1],
+#                                 [1, 0, 0, 0]],
+#                                # 1. transition
+#                                [[0, 1, 0, 0],
+#                                 [0, 0, 1, 0],
+#                                 [0, 0, 0, 1],
+#                                 [0.5, 0, 0.5, 0]],
+#                                # 2. transition
+#                                [[0, 1, 0, 0],
+#                                 [0.5, 0, 0.5, 0],
+#                                 [0, 0, 0, 1],
+#                                 [0.5, 0, 0.5, 0]],
+#                                # 3. transition
+#                                [[0, 1, 0, 0],
+#                                 [0.5, 0, 0.5, 0],
+#                                 [0, 0.5, 0, 0.5],
+#                                 [0.5, 0, 0.5, 0]],
+#                                # 4. transition
+#                                [[0, 0.5, 0, 0.5],
+#                                 [0.5, 0, 0.5, 0],
+#                                 [0, 0.5, 0, 0.5],
+#                                 [0.5, 0, 0.5, 0]]])
 # c.source.transitions = np.array([
 #                                # 1. transition
 #                                [[0, 0.5, 0, 0.5],
@@ -179,18 +182,31 @@ c.source.transitions = np.array([
 #                         [it, 0, 1-it, 0]])
 # c.source.transitions = np.array(transitions)
 
-#transitions = []
-#iterate = np.arange(0.1, 0.51, 0.05) # 0.025
-#for it in iterate:
+# transitions = []
+# iterate = np.arange(0.1, 0.51, 0.05) # 0.025
+# for it in iterate:
 #    transitions.append([[1-(2*it), it, 0, it],
 #                        [0.5, 0, 0.5, 0],
 #                        [0, 0.5, 0, 0.5],
 #                        [0.5, 0, 0.5, 0]])
 #c.source.transitions = np.array(transitions)
 
+transitions = []
+iterate = np.arange(0.05, 0.46, 0.05) # 0.025
+for it in iterate:
+   transitions.append([[it, 0.5-it, 0, 0.5],
+                       [0.5-it, it, 0.5, 0],
+                       [0, 0.5, it, 0.5-it],
+                       [0.5, 0, 0.5-it, it]])
+c.source.transitions = np.array(transitions)
+
 #source = CountingSource(c.states,c.source.transitions,
 #                        c.N_u_e,c.N_u_i,c.source.avoid)
-                        
+
+[np.linalg.det(t) for t in transitions]
+[np.trace(t) for t in transitions]
+
+
 c.wait_min_plastic = 0
 c.wait_var_plastic = 0
 c.wait_min_train = 0

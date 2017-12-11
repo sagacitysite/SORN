@@ -236,7 +236,7 @@ class NormLastStat(AbstractStat):
 
                 if len(state_occurencies) < ncom:
                     raise Exception(
-                        'No enough occurencies in state '+str(i)+', decreae parameter c.stats.ncomparison_per_state or increase number of training steps c.steps_noplastic_train')
+                        'Not enough occurencies in state '+str(i)+', decreae parameter c.stats.ncomparison_per_state or increase number of training steps c.steps_noplastic_train')
 
 
                 norm_last_input_spikes[:, ncom*i:ncom*(i+1)] = input_spikes[:,state_occurencies[-ncom:]]
