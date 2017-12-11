@@ -54,7 +54,7 @@ c.with_plasticity = True
 
 c.input_gain = 0.5
 
-c.eta_ip = 0.001 #np.arange(0.0002,0.0021,0.0002) # Default: np.array([0.001])
+c.eta_ip = 0.001 #np.arange(0.0002,0.0021,0.0004) #np.arange(0.0002,0.0021,0.0002) # Default: np.array([0.001])
 #h_ip_mean = float(2*c.N_u_e)/float(c.N_e)
 #h_ip_range = 0.01
 #c.h_ip = np.random.rand(c.N_e)*h_ip_range*2 + h_ip_mean - h_ip_range
@@ -172,7 +172,8 @@ c.states = ['A','B','C','D']
 #                                 [0.5, 0, 0.5, 0],
 #                                 [0, 0.5, 0, 0.5],
 #                                 [0.5, 0, 0.5, 0]]])
-#
+
+## Models 1
 # transitions = []
 # iterate = np.arange(0.1, 0.51, 0.025)
 # for it in iterate:
@@ -182,6 +183,7 @@ c.states = ['A','B','C','D']
 #                         [it, 0, 1-it, 0]])
 # c.source.transitions = np.array(transitions)
 
+## Models 2
 # transitions = []
 # iterate = np.arange(0.1, 0.51, 0.05) # 0.025
 # for it in iterate:
@@ -191,6 +193,7 @@ c.states = ['A','B','C','D']
 #                        [0.5, 0, 0.5, 0]])
 #c.source.transitions = np.array(transitions)
 
+## Models 3
 transitions = []
 iterate = np.arange(0.05, 0.46, 0.05) # 0.025
 for it in iterate:
@@ -202,10 +205,6 @@ c.source.transitions = np.array(transitions)
 
 #source = CountingSource(c.states,c.source.transitions,
 #                        c.N_u_e,c.N_u_i,c.source.avoid)
-
-[np.linalg.det(t) for t in transitions]
-[np.trace(t) for t in transitions]
-
 
 c.wait_min_plastic = 0
 c.wait_var_plastic = 0
