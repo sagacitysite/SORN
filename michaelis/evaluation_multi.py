@@ -29,7 +29,7 @@ rcParams['legend.framealpha'] = 0
 
 
 # Path and num runs value for evaluation
-current = "2017-12-12_11-55-44_models3"
+current = "2017-12-10_00-28-59_training-steps"
 num_runs = 20  # How many runs should we evaluate
 
 # Prepare path and get files

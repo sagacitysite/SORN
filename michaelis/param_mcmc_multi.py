@@ -174,14 +174,14 @@ c.states = ['A','B','C','D']
 #                                 [0.5, 0, 0.5, 0]]])
 
 ## Models 1
-transitions = []
-iterate = np.arange(0.1, 0.51, 0.05)  # 0.025
-for it in iterate:
-    transitions.append([[0, 0.5, 0, 0.5],
-                        [it, 0, 1-it, 0],
-                        [0, it, 1-(2*it), it],
-                        [it, 0, 1-it, 0]])
-c.source.transitions = np.array(transitions)
+#transitions = []
+#iterate = np.arange(0.1, 0.51, 0.05)  # 0.025
+#for it in iterate:
+#    transitions.append([[0, 0.5, 0, 0.5],
+#                        [it, 0, 1-it, 0],
+#                        [0, it, 1-(2*it), it],
+#                        [it, 0, 1-it, 0]])
+#c.source.transitions = np.array(transitions)
 
 
 ## Models 2
@@ -203,6 +203,16 @@ c.source.transitions = np.array(transitions)
 #                       [0, 0.5, 0.5-it, it],
 #                       [0.5, 0, it, 0.5-it]])
 #c.source.transitions = np.array(transitions)
+
+## Models 4
+transitions = []
+iterate = np.arange(0.05, 0.51, 0.05) # 0.025
+for it in iterate:
+   transitions.append([[0, it, 0, 1-it],
+                       [it, 0, 1-it, 0],
+                       [0, 1-it, 0, it],
+                       [1-it, 0, it, 0]])
+c.source.transitions = np.array(transitions)
 
 #source = CountingSource(c.states,c.source.transitions,
 #                        c.N_u_e,c.N_u_i,c.source.avoid)
