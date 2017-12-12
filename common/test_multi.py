@@ -103,22 +103,21 @@ def runAll(i):
             for connections_density in c.connections_density_array:
 
                 # H_IP thresholds
-                for l in range(np.shape(c.h_ip_array)[1]): # for h_ip
-
-                #l = 0 # for eta_ip
-                #for eta_ip in range(np.shape(c.eta_ip_array)[1]):
+                #for l in range(np.shape(c.h_ip_array)[1]): # for h_ip
+                l = 0 # for eta_ip
+                for eta_ip in c.eta_ip_array:
 
                     k = 0
                     # Training steps
                     for steps in c.steps_plastic_array:
 
                         # Set H_IP
-                        c.h_ip = c.h_ip_array[:,l]  # for h_ip
-                        #c.eta_ip = eta_ip  # for eta_ip
+                        #c.h_ip = c.h_ip_array[:,l]  # for h_ip
+                        c.eta_ip = eta_ip  # for eta_ip
 
                         # Print where we are
-                        ip_str = str(np.round(np.mean(c.h_ip), 3))  # for h_ip
-                        #ip_str = str(np.round(eta_ip, 4))  # for eta_ip
+                        #ip_str = str(np.round(np.mean(c.h_ip), 3))  # for h_ip
+                        ip_str = str(np.round(eta_ip, 4))  # for eta_ip
 
                         print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / h_ip "+ ip_str +" / #connections "+ str(connections_density*c.N_e) +" / "+ str(steps))
 
@@ -150,7 +149,7 @@ def runAll(i):
                         k += 1
 
                     # H_IP counter needs no increase (is range) (for h_ip)
-                    #l+=1 # for eta_ip
+                    l+=1 # for eta_ip
 
                 # Increase average # EE-connections counter
                 g += 1
@@ -180,15 +179,15 @@ c.logfilepath = utils.logfilename('') + '/'
 c.steps_plastic_array = c.steps_plastic
 c.source.transitions_array = c.source.transitions
 c.stats.hamming_threshold_array = c.stats.hamming_threshold
-c.h_ip_array = c.h_ip
-#c.eta_ip_array = c.eta_ip
+#c.h_ip_array = c.h_ip
+c.eta_ip_array = c.eta_ip
 c.connections_density_array = c.connections_density
 
 # Set values
 num_iterations = range(c.N_iterations)
 
 # Start multi processing
-pool = Pool(2)
+pool = Pool(3)
 pool.map(runAll, num_iterations)
 pool.close()
 pool.join()

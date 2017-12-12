@@ -22,7 +22,7 @@ def create_sequence(transition):
     sequence = [0] # start in state 0
     sequence_length = 40
     for l in range(sequence_length):
-        sequence.append(np.random.choice(size, 1, p=transition[sequence[-1]].flatten()))
+        sequence.append(np.random.choice(size, 1, p=transition[sequence[-1]].flatten())[0])
 
     return sequence
 
