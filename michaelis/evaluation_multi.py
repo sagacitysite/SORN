@@ -2,6 +2,7 @@ import numpy as np
 import os
 import glob
 import sys
+import types
 import scipy
 from scipy.stats import pearsonr
 
@@ -14,7 +15,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 #rcParams.keys()
 
-fig_color = '#ffffff'
+fig_color = '#000000'
 legend_size = 9
 
 rcParams['font.family'] = 'CMU Serif'
@@ -29,7 +30,7 @@ rcParams['legend.framealpha'] = 0
 
 
 # Path and num runs value for evaluation
-current = "2017-12-10_00-28-59_training-steps"
+current = "2017-12-06_15-51-58_weightdense"
 num_runs = 20  # How many runs should we evaluate
 
 # Prepare path and get files
@@ -46,7 +47,7 @@ sys.path.insert(0,os.getcwd()+"/utils")
 import param_mcmc_multi as para
 import stationary as stationaryDistribution
 
-sources = { 'transition_distances': None, 'activity': None, 'estimated_stationaries': None, 'ncomparison': None, 'hamming_distances': None }
+sources = { 'transition_distances': None, 'activity': None, 'estimated_stationaries': None, 'ncomparison': None, 'hamming_distances': None, 'weights_ee': None, 'weights_eu': None }
 
 # Prepare data from files to numpy array
 def prepare_data(sources):
@@ -175,6 +176,10 @@ def test_trace_plot(distances, suffix, ylabel, title=None, ymax=None):
     # Barplot
     x = np.arange(num_models) + 0.75
     plt.bar(x, np.mean(dists_mean[:,1:np.shape(dists_mean)[1]], axis=1), 0.5, linewidth=0)
+    if title:
+        plt.title(title)
+    if ymax:
+        plt.ylim(ymax=ymax)
     plt.xlabel('Model', color=fig_color)
     plt.ylabel(ylabel, color=fig_color)
     plt.savefig(plotpath + '/performance_' + suffix + '.svg', format='svg', transparent=True)
@@ -366,8 +371,8 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
     plt.close()
 
     # Variance h_ip
-    #hips = np.round(np.mean(para.c.h_ip, axis=0), 3)
-    hips = para.c.eta_ip
+    hips = np.round(np.mean(para.c.h_ip, axis=0), 3)
+    #hips = para.c.eta_ip
     if len(hips) > 1:
         for i in range(hip_steps):
             errors = np.mean(dists[:,:,train_steps-1,i], axis=0)
@@ -546,8 +551,8 @@ def prepare_hamming(hamming_distances):
 data = prepare_data(sources)  # runs, models, train steps, thresholds, h_ip, #ee-connections, test steps / test chunks
 
 # Indices
-#hpos_idx = np.where(para.c.h_ip_factor == 2.0)[0][0]  # index where h_ip = 2.0
-hpos_idx = np.where(np.isclose(para.c.eta_ip, 0.001))[0][0]  # index where eta_ip = 0.001
+hpos_idx = np.where(para.c.h_ip_factor == 2.0)[0][0]  # index where h_ip = 2.0
+#hpos_idx = np.where(np.isclose(para.c.eta_ip, 0.001))[0][0]  # index where eta_ip = 0.001
 mxthresh_idx = np.shape(data['transition_distances'])[3]-1  # index where hamming threshold is max
 dens_idx = np.where(para.c.connections_density == 0.1)[0][0]  # index where connections_density = 0.1
 
@@ -577,14 +582,29 @@ if np.shape(data['hamming_distances'])[2] > 1:
 
 #################### Test chunk plots ####################
 
-#if len(para.c.h_ip_factor) > 1:
-if len(para.c.eta_ip) > 1:
+if len(para.c.h_ip_factor) > 1:
+#if len(para.c.eta_ip) > 1:
     y_max = np.max(np.array([np.max(data['transition_distances'][:, :, :, mxthresh_idx, 0, dens_idx, :]),
                      np.max(data['transition_distances'][:, :, :, mxthresh_idx, len(para.c.eta_ip)-1, dens_idx, :])]))
     test_trace_plot(data['transition_distances'][:,:,:,mxthresh_idx,0,dens_idx,:],
                     suffix="distances_smallhip", ylabel="Transition error", title="small eta_ip", ymax=0.5*y_max)
     test_trace_plot(data['transition_distances'][:, :, :, mxthresh_idx, len(para.c.eta_ip)-1, dens_idx, :],
                     suffix="distances_hugehip", ylabel="Transition error", title="huge eta_ip", ymax=0.5*y_max)
+
+if len(para.c.connections_density) > 1:
+#if len(para.c.eta_ip) > 1:
+    y_max = np.max(np.array([np.max(data['transition_distances'][:, :, :, mxthresh_idx, hpos_idx, 0, :]),
+                     np.max(data['transition_distances'][:, :, :, mxthresh_idx, hpos_idx, len(para.c.connections_density)-1, :])]))
+
+    for i in range(len(para.c.connections_density)):
+        test_trace_plot(data['transition_distances'][:, :, :, mxthresh_idx, hpos_idx, i, :],
+                        suffix="distances_connectivity_"+str(i), ylabel="Transition error", title="connectivity: "+str(para.c.connections_density[i]), ymax=0.5*y_max)
+    # test_trace_plot(data['transition_distances'][:,:,:,mxthresh_idx,hpos_idx,0,:],
+    #                 suffix="distances_sparse_connectivity", ylabel="Transition error", title="sparse connectivity", ymax=0.5*y_max)
+    # test_trace_plot(data['transition_distances'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,:],
+    #                 suffix="distances_medium_connectivity", ylabel="Transition error", title="medium connectivity", ymax=0.5*y_max)
+    # test_trace_plot(data['transition_distances'][:, :, :, mxthresh_idx, hpos_idx, len(para.c.connections_density)-1, :],
+    #                 suffix="distances_dense_connectivity", ylabel="Transition error", title="dense connectivity", ymax=0.5*y_max)
 
 test_trace_plot(data['transition_distances'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,:],
                 suffix="distances", ylabel="Transition error")
@@ -613,23 +633,48 @@ lorenz_plot(normed_stationaries)
 
 #################### weight strength ####################
 
+def flatten(T):
+    if type(T) != types.TupleType: return (T,)
+    elif len(T) == 0: return ()
+    else: return flatten(T[0]) + flatten(T[1:])
+
 # stationary [ 0.25 ,  0.375,  0.25 ,  0.125]
 
-# cluster_coefficient = np.zeros((len(para.c.states),len(para.c.states)))
-# for i in range(len(c.states)): #range(len(c.states)):
-#     for j in range(len(c.states)):
-#         # Get weights of neurons for input state i and j
-#         # and make boolean out of it ('true' if neuron has input, 'false' if not)
-#         idx_i = weights_eu[:, i].astype(bool)
-#         idx_j = weights_eu[:, j].astype(bool)
-#         # Weights between neurons of state i and state j
-#         weights_ij = weights_ee[idx_i, :][:, idx_j]
-#         # Sum all weights to obtain coefficient
-#         cluster_coefficient[i,j] = np.sum(weights_ij)
-#
-#     plt.imshow(cluster_coefficient, origin='upper', cmap='copper', interpolation='none')
-#     plt.xticks(np.arange(len(para.c.states)), para.c.states)
-#     plt.yticks(np.arange(len(para.c.states)), para.c.states)
-#     plt.colorbar()
-#
-#     scipy.stats.pearsonr(cluster_coefficient.flatten(), transitions.flatten())[0]
+max_train = np.shape(data['weights_ee'])[2]-1
+weights_ee = data['weights_ee'][:,:,max_train,mxthresh_idx,hpos_idx,:]
+weights_eu = data['weights_eu'][:,:,max_train,mxthresh_idx,hpos_idx,:]
+# now: runs / models / weight dense
+
+shape = np.shape(weights_ee)
+
+num_states = len(para.c.states)
+cluster_coefficient = np.zeros(flatten((np.shape(weights_ee)[0:3], (num_states,num_states))))
+num_connections = np.copy(cluster_coefficient)
+for g in range(shape[0]):
+    for h in range(shape[1]):
+        for k in range(shape[2]):
+            tmp_weights_eu = weights_eu[g, h, k, :, :]
+            tmp_weights_ee = weights_ee[g, h, k, :, :]
+
+            for i in range(num_states):
+                for j in range(num_states):
+                    # Get weights of neurons for input state i and j
+                    # and make boolean out of it ('true' if neuron has input, 'false' if not)
+                    idx_i = tmp_weights_eu[:, i].astype(bool)
+                    idx_j = tmp_weights_eu[:, j].astype(bool)
+                    # Weights between neurons of state i and state j
+                    weights_ij = tmp_weights_ee[idx_i, :][:, idx_j]
+                    # Sum all weights to obtain coefficient
+                    cluster_coefficient[g, h, k, i, j] = np.sum(weights_ij)
+
+                    weights_ij[weights_ij < 0.0001] = 0
+                    num_connections[g, h, k, i, j] = np.sum(weights_ij.astype(bool))
+
+cluster_coefficient_mean = np.mean(cluster_coefficient, axis=0)
+num_connections_mean = np.mean(num_connections, axis=0)
+
+plt.imshow(num_connections_mean[0,0], origin='upper', cmap='copper', interpolation='none')
+plt.xticks(np.arange(num_states), para.c.states)
+plt.yticks(np.arange(num_states), para.c.states)
+plt.colorbar()
+

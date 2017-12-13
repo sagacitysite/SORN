@@ -40,7 +40,7 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.array([50000]) #np.array([0, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]) # default: np.array([50000])
+c.steps_plastic = np.array([0, 50000]) #np.array([0, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]) # default: np.array([50000])
 c.steps_noplastic_train = 50000 #20000
 c.steps_noplastic_test = 40000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
@@ -195,24 +195,24 @@ c.states = ['A','B','C','D']
 #c.source.transitions = np.array(transitions)
 
 ## Models 3
-#transitions = []
-#iterate = np.arange(0.05, 0.51, 0.05) # 0.025
-#for it in iterate:
-#   transitions.append([[0.5-it, it, 0, 0.5],
-#                       [it, 0.5-it, 0.5, 0],
-#                       [0, 0.5, 0.5-it, it],
-#                       [0.5, 0, it, 0.5-it]])
-#c.source.transitions = np.array(transitions)
-
-## Models 4
 transitions = []
 iterate = np.arange(0.05, 0.51, 0.05) # 0.025
 for it in iterate:
-   transitions.append([[0, it, 0, 1-it],
-                       [it, 0, 1-it, 0],
-                       [0, 1-it, 0, it],
-                       [1-it, 0, it, 0]])
+   transitions.append([[0.5-it, it, 0, 0.5],
+                       [it, 0.5-it, 0.5, 0],
+                       [0, 0.5, 0.5-it, it],
+                       [0.5, 0, it, 0.5-it]])
 c.source.transitions = np.array(transitions)
+
+## Models 4
+#transitions = []
+#iterate = np.arange(0.05, 0.51, 0.05) # 0.025
+#for it in iterate:
+#   transitions.append([[0, it, 0, 1-it],
+#                       [it, 0, 1-it, 0],
+#                       [0, 1-it, 0, it],
+#                       [1-it, 0, it, 0]])
+#c.source.transitions = np.array(transitions)
 
 #source = CountingSource(c.states,c.source.transitions,
 #                        c.N_u_e,c.N_u_i,c.source.avoid)
