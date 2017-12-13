@@ -17,7 +17,7 @@ c.N_u_i = 0
 c.double_synapses = False
 
 # used Bunch (https://pypi.python.org/pypi/bunch)
-c.connections_density = np.array([0.1]) #np.array([0.05,0.075,0.1,0.125,0.15,0.2,0.3,0.4,0.5])  # default: np.array([0.1])
+c.connections_density = np.array([0.025,0.05,0.075,0.1,0.125,0.15,0.2,0.3,0.4])  # default: np.array([0.1])
 c.W_ee = utils.Bunch(use_sparse=True,
                      lamb=c.connections_density*c.N_e,
                      avoid_self_connections=True,
@@ -40,7 +40,7 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.array([0, 50000]) #np.array([0, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]) # default: np.array([50000])
+c.steps_plastic = np.array([0, 10000, 20000, 50000]) #np.array([0, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]) # default: np.array([50000])
 c.steps_noplastic_train = 50000 #20000
 c.steps_noplastic_test = 40000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
