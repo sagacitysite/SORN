@@ -136,13 +136,20 @@ def training_steps_plot_thresholds(distances):
 def test_trace_plot(distances, suffix, ylabel, title=None, ymax=None):
     global plotpath, para
 
+    train_max = distances[:, :, np.shape(distances)[2]-1]
+
+    # If there is more than one training step, also evaluate train_min as baseline
+    train_min = None
+    if np.shape(distances[2] > 1:
+        train_min = distances[:, :, 0]
+
     # Calculate mean and standard deviation
-    dists_mean = np.mean(distances, axis=0)
-    dists_std = np.std(distances, axis=0)
+    dists_mean = np.mean(train_max, axis=0)
+    dists_std = np.std(train_max, axis=0)
 
     # Get number of original test steps (for x axis)
-    test_steps = np.arange(np.shape(distances)[2]) * para.c.stats.transition_step_size + para.c.stats.transition_step_size
-    num_models = np.shape(distances)[1]
+    test_steps = np.arange(np.shape(train_max)[2]) * para.c.stats.transition_step_size + para.c.stats.transition_step_size
+    num_models = np.shape(train_max)[1]
 
     # Define color palette
     color_palette = cm.rainbow(np.linspace(0, 1, np.shape(dists_mean)[0]))
@@ -154,8 +161,8 @@ def test_trace_plot(distances, suffix, ylabel, title=None, ymax=None):
                      elinewidth=1, ecolor=np.append(color_palette[i][0:3], 0.5))
 
         # Plot all runs of every model (transparent in background)
-        for j in range(np.shape(distances)[0]):
-            plt.plot(test_steps, distances[j,i], color=color_palette[i], alpha=0.1)
+        for j in range(np.shape(train_max)[0]):
+            plt.plot(test_steps, train_max[j,i], color=color_palette[i], alpha=0.1)
 
     # Beautify plot and save png file
     plt.legend(prop={'size': legend_size})
@@ -171,7 +178,9 @@ def test_trace_plot(distances, suffix, ylabel, title=None, ymax=None):
 
     # Barplot
     x = np.arange(num_models) + 0.75
-    plt.bar(x, np.mean(dists_mean[:,1:np.shape(dists_mean)[1]], axis=1), 0.5, linewidth=0)
+    plt.bar(x+0.25, np.mean(dists_mean[:, 1:np.shape(dists_mean)[1]], axis=1), 0.25, color='red', linewidth=0)
+    if train_min:
+        plt.bar(x, np.mean(train_min[:,:,1:np.shape(train_min)[2]], axis=(0,2)), 0.25, linewidth=0)
     if title:
         plt.title(title)
     if ymax:
@@ -570,9 +579,9 @@ if np.shape(data['hamming_distances'])[2] > 1:
 if len(para.c.eta_ip) > 1:
     y_max = np.max(np.array([np.max(data['transition_distances'][:, :, train_idx, mxthresh_idx, 0, dens_idx, :]),
                      np.max(data['transition_distances'][:, :, train_idx, mxthresh_idx, len(para.c.eta_ip)-1, dens_idx, :])]))
-    test_trace_plot(data['transition_distances'][:,:,train_idx,mxthresh_idx,0,dens_idx,:],
+    test_trace_plot(data['transition_distances'][:,:,:,mxthresh_idx,0,dens_idx,:],
                     suffix="distances_smallhip", ylabel="Transition error", title="small eta_ip", ymax=0.5*y_max)
-    test_trace_plot(data['transition_distances'][:, :, train_idx, mxthresh_idx, len(para.c.eta_ip)-1, dens_idx, :],
+    test_trace_plot(data['transition_distances'][:, :, :, mxthresh_idx, len(para.c.eta_ip)-1, dens_idx, :],
                     suffix="distances_hugehip", ylabel="Transition error", title="huge eta_ip", ymax=0.5*y_max)
 
 if len(para.c.connections_density) > 1:
@@ -580,12 +589,12 @@ if len(para.c.connections_density) > 1:
                      np.max(data['transition_distances'][:, :, :, mxthresh_idx, hpos_idx, len(para.c.connections_density)-1, :])]))
 
     for i in range(len(para.c.connections_density)):
-        test_trace_plot(data['transition_distances'][:, :, train_idx, mxthresh_idx, hpos_idx, i, :],
+        test_trace_plot(data['transition_distances'][:, :, :, mxthresh_idx, hpos_idx, i, :],
                         suffix="distances_connectivity_train-max_"+str(i), ylabel="Transition error", title="connectivity: "+str(para.c.connections_density[i]), ymax=0.5*y_max)
-    for i in range(len(para.c.connections_density)):
-        test_trace_plot(data['transition_distances'][:, :, 0, mxthresh_idx, hpos_idx, i, :],
-                        suffix="distances_connectivity_train-min_" + str(i), ylabel="Transition error",
-                        title="connectivity: " + str(para.c.connections_density[i]), ymax=0.5 * y_max)
+    #for i in range(len(para.c.connections_density)):
+    #    test_trace_plot(data['transition_distances'][:, :, 0, mxthresh_idx, hpos_idx, i, :],
+    #                    suffix="distances_connectivity_train-min_" + str(i), ylabel="Transition error",
+    #                    title="connectivity: " + str(para.c.connections_density[i]), ymax=0.5 * y_max)
     # test_trace_plot(data['transition_distances'][:,:,:,mxthresh_idx,hpos_idx,0,:],
     #                 suffix="distances_sparse_connectivity", ylabel="Transition error", title="sparse connectivity", ymax=0.5*y_max)
     # test_trace_plot(data['transition_distances'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,:],
@@ -593,9 +602,9 @@ if len(para.c.connections_density) > 1:
     # test_trace_plot(data['transition_distances'][:, :, :, mxthresh_idx, hpos_idx, len(para.c.connections_density)-1, :],
     #                 suffix="distances_dense_connectivity", ylabel="Transition error", title="dense connectivity", ymax=0.5*y_max)
 
-test_trace_plot(data['transition_distances'][:,:,train_idx,mxthresh_idx,hpos_idx,dens_idx,:],
+test_trace_plot(data['transition_distances'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,:],
                 suffix="distances", ylabel="Transition error")
-test_trace_plot(stationairy_distances[:,:,train_idx,:],
+test_trace_plot(stationairy_distances[:,:,:,:],
                 suffix="stationary", ylabel="Stationary error")
 #test_trace_plot(activity[:,:,:,mxthresh_idx,hpos_idx,:],
 #                suffix="activity", label="Activity (percentage)")
