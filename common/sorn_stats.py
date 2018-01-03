@@ -499,12 +499,12 @@ class EEWeightStats(AbstractStat):
         #utils.logdata("../data/weights/" + sorn.c.file_name + ".npy", sorn.c)
 
         # Return excitatory-excitatory weights
-        sorn.c.state.data = sorn.W_ee.get_synapses()
-        utils.logdata("../data/weights_ee/" + sorn.c.file_name + ".npy", sorn.c)
+        #sorn.c.state.data = sorn.W_ee.get_synapses()
+        #utils.logdata("../data/weights_ee/" + sorn.c.file_name + ".npy", sorn.c)
 
         # Return excitatory-input weights
-        sorn.c.state.data = sorn.W_eu.get_synapses()
-        utils.logdata("../data/weights_eu/" + sorn.c.file_name + ".npy", sorn.c)
+        #sorn.c.state.data = sorn.W_eu.get_synapses()
+        #utils.logdata("../data/weights_eu/" + sorn.c.file_name + ".npy", sorn.c)
 
         return(sorn.W_ee.get_synapses())
 

@@ -40,24 +40,25 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.array([0, 50000]) #np.array([0, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]) # default: np.array([50000])
+c.steps_plastic = np.array([50000]) #np.array([0, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]) # default: np.array([50000])
 c.steps_noplastic_train = 50000 #20000
 c.steps_noplastic_test = 40000 #100000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train \
                             + c.steps_noplastic_test
 c.display = False # Stop displaying stuff
 
-# 0.1 -> ~30% noisespikes, 0.05 -> ~15%, 0.01 -> ~2.5%, 0.005 -> ~1% 
+# 0.1 -> ~30% noisespikes, 0.05 -> ~15%, 0.01 -> ~2.5%, 0.005 -> ~1%
 c.noise_sig = 0 #0.045
 
 c.with_plasticity = True
 
 c.input_gain = 0.5
 
-c.eta_ip = np.array([0.001]) # np.arange(0.0002,0.0021,0.0004) #np.arange(0.0002,0.0021,0.0002) # Default: np.array([0.001])
-h_ip_mean = float(2*c.N_u_e)/float(c.N_e)
-h_ip_range = 0.01
-c.h_ip = np.random.rand(c.N_e)*h_ip_range*2 + h_ip_mean - h_ip_range
+#c.eta_ip = np.array([0.001]) # np.arange(0.0002,0.0021,0.0004) #np.arange(0.0002,0.0021,0.0002) # Default: np.array([0.001])
+c.eta_ip = 0.001
+c.h_ip_mean = float(2*c.N_u_e)/float(c.N_e)
+c.h_ip_range = np.array([0, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03]) # np.array([0.01])
+#c.h_ip = np.random.rand(c.N_e)*h_ip_range*2 + h_ip_mean - h_ip_range
 #c.h_ip_factor = np.array([2]) #np.arange(0.5,3.51,0.5) # Default: np.array([2])
 #h_ip_mean = c.h_ip_factor*float(c.N_u_e)/float(c.N_e)
 #h_ip_range = 0.01
@@ -186,7 +187,7 @@ c.states = ['A','B','C','D']
 
 ## Models 2
 #transitions = []
-#iterate = np.arange(0.1, 0.51, 0.05) # 0.025
+#iterate = np.arange(0.1, 0.51, 0.05)  # 0.025
 #for it in iterate:
 #   transitions.append([[1-(2*it), it, 0, it],
 #                       [0.5, 0, 0.5, 0],
@@ -196,14 +197,14 @@ c.states = ['A','B','C','D']
 
 
 ## Models 2b
-transitions = []
-iterate = np.arange(0.46, 0.501, 0.002)  # 0.025
-for it in iterate:
-   transitions.append([[1-(2*it), it, 0, it],
-                       [0.5, 0, 0.5, 0],
-                       [0, 0.5, 0, 0.5],
-                       [0.5, 0, 0.5, 0]])
-c.source.transitions = np.array(transitions)
+#transitions = []
+#iterate = np.arange(0.46, 0.501, 0.002)  # 0.025
+#for it in iterate:
+#   transitions.append([[1-(2*it), it, 0, it],
+#                       [0.5, 0, 0.5, 0],
+#                       [0, 0.5, 0, 0.5],
+#                       [0.5, 0, 0.5, 0]])
+#c.source.transitions = np.array(transitions)
 
 ## Models 3
 #transitions = []
@@ -225,15 +226,15 @@ c.source.transitions = np.array(transitions)
 #                       [1-it, 0, it, 0]])
 #c.source.transitions = np.array(transitions)
 
-## Models 5
-#transitions = []
-#iterate = np.arange(0.1, 0.91, 0.05) # 0.025
-#for it in iterate:
-#   transitions.append([[0.9-it, 0.1, 0, it],
-#                       [0.1, 0.9-it, it, 0],
-#                       [0, it, 0.9-it, 0.1],
-#                       [it, 0, 0.1, 0.9-it]])
-#c.source.transitions = np.array(transitions)
+# Models 5
+transitions = []
+iterate = np.arange(0.1, 0.91, 0.05) # 0.025
+for it in iterate:
+   transitions.append([[0.9-it, 0.1, 0, it],
+                       [0.1, 0.9-it, it, 0],
+                       [0, it, 0.9-it, 0.1],
+                       [it, 0, 0.1, 0.9-it]])
+c.source.transitions = np.array(transitions)
 
 #source = CountingSource(c.states,c.source.transitions,
 #                        c.N_u_e,c.N_u_i,c.source.avoid)

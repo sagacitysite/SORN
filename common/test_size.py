@@ -82,15 +82,15 @@ def runSORN(c, src):
 def runAll(i):
     j = 0
     # Transitions
-    for transitions in transitions_array:
+    for transitions in c.source.transitions_array:
 
         k = 0
         # Number of excitatory neurons
-        for num_neurons in num_neurons_array:
+        for num_neurons in c.N_e_array:
 
             l = 0
             # Number of input neurons
-            for num_input in num_input_array:
+            for num_input in c.N_u_e_coverage_array:
                 # Set number of excitatory neurons and calculate inhibitory and overall number of neurons
                 c.N_e = num_neurons
                 c.N_i = int(np.floor(0.2*c.N_e))
@@ -116,7 +116,9 @@ def runAll(i):
                       str(j + 1) +" / neurons " + str(num_neurons) + " / input " + str(int(np.floor(num_input * c.N_e))))
 
                 # Name of folder for results in this step
-                c.multi_name = "run" + str(i) + "_model" + str(j) + "_neurons" + str(k) + "_input" + str(l)
+                #c.multi_name = "run" + str(i) + "_model" + str(j) + "_neurons" + str(k) + "_input" + str(l)
+                c.file_name = "run" + str(i)
+                c.state.index = (j, k, l)
                 runSORN(c, source)
 
                 # Free memory
@@ -140,6 +142,7 @@ experiment = getattr(experiment_module, experiment_name)(param)
 
 # Initialize parameters
 c = param.c
+c.state = utils.Bunch()
 
 # Store states and remove c.states, otherwise bunch will have a problem
 states = c.states
@@ -150,20 +153,20 @@ c.logfilepath = utils.logfilename('') + '/'
 
 # Set values
 num_iterations = range(10)
-num_neurons_array = c.N_e
-num_input_array = c.N_u_e_coverage
-transitions_array = c.source.transitions
+c.source.transitions_array = c.source.transitions
+c.N_e_array = c.N_e
+c.N_u_e_coverage_array = c.N_u_e_coverage
 
-total = len(num_iterations) * len(transitions_array) * len(num_neurons_array) * len(num_input_array)
+total = len(num_iterations) * len(c.source.transitions_array) * len(c.N_e_array) * len(c.N_u_e_coverage_array)
 
 # Stop printing
 c.display = False
 
-#for i in num_iterations:
-#    runAll(i)
+for i in num_iterations:
+    runAll(i)
 
 # Start multi processing
-pool = Pool(2)
-pool.map(runAll, num_iterations)
-pool.close()
-pool.join()
+#pool = Pool(3)
+#pool.map(runAll, num_iterations)
+#pool.close()
+#pool.join()
