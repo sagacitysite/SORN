@@ -7,6 +7,8 @@ import scipy
 from scipy.stats import pearsonr
 
 # Import and initalize matplotlib
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -16,10 +18,10 @@ from mpl_toolkits.mplot3d import Axes3D
 #rcParams.keys()
 
 fig_color = '#000000'
-legend_size = 9
+legend_size = 10
 
 rcParams['font.family'] = 'CMU Serif'
-rcParams['font.size'] = '12'
+rcParams['font.size'] = '14'  # 20
 rcParams['text.color'] = fig_color
 rcParams['axes.edgecolor'] = fig_color
 rcParams['xtick.color'] = fig_color
@@ -101,7 +103,7 @@ def training_steps_plot(distances, suffix, ytext):
     # Beautify plot and save png file
     plt.legend(prop={'size': legend_size})
     plt.ylim(ymin=0)
-    plt.xlabel('Training stpdf', color=fig_color)
+    plt.xlabel('Training steps', color=fig_color)
     plt.ylabel(ytext, color=fig_color)
     plt.savefig(plotpath + '/distances_training_steps_'+suffix+'.pdf', format='pdf', transparent=True)
     plt.close()
@@ -138,7 +140,7 @@ def training_steps_plot_thresholds(distances):
     # Beautify plot and save png file
     plt.legend(prop={'size': legend_size})
     plt.ylim(ymin=0)
-    plt.xlabel('Training stpdf', color=fig_color)
+    plt.xlabel('Training steps', color=fig_color)
     plt.ylabel('Error', color=fig_color)
     plt.savefig(plotpath + '/distances_training_steps_with_thresholds.pdf', format='pdf', transparent=True)
     plt.close()
@@ -163,9 +165,21 @@ def test_trace_plot(distances, suffix, ylabel, title=None, ymax=None):
     # Get number of original test steps (for x axis)
     test_steps = np.arange(np.shape(train_max)[2]) * para.c.stats.transition_step_size + para.c.stats.transition_step_size
     num_models = np.shape(train_max)[1]
+    test_chunks = np.shape(train_max)[2]
 
     # Define color palette
     color_palette = cm.rainbow(np.linspace(0, 1, np.shape(dists_mean)[0]))
+
+    # t-Tests
+    file = ""
+    for i in range(num_models):
+        for j in range(num_models):
+            if j > i:
+                res =scipy.stats.ttest_ind(train_max[:,i,test_chunks-1], train_max[:,j,test_chunks-1])
+                file += "Model "+str(i+1)+" vs. "+str(j+1)+": t="+str(res[0])+", p="+str(res[1])+"\n"
+    text_file = open(plotpath + "/t-tests_"+suffix+".txt", "w")
+    text_file.write(file)
+    text_file.close()
 
     # Plot mean of every model
     for i in range(num_models):
@@ -184,7 +198,7 @@ def test_trace_plot(distances, suffix, ylabel, title=None, ymax=None):
     if ymax:
         plt.ylim(ymax=ymax)
     plt.ylim(ymin=0)
-    plt.xlabel('Test stpdf', color=fig_color)
+    plt.xlabel('Test steps', color=fig_color)
     plt.ylabel(ylabel, color=fig_color)
     plt.savefig(plotpath + '/test_traces_'+suffix+'.pdf', format='pdf', transparent=True)
     plt.close()
@@ -194,13 +208,10 @@ def test_trace_plot(distances, suffix, ylabel, title=None, ymax=None):
     bar_width = 0.25 if train_min is not None else 0.5
     x = np.arange(num_models) + shift
     da = train_max[:, :, np.shape(train_max)[2]-1]
-    plt.bar(x+0.25, np.mean(da, axis=0),
-            bar_width, linewidth=0, yerr=np.std(da, axis=0))
+    plt.bar(x+0.25, np.mean(da, axis=0), bar_width, linewidth=0, yerr=np.std(da, axis=0))
     if train_min is not None:
         da = train_min[:, :, np.shape(train_min)[2]-1]
-        plt.bar(x, np.mean(da, axis=0),
-                bar_width, color='red', linewidth=0,
-                yerr=np.std(da, axis=0))
+        plt.bar(x, np.mean(da, axis=0), bar_width, color='red', linewidth=0, yerr=np.std(da, axis=0))
     if title:
         plt.title(title)
     if ymax:
@@ -302,7 +313,7 @@ def hamming_histogram(hamming_distances):
             # Calculate x positions
             x = np.arange(len(hamming_freqs)) + (coeff[j] * (bar_width + intra_bar_space))
             # Plot barplot with legend
-            legend = str(para.c.steps_plastic[maxmin_idx[j]]) + ' training stpdf'
+            legend = str(para.c.steps_plastic[maxmin_idx[j]]) + ' training steps'
             plt.bar(x, hamming_freqs, bar_width, label=legend, linewidth=0, color=color_palette[j])
         # Adjust plot
         plt.ylim(ymax=max_freq)

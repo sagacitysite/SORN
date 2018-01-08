@@ -162,11 +162,12 @@ total = len(num_iterations) * len(c.source.transitions_array) * len(c.N_e_array)
 # Stop printing
 c.display = False
 
-for i in num_iterations:
-    runAll(i)
+#for i in num_iterations:
+#    runAll(i)
 
 # Start multi processing
-#pool = Pool(3)
-#pool.map(runAll, num_iterations)
-#pool.close()
-#pool.join()
+pool = Pool(3)
+pool.map(runAll, num_iterations)
+pool.close()
+pool.join()
+
