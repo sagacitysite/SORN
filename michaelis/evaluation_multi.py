@@ -18,10 +18,10 @@ from mpl_toolkits.mplot3d import Axes3D
 #rcParams.keys()
 
 fig_color = '#000000'
-legend_size = 10
+legend_size = 12  # 10
 
 rcParams['font.family'] = 'CMU Serif'
-rcParams['font.size'] = '14'  # 20
+rcParams['font.size'] = '20'  # 14/20
 rcParams['text.color'] = fig_color
 rcParams['axes.edgecolor'] = fig_color
 rcParams['xtick.color'] = fig_color
@@ -239,8 +239,8 @@ def activity_distance_correlation_plot(distances, activity):
         x = dists[:,i,:].flatten()
         y = actis[:,i,:].flatten()
         plt.scatter(x, y)
-        plt.title('Correlation Activity/Distances (%.2f)' % pearsonr(x, y)[0])
-        plt.xlabel('Mean squared distance to initial transition', color=fig_color)
+        #plt.title('Correlation Activity/Distances (%.2f)' % pearsonr(x, y)[0])
+        plt.xlabel('Transition error', color=fig_color)
         plt.ylabel('Activity (percentage)', color=fig_color)
         plt.savefig(plotpath + '/correlation_activity_model' + str(i+1) + '.pdf', format='pdf', transparent=True)
         plt.close()
@@ -267,7 +267,8 @@ def ncomparison_distance_correlation_plot(distances, ncomparison):
         plt.errorbar(np.mean(x), np.mean(y), yerr=np.std(y), fmt='o', color=color_palette[i])
 
     # Add decoration
-    plt.title('Correlation NComparison/Distances (%.2f)' % pearsonr(np.mean(ncomp, axis=0), np.mean(dists, axis=(0,2)))[0])
+    #plt.title('Correlation NComparison/Distances (%.2f)' % pearsonr(np.mean(ncomp, axis=0), np.mean(dists, axis=(0,2)))[0])
+    print('Ncomparison correlation'+str(pearsonr(np.mean(ncomp, axis=0), np.mean(dists, axis=(0,2)))[0]))
     plt.xlabel('Mean squared distance to initial transition', color=fig_color)
     plt.ylabel('Number of comparison states', color=fig_color)
 
@@ -361,7 +362,7 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
 
     plt.ylim(ymin=0)
     #plt.grid()
-    plt.title('Traces/Distances')
+    #plt.title('Traces/Distances')
     plt.xlabel('Trace', color=fig_color)
     plt.ylabel('Transition error', color=fig_color)
     plt.savefig(plotpath + '/correlation_inequality_trace.pdf', format='pdf', transparent=True)
@@ -373,7 +374,7 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
 
     plt.ylim(ymin=0)
     #plt.grid()
-    plt.title('Variance/Distances')
+    #plt.title('Variance/Distances')
     plt.xlabel('Variance', color=fig_color)
     plt.ylabel('Transition error', color=fig_color)
     plt.savefig(plotpath + '/correlation_inequality_variance.pdf', format='pdf', transparent=True)
@@ -388,7 +389,7 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
     plt.legend(loc=2,prop={'size': legend_size})
     plt.ylim(ymin=0)
     #plt.grid()
-    plt.title('Variance/Distances')
+    #plt.title('Variance/Distances')
     plt.xlabel('Variance', color=fig_color)
     plt.ylabel('Transition error', color=fig_color)
     plt.savefig(plotpath + '/correlation_inequality_variance_train.pdf', format='pdf', transparent=True)
@@ -411,7 +412,7 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
         plt.legend(loc=2, prop={'size': legend_size})
         plt.ylim(ymin=0)
         #plt.grid()
-        plt.title('Variance/Distances')
+        #plt.title('Variance/Distances')
         plt.xlabel('Variance', color=fig_color)
         plt.ylabel('Transition error', color=fig_color)
         plt.savefig(plotpath + '/correlation_inequality_variance_hip.pdf', format='pdf', transparent=True)
@@ -430,7 +431,7 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
         plt.legend(prop={'size': legend_size})
         #plt.ylim(ymin=0)
         #plt.grid()
-        plt.title('Baseline: Variance/Distances')
+        #plt.title('Baseline: Variance/Distances')
         plt.xlabel('Variance', color=fig_color)
         plt.ylabel('Performance increase in relation to baseline', color=fig_color)
         plt.savefig(plotpath + '/correlation_inequality_variance_train_baseline.pdf', format='pdf', transparent=True)
@@ -442,7 +443,7 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
 
     plt.ylim(ymin=0)
     #plt.grid()
-    plt.title('KL/Distances')
+    #plt.title('KL/Distances')
     plt.xlabel('KL', color=fig_color)
     plt.ylabel('Transition error', color=fig_color)
     plt.savefig(plotpath + '/correlation_inequality_kl.pdf', format='pdf', transparent=True)
@@ -457,7 +458,7 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
     plt.legend(loc=2,prop={'size': legend_size})
     plt.ylim(ymin=0)
     #plt.grid()
-    plt.title('KL/Distances')
+    #plt.title('KL/Distances')
     plt.xlabel('KL', color=fig_color)
     plt.ylabel('Transition error', color=fig_color)
     plt.savefig(plotpath + '/correlation_inequality_kl_train.pdf', format='pdf', transparent=True)
@@ -476,7 +477,7 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
         plt.legend(prop={'size': legend_size})
         # plt.ylim(ymin=0)
         #plt.grid()
-        plt.title('Baseline: KL/Distances')
+        #plt.title('Baseline: KL/Distances')
         plt.xlabel('KL', color=fig_color)
         plt.ylabel('Performance increase in relation to baseline', color=fig_color)
         plt.savefig(plotpath + '/correlation_inequality_kl_train_baseline.pdf', format='pdf', transparent=True)
@@ -491,7 +492,7 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
     plt.legend(loc=2,prop={'size': legend_size})
     plt.ylim(ymin=0)
     #plt.grid()
-    plt.title('Gini/Distances')
+    #plt.title('Gini/Distances')
     plt.xlabel('Gini', color=fig_color)
     plt.ylabel('Transition error', color=fig_color)
     plt.savefig(plotpath + '/correlation_inequality_gini_train.pdf', format='pdf', transparent=True)
@@ -532,7 +533,7 @@ def lorenz_plot(normed_stationaries):
     plt.legend(loc=2, prop={'size': legend_size})
     plt.ylim(ymax=1)
     #plt.grid()
-    plt.title('Lorenz curve: Stationary distributions')
+    #plt.title('Lorenz curve: Stationary distributions')
     plt.xlabel('States', color=fig_color)
     plt.ylabel('Cumulative probability', color=fig_color)
     plt.savefig(plotpath + '/lorenz-curve.pdf', format='pdf', transparent=True)
