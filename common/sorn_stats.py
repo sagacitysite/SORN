@@ -283,7 +283,7 @@ class SpontPatternStat(AbstractStat):
 
         #last_spont_spikes = spont_spikes[:,-N_comparison:]
         last_spont_spikes = spont_spikes
-                
+
         # Remove silent periods from spontspikes
         #last_spont_spikes = last_spont_spikes[:,sum(last_spont_spikes,0)>0]
 
@@ -316,6 +316,7 @@ class SpontPatternStat(AbstractStat):
             # If current state IS silent
             else:
                 similar_input[i] = -1
+                print(sum(last_spont_spikes[:,i]))
 
         # Store hamming distances for all test states in numpy file
         sorn.c.state.data = hamming_distances

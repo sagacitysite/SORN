@@ -103,8 +103,8 @@ def runAll(i):
             for connections_density in c.connections_density_array:
 
                 # IP
-                #for l in range(np.shape(c.h_ip_array)[1]): # for h_ip
-                l = 0 # for eta_ip / range
+                #for l in range(np.shape(c.h_ip_array)[1]):  # for h_ip
+                l = 0  # for eta_ip / range
                 #for eta_ip in c.eta_ip_array:
                 for h_ip_range in c.h_ip_range_array:
 
@@ -115,14 +115,14 @@ def runAll(i):
                         # Set H_IP
                         #c.h_ip = c.h_ip_array[:,l]  # for h_ip
                         #c.eta_ip = eta_ip  # for eta_ip
-                        c.h_ip = np.random.rand(c.N_e)*h_ip_range*2 + c.h_ip_mean - h_ip_range
+                        c.h_ip = np.random.rand(c.N_e)*h_ip_range*2 + c.h_ip_mean - h_ip_range  # for h_ip_range
 
                         # Print where we are
                         #ip_str = str(np.round(np.mean(c.h_ip), 3))  # for h_ip
                         #ip_str = str(np.round(eta_ip, 4))  # for eta_ip
-                        ip_str = str(h_ip_range)
+                        ip_str = str(h_ip_range)  # for h_ip_range
 
-                        print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / h_ip "+ ip_str +" / #connections "+ str(connections_density*c.N_e) +" / "+ str(steps))
+                        print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / ip "+ ip_str +" / #connections "+ str(connections_density*c.N_e) +" / "+ str(steps))
 
                         # Set transitions and source
                         c.source.transitions = transitions
@@ -140,7 +140,6 @@ def runAll(i):
                         c.W_ee.lamb = connections_density*c.N_e
 
                         # Name of folder for results in this step
-                        #c.multi_name = "run"+str(i)+"_model"+str(j)+"_threshold"+str(h)+"_steps"+str(k)
                         c.file_name = "run"+str(i)
                         c.state.index = (j, k, h, l, g)  # models, training steps, threshold, h_ip, #EE-connections
                         runSORN(c, source)

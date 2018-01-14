@@ -18,7 +18,7 @@ from mpl_toolkits.mplot3d import Axes3D
 #rcParams.keys()
 
 fig_color = '#000000'
-legend_size = 12  # 10
+legend_size = 12  # 10/12
 
 rcParams['font.family'] = 'CMU Serif'
 rcParams['font.size'] = '20'  # 14/20
@@ -51,7 +51,7 @@ if not os.path.exists(plotpath):
 import utils
 def backup_overwrite(a, b=None):
     pass
-utils.backup = backup_overwrite  # Overwrite utils backup function to avoid new backup
+utils.backup = backup_overwrite  # Overwrite utils backup function to avoid new backup copies
 
 # Import parameters
 #import param_mcmc_multi as para
@@ -59,7 +59,8 @@ import imp
 para = imp.load_source('param_mcmc_multi', path+'/michaelis/param_mcmc_multi.py')
 import utils.stationary as stationaryDistribution
 
-sources = { 'transition_distances': None, 'activity': None, 'estimated_stationaries': None, 'ncomparison': None, 'hamming_distances': None, 'weights_ee': None, 'weights_eu': None }
+#sources = { 'transition_distances': None, 'activity': None, 'estimated_stationaries': None, 'ncomparison': None, 'hamming_distances': None, 'weights_ee': None, 'weights_eu': None }
+sources = { 'transition_distances': None, 'activity': None, 'estimated_stationaries': None, 'ncomparison': None }
 
 # Prepare data from files to numpy array
 def prepare_data(sources):
@@ -145,7 +146,7 @@ def training_steps_plot_thresholds(distances):
     plt.savefig(plotpath + '/distances_training_steps_with_thresholds.pdf', format='pdf', transparent=True)
     plt.close()
 
-def test_trace_plot(distances, suffix, ylabel, title=None, ymax=None):
+def test_trace_plot(distances, suffix, ylabel, title=None, ymax=None, legend_loc=1, yoffset=0):
     global plotpath, para
     # runs, models, train steps, test steps / test chunks
 
@@ -192,12 +193,15 @@ def test_trace_plot(distances, suffix, ylabel, title=None, ymax=None):
             plt.plot(test_steps, train_max[j,i], color=color_palette[i], alpha=0.1)
 
     # Beautify plot and save png file
-    plt.legend(prop={'size': legend_size})
+    plt.legend(loc=legend_loc, prop={'size': legend_size})
     if title:
         plt.title(title)
     if ymax:
         plt.ylim(ymax=ymax)
-    plt.ylim(ymin=0)
+    if yoffset == 0:
+        plt.ylim(ymin=0)
+    else:
+        plt.ylim(ymin=0, ymax=np.max(dists_mean)+yoffset)
     plt.xlabel('Test steps', color=fig_color)
     plt.ylabel(ylabel, color=fig_color)
     plt.savefig(plotpath + '/test_traces_'+suffix+'.pdf', format='pdf', transparent=True)
@@ -211,7 +215,7 @@ def test_trace_plot(distances, suffix, ylabel, title=None, ymax=None):
     plt.bar(x+0.25, np.mean(da, axis=0), bar_width, linewidth=0, yerr=np.std(da, axis=0))
     if train_min is not None:
         da = train_min[:, :, np.shape(train_min)[2]-1]
-        plt.bar(x, np.mean(da, axis=0), bar_width, color='red', linewidth=0, yerr=np.std(da, axis=0))
+        plt.bar(x, np.mean(da, axis=0), bar_width, color='red', linewidth=0, yerr=np.std(da, axis=0), ecolor='red')
     if title:
         plt.title(title)
     if ymax:
@@ -250,6 +254,10 @@ def ncomparison_distance_correlation_plot(distances, ncomparison):
 
     # Get results for highest train step only
     last_idx_train_steps = np.shape(distances)[2] - 1
+
+    dists0 = distances[:, :, 0, :]
+    ncomp0 = ncomparison[:, :, 0]
+
     dists = distances[:, :, last_idx_train_steps, :]
     ncomp = ncomparison[:, :, last_idx_train_steps]
 
@@ -258,7 +266,27 @@ def ncomparison_distance_correlation_plot(distances, ncomparison):
     # Define color palette
     color_palette = cm.rainbow(np.linspace(0, 1, num_models))
 
-    # Plot
+    # Plot (no train = static)
+    plt.figure()
+    for i in range(num_models):
+        x = np.mean(dists0[:, i, 1:], axis=1) # Exclude first test step
+        y = ncomp0[:, i]
+        plt.scatter(x, y, color=color_palette[i], alpha=0.3)
+        plt.errorbar(np.mean(x), np.mean(y), yerr=np.std(y), fmt='o', color=color_palette[i])
+
+    # Add decoration
+    #plt.title('Correlation NComparison/Distances (%.2f)' % pearsonr(np.mean(ncomp, axis=0), np.mean(dists, axis=(0,2)))[0])
+    #print('Ncomparison correlation static: '+str(pearsonr(np.mean(ncomp0, axis=0), np.mean(dists0, axis=(0,2)))[0]))
+    plt.xlabel('Transition error', color=fig_color)
+    plt.ylabel('Number of comparison states', color=fig_color)
+    plt.xlim(xmin=0)
+    plt.ylim(ymin=0, ymax=3000)
+
+    # Save and close plit
+    plt.savefig(plotpath + '/correlation_ncomparison_distances_static.pdf', format='pdf', transparent=True)
+    plt.close()
+
+    # Plot (train)
     plt.figure()
     for i in range(num_models):
         x = np.mean(dists[:, i, 1:], axis=1) # Exclude first test step
@@ -268,9 +296,11 @@ def ncomparison_distance_correlation_plot(distances, ncomparison):
 
     # Add decoration
     #plt.title('Correlation NComparison/Distances (%.2f)' % pearsonr(np.mean(ncomp, axis=0), np.mean(dists, axis=(0,2)))[0])
-    print('Ncomparison correlation'+str(pearsonr(np.mean(ncomp, axis=0), np.mean(dists, axis=(0,2)))[0]))
-    plt.xlabel('Mean squared distance to initial transition', color=fig_color)
+    #print('Ncomparison correlation: '+str(pearsonr(np.mean(ncomp, axis=0), np.mean(dists, axis=(0,2)))[0]))
+    plt.xlabel('Transition error', color=fig_color)
     plt.ylabel('Number of comparison states', color=fig_color)
+    plt.xlim(xmin=0)
+    plt.ylim(ymin=0, ymax=3000)
 
     # Save and close plit
     plt.savefig(plotpath + '/correlation_ncomparison_distances.pdf', format='pdf', transparent=True)
@@ -353,7 +383,13 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
     dists = np.mean(distances[:, :, :, :, 1:], axis=4)
 
     # Define color palette
-    train_colors = cm.rainbow(np.linspace(0, 1, train_steps))
+    if train_steps > 2:
+        train_colors = cm.rainbow(np.linspace(0, 1, train_steps))
+    elif train_steps == 2:
+        train_colors = [(1,0,0), (0,0,1)]  # red, blue
+    else:
+        train_colors = [(0,0,1)]  # blue
+
     hip_colors = cm.rainbow(np.linspace(0, 1, hip_steps))
 
     # Trace (highest train, standard h_ip)
@@ -396,40 +432,40 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
     plt.close()
 
     # Variance h_ip
-    hips = None
-    if ip == 'h_ip':
-        hips = np.round(np.mean(para.c[ip], axis=0), 3)
-    else:
-        hips = para.c[ip]
+    #hips = None
+    #if ip == 'h_ip_factor':
+    #    hips = np.round(np.mean(para.c[ip], axis=0), 3)
+    #else:
+    #    hips = para.c[ip]
 
-    if len(hips) > 1:
-        for i in range(hip_steps):
-            errors = np.mean(dists[:,:,train_steps-1,i], axis=0)
-            legend = str(hips[i]) + ' ' + str(ip) + ', abs=' + str(np.round(np.abs(np.max(errors) - np.min(errors)), 3))
-            plt.errorbar(variance, np.mean(dists[:,:,train_steps-1,i], axis=0), label=legend, yerr=np.std(dists[:,:,train_steps-1,i], axis=0),  fmt='o',
-                         color=hip_colors[i], ecolor=np.append(hip_colors[i][0:3], 0.5))
+    #if len(hips) > 1:
+    #    for i in range(hip_steps):
+    #        errors = np.mean(dists[:,:,train_steps-1,i], axis=0)
+    #        legend = str(hips[i]) + ' ' + str(ip) + ', abs=' + str(np.round(np.abs(np.max(errors) - np.min(errors)), 3))
+    #        plt.errorbar(variance, np.mean(dists[:,:,train_steps-1,i], axis=0), label=legend, yerr=np.std(dists[:,:,train_steps-1,i], axis=0),  fmt='o',
+    #                     color=hip_colors[i], ecolor=np.append(hip_colors[i][0:3], 0.5))
 
-        plt.legend(loc=2, prop={'size': legend_size})
-        plt.ylim(ymin=0)
-        #plt.grid()
-        #plt.title('Variance/Distances')
-        plt.xlabel('Variance', color=fig_color)
-        plt.ylabel('Transition error', color=fig_color)
-        plt.savefig(plotpath + '/correlation_inequality_variance_hip.pdf', format='pdf', transparent=True)
-        plt.close()
+    #    plt.legend(loc=2, prop={'size': legend_size})
+    #    plt.ylim(ymin=0)
+    #    #plt.grid()
+    #    #plt.title('Variance/Distances')
+    #    plt.xlabel('Variance', color=fig_color)
+    #    plt.ylabel('Transition error', color=fig_color)
+    #    plt.savefig(plotpath + '/correlation_inequality_variance_hip.pdf', format='pdf', transparent=True)
+    #    plt.close()
 
     # Variance baseline plot
     if para.c.steps_plastic[0] == 0:  # only if first training step is zero (baseline)
-        dists_baseline = np.mean(dists[:,:,0], axis=0)
+        dists_baseline = np.mean(dists[:, :, 0, hpos_idx], axis=0)
         for i in range(train_steps):
             if i > 0:
                 # Variance with distance difference
-                diff = dists_baseline.flatten() - np.mean(dists[:, :, i,hpos_idx], axis=0)
+                diff = dists_baseline.flatten() - np.mean(dists[:, :, i, hpos_idx], axis=0)
                 legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, diff)[0], 2))
                 plt.plot(variance, diff, label=legend, color=train_colors[i])
 
         plt.legend(prop={'size': legend_size})
-        #plt.ylim(ymin=0)
+        plt.ylim(ymin=0)
         #plt.grid()
         #plt.title('Baseline: Variance/Distances')
         plt.xlabel('Variance', color=fig_color)
@@ -475,7 +511,7 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
                 plt.plot(entropy, diff, label=legend, color=train_colors[i])
 
         plt.legend(prop={'size': legend_size})
-        # plt.ylim(ymin=0)
+        plt.ylim(ymin=0)
         #plt.grid()
         #plt.title('Baseline: KL/Distances')
         plt.xlabel('KL', color=fig_color)
@@ -498,6 +534,73 @@ def inequality_distance_correlation_plot(distances, hpos_idx):
     plt.savefig(plotpath + '/correlation_inequality_gini_train.pdf', format='pdf', transparent=True)
     plt.close()
 
+def hip_plot(distances):
+    # distances: runs, models, h_ip, test chunks
+    last_chunk = np.shape(distances)[3]-1
+    #num_hip = np.shape(distances)[2]
+    num_models = np.shape(distances)[1]
+    
+    dists_mean = np.mean(distances[:,:,0:7,last_chunk], axis=0)
+    dists_std = np.std(distances[:,:,0:7,last_chunk], axis=0)
+    # dists: models, h_ip
+    
+    num_hip = np.shape(dists_mean)[1]
+    
+    cols = cm.rainbow(np.linspace(0, 1, num_hip))
+    
+    for i in range(num_hip):
+        legend = str('c_IP = ' + str(para.c.h_ip_factor[i]))
+        plt.errorbar(np.arange(num_models)+1, dists_mean[:,i], label=legend, yerr=dists_std[:,i], # fmt='o',
+                     color=cols[i], ecolor=np.append(cols[i][0:3], 0.5))
+
+    plt.legend(prop={'size': legend_size})
+    plt.xlim(xmin=0.5, xmax=num_models+0.5)
+    plt.ylim(ymin=0)
+    plt.xlabel('Model', color=fig_color)
+    plt.ylabel('Transition error', color=fig_color)
+    plt.savefig(plotpath + '/h_ip.pdf', format='pdf', transparent=True)
+    plt.close()
+    
+    
+    plt.errorbar(para.c.h_ip_factor, dists_mean[0,:], yerr=np.std(distances[:,0,0:7,last_chunk], axis=0), fmt='o')
+    plt.xlim(xmin=np.min(para.c.h_ip_factor)-0.5, xmax=np.max(para.c.h_ip_factor)+0.5)
+    plt.ylim(ymin=0)
+    plt.xlabel('IP factor', color=fig_color)
+    plt.ylabel('Transition error', color=fig_color)
+    plt.savefig(plotpath + '/h_ip_model1.pdf', format='pdf', transparent=True)
+    plt.close()
+    
+    # t-Tests
+    file = ""
+    for i in range(num_hip):
+        for j in range(num_hip):
+            if j > i:
+                res =scipy.stats.ttest_ind(distances[:,0,i,last_chunk], distances[:,0,j,last_chunk])
+                file += "c_IP "+str(para.c.h_ip_factor[i])+" vs. "+str(para.c.h_ip_factor[j])+": t="+str(res[0])+", p="+str(res[1])+"\n"
+    text_file = open(plotpath + "/t-tests_h_ip_factor.txt", "w")
+    text_file.write(file)
+    text_file.close()
+
+def hip_activity(activity):
+    # activity: runs, models, h_ip, test chunks
+    last_chunk = np.shape(activity)[3]-1
+    #num_hip = np.shape(activity)[2]
+    num_models = np.shape(activity)[1]
+    
+    act_mean = np.mean(activity[:,0,0:7,last_chunk], axis=0)
+    act_std = np.std(activity[:,0,0:7,last_chunk], axis=0)
+    # act: h_ip
+    
+    num_hip = np.shape(act_mean)[0]
+    
+    plt.bar(para.c.h_ip_factor-0.125, act_mean, 0.25, linewidth=0, yerr=act_std)
+    plt.xlim(xmin=np.min(para.c.h_ip_factor)-0.5, xmax=np.max(para.c.h_ip_factor)+0.5)
+    plt.ylim(ymin=0)
+    plt.xlabel('IP factor', color=fig_color)
+    plt.ylabel('Average activity', color=fig_color)
+    plt.savefig(plotpath + '/h_ip_activity_model1.pdf', format='pdf', transparent=True)
+    plt.close()
+    
 def calc_gini(x):
     # Mean absolute difference
     mad = np.abs(np.subtract.outer(x, x)).mean()
@@ -580,8 +683,14 @@ def prepare_hamming(hamming_distances):
 data = prepare_data(sources)  # runs, models, train steps, thresholds, h_ip, #ee-connections, test steps / test chunks
 
 # Indices
-#hpos_idx = np.where(para.c.h_ip_factor == 2.0)[0][0]  # index where h_ip = 2.0
-hpos_idx = np.where(np.isclose(para.c.eta_ip, 0.001))[0][0]  # index where eta_ip = 0.001
+hpos_idx = None
+if ip == "h_ip_factor":
+    hpos_idx = np.where(para.c.h_ip_factor == 2.0)[0][0]  # index where h_ip = 2.0
+elif ip == "eta_ip":
+    hpos_idx = np.where(np.isclose(para.c.eta_ip, 0.001))[0][0]  # index where eta_ip = 0.001
+elif ip == "h_ip_range":
+    hpos_idx = np.where(np.isclose(para.c.h_ip_range, 0.01))[0][0]  # index where h_ip_range = 0.01
+    
 mxthresh_idx = np.shape(data['transition_distances'])[3]-1  # index where hamming threshold is max
 dens_idx = np.where(para.c.connections_density == 0.1)[0][0]  # index where connections_density = 0.1
 train_idx = len(para.c.steps_plastic)-1  # index where training steps are max
@@ -590,8 +699,8 @@ train_idx = len(para.c.steps_plastic)-1  # index where training steps are max
 normed_stationaries = norm_stationaries(data['estimated_stationaries'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,:])
 stationairy_distances = calc_stationariy_distances(normed_stationaries)
 
-hamming_means = prepare_hamming(data['hamming_distances'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,:])
-#ncomparison = data['ncomparison'][:,:,:,mxthresh_idx,hpos_idx,:]
+#hamming_means = prepare_hamming(data['hamming_distances'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,:])
+#ncomparison = data['ncomparison'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,:]
 
 #################### Training step plots ####################
 
@@ -606,9 +715,9 @@ if np.shape(data['estimated_stationaries'])[2] > 1:
         suffix = "stationary", ytext = "Stationary error")
 
 # Plot hamming mean for different training steps
-if np.shape(data['hamming_distances'])[2] > 1:
-    training_steps_plot(hamming_means,
-        suffix="hamming", ytext="Relative mean hamming distance")
+#if np.shape(data['hamming_distances'])[2] > 1:
+#    training_steps_plot(hamming_means,
+#        suffix="hamming", ytext="Relative mean hamming distance")
 
 #################### Test chunk plots ####################
 
@@ -642,13 +751,13 @@ test_trace_plot(data['transition_distances'][:,:,:,mxthresh_idx,hpos_idx,dens_id
                 suffix="distances", ylabel="Transition error")
 test_trace_plot(stationairy_distances[:,:,:,:],
                 suffix="stationary", ylabel="Stationary error")
-#test_trace_plot(activity[:,:,:,mxthresh_idx,hpos_idx,:],
-#                suffix="activity", label="Activity (percentage)")
+test_trace_plot(data['activity'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,:],
+                suffix="activity", ylabel="Average activity", legend_loc=4, yoffset=0.02)
 
 #################### Hamming Distancs evaluation ####################
 
-if np.shape(data['hamming_distances'])[3] > 1:
-    hamming_histogram(data['hamming_distances'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,:])
+#if np.shape(data['hamming_distances'])[3] > 1:
+#    hamming_histogram(data['hamming_distances'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,:])
 
 if np.shape(data['transition_distances'])[2] > 1:
     training_steps_plot_thresholds(data['transition_distances'][:,:,:,mxthresh_idx,:,dens_idx,:])
@@ -656,7 +765,13 @@ if np.shape(data['transition_distances'])[2] > 1:
 #################### Activity/NComparison ####################
 
 #activity_distance_correlation_plot(distances, activity)
-#ncomparison_distance_correlation_plot(data['transition_distances'][:,:,:,mxthresh_idx,hpos_idx,:], ncomparison[:,:,:,np.shape(ncomparison)[3]-1])
+#ncomparison_distance_correlation_plot(data['transition_distances'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,:], ncomparison[:,:,:,np.shape(ncomparison)[3]-1])
+
+#################### Activity/H_IP ####################
+
+if ip == "h_ip_factor":
+    hip_plot(data['transition_distances'][:,:,train_idx,mxthresh_idx,:,dens_idx,:])
+    hip_activity(data['activity'][:,:,train_idx,mxthresh_idx,:,dens_idx,:])
 
 #################### Variance, Entropy, Gini / Lorenz ####################
 

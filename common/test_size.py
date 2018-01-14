@@ -118,7 +118,7 @@ def runAll(i):
                 # Name of folder for results in this step
                 #c.multi_name = "run" + str(i) + "_model" + str(j) + "_neurons" + str(k) + "_input" + str(l)
                 c.file_name = "run" + str(i)
-                c.state.index = (j, k, l)
+                c.state.index = (j, k, l)  # runs, models, num_neurons, num_input
                 runSORN(c, source)
 
                 # Free memory
