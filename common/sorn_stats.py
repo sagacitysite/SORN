@@ -316,14 +316,13 @@ class SpontPatternStat(AbstractStat):
             # If current state IS silent
             else:
                 similar_input[i] = -1
-                print(sum(last_spont_spikes[:,i]))
 
         # Store hamming distances for all test states in numpy file
         sorn.c.state.data = hamming_distances
         utils.logdata("../data/hamming_distances/"+sorn.c.file_name+".npy", sorn.c)
 
         # If more than 50% of all trials are silent, throw error
-        if np.count_nonzero(similar_input == -1) > 0.50*N_comp_spont:
+        if np.count_nonzero(similar_input == -1) > 0.70*N_comp_spont:
             raise Exception(
                 'There are too many silent passes to calculate statistics, please change the parameters')
 
@@ -399,7 +398,9 @@ class SpontTransitionAllStat(AbstractStat):
 
         # Normalize transitions
         for i in range(shape(transitions)[0]):
-            transitions[:, i] /= sum(transitions[:, i])
+            # Only normalize if sum of transition is not 0
+            if sum(transitions[:, i]) != 0:
+                transitions[:, i] /= sum(transitions[:, i])
 
         return(transitions)
 

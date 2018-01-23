@@ -92,11 +92,11 @@ def runAll(i):
 
     j = 0
     # Transitions
-    for transitions in transitions_array:
+    for transitions in c.source.transitions_array:
 
         k = 0
         # Training steps
-        for steps in steps_noplastic_train_array:
+        for steps in c.steps_noplastic_train_array:
             # Print where we are
             print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / "+ str(steps))
 
@@ -110,7 +110,8 @@ def runAll(i):
                                         + c.steps_noplastic_test
 
             # Name of folder for results in this step
-            c.multi_name = "run"+str(i)+"_model"+str(j)+"_steps"+str(k)
+            c.file_name = "run"+str(i)
+            c.state.index = (j, k)  # models, no-plastic training steps
             runSORN(c, source)
 
             # Free memory
@@ -130,6 +131,7 @@ experiment = getattr(experiment_module, experiment_name)(param)
 
 # Initialize parameters
 c = param.c
+c.state = utils.Bunch()
 
 # Store states and remove c.states, otherwise bunch will have a problem
 states = c.states
@@ -137,14 +139,17 @@ del c.states
 
 # Set logfilepath
 c.logfilepath = utils.logfilename('') + '/'
-steps_noplastic_train_array = c.steps_noplastic_train
-transitions_array = c.source.transitions
+c.steps_noplastic_train_array = c.steps_noplastic_train
+c.source.transitions_array = c.source.transitions
 
 # Set values
 num_iterations = range(20)
 
 # Start multi processing
-pool = Pool(2)
+pool = Pool(3)
 pool.map(runAll, num_iterations)
 pool.close()
 pool.join()
+
+#runAll(0)
+

@@ -197,6 +197,7 @@ def logdata(path, c):
             # Create empty array
             raw_shape = (len(c.source.transitions_array), len(c.steps_plastic_array), len(c.stats.hamming_threshold_array), len(c.h_ip_range_array), len(c.connections_density_array), np.shape(c.state.data))
             #raw_shape = (len(c.source.transitions_array), len(c.N_e_array), len(c.N_u_e_coverage_array), np.shape(c.state.data))  # param_mcmc_size
+            #raw_shape = (len(c.source.transitions_array), len(c.steps_noplastic_train_array), np.shape(c.state.data))  # param_mcmc_noplastic_train
             file = np.empty(flatten(raw_shape))  # models, training steps, threshold, h_ip factor, #ee-connections, *data
             # Save data for current parameter configuration
             np.save(logpath, fillToArray(file, c.state))

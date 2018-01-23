@@ -19,7 +19,7 @@ from mpl_toolkits.mplot3d import Axes3D
 #rcParams.keys()
 
 fig_color = '#000000'
-legend_size = 12  # 10
+legend_size = 14  # 12/14
 
 rcParams['font.family'] = 'CMU Serif'
 rcParams['font.size'] = '15'  # 14/20
@@ -32,7 +32,8 @@ rcParams['grid.linestyle'] = ':'
 rcParams['grid.linewidth'] = 0.5
 rcParams['grid.color'] = fig_color
 rcParams['legend.fancybox'] = True
-rcParams['legend.framealpha'] = 0
+rcParams['legend.framealpha'] = 0.75
+rcParams['patch.linewidth'] = 0
 
 # Path and num runs value for evaluation
 num_runs = 10  # How many runs should we evaluate
@@ -56,7 +57,7 @@ utils.backup = backup_overwrite  # Overwrite utils backup function to avoid new 
 # Import parameters
 #import param_mcmc_multi as para
 import imp
-para = imp.load_source('param_mcmc_multi', path+'/michaelis/param_mcmc_size.py')
+para = imp.load_source('param_mcmc_size', path+'/michaelis/param_mcmc_size.py')
 #import utils.stationary as stationaryDistribution
 
 
@@ -145,9 +146,15 @@ def plot_2d(distances):
 
         # Customize
         ax.set_zlim(0, max_dist)
-        ttl = plt.title('Model ' + str(i+1))
+        #ttl = plt.title('Model ' + str(i+1))
         #ttl.set_position([.5, 1.05])
-        ttl.set_position([0.5, 0.96])  # [horizontal, vertical]
+        #ttl.set_position([0.5, 0.96])  # [horizontal, vertical]
+        ax.set_xlabel('Input size (in percent)')
+        ax.set_ylabel('Network size')
+        ax.set_zlabel('Transition error')
+        ax.xaxis.labelpad=10
+        ax.yaxis.labelpad=10
+        ax.zaxis.labelpad=10
 
         # Add a color bar which maps values to colors.
         #fig.colorbar(surf, shrink=0.5, aspect=5)
