@@ -87,7 +87,7 @@ def noplastic_train(distances):
     cols = cm.rainbow(np.linspace(0, 1, num_noplastic))
     
     for i in range(num_noplastic):
-        legend = str('T_noplastic = ' + str(para.c.steps_noplastic_train[i]))
+        legend = str('$T_{noplastic}$ = ' + str(para.c.steps_noplastic_train[i]))
         plt.errorbar(np.arange(num_models)+1, dists_mean[:,i], label=legend, yerr=dists_std[:,i], marker='o',# fmt='o',
                      color=cols[i], ecolor=np.append(cols[i][0:3], 0.5))
 
