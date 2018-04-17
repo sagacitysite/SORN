@@ -13,15 +13,19 @@ from matplotlib import rcParams
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.patheffects as pe
+import matplotlib.gridspec as gridspec
 from mpl_toolkits.mplot3d import Axes3D
+
+from sklearn.neighbors import KernelDensity
+from sklearn.model_selection import GridSearchCV
 
 #print(rcParams.keys())
 
 fig_color = '#000000'
-legend_size = 14  # 12/14
+legend_size = 12  # 12/14
 
 rcParams['font.family'] = 'CMU Serif'
-rcParams['font.size'] = '20'  # 14/20
+rcParams['font.size'] = '14'  # 14/20
 rcParams['text.color'] = fig_color
 rcParams['axes.edgecolor'] = fig_color
 rcParams['xtick.color'] = fig_color
@@ -35,7 +39,7 @@ rcParams['legend.framealpha'] = 0.2  # 0.75
 rcParams['patch.linewidth'] = 0
 #rcParams['figure.autolayout'] = True
 
-file_type = 'pdf'  # svg, pdf
+file_type = 'png'  # svg, pdf
 
 # Path and num runs value for evaluation
 ip = sys.argv[2] if len(sys.argv) == 3 else 'h_ip_range' # h_ip_factor, eta_ip, h_ip_range
@@ -63,8 +67,8 @@ import imp
 para = imp.load_source('param_mcmc_multi', path+'/michaelis/param_mcmc_multi.py')
 import utils.stationary as stationaryDistribution
 
-#sources = { 'transition_distances': None, 'activity': None, 'estimated_stationaries': None, 'ncomparison': None, 'hamming_distances': None, 'weights_ee': None, 'weights_eu': None }
-sources = { 'transition_distances': None, 'activity': None, 'estimated_stationaries': None, 'ncomparison': None }
+sources = { 'transition_distances': None, 'activity': None, 'estimated_stationaries': None, 'ncomparison': None, 'hamming_distances': None, 'weights_ee': None, 'weights_eu': None, 'norm_last_input_spikes': None, 'norm_last_input_index': None }
+#sources = { 'transition_distances': None, 'activity': None, 'estimated_stationaries': None, 'ncomparison': None, 'norm_last_input_spikes': None, 'norm_last_input_index': None }
 
 # Prepare data from files to numpy array
 def prepare_data(sources):
@@ -750,6 +754,46 @@ def prepare_hamming(hamming_distances):
     # Calculate hamming means
     return np.mean(hamming_distances, axis=4) / para.c.N_e
 
+def train_spike_histograms(last_input_spikes):
+	print(np.shape(last_input_spikes))
+	
+	num_models = np.shape(last_input_spikes)[0]
+	num_states = len(para.c.states)
+	num_neurons = para.c.N_e
+	
+	ncom = para.c.stats.ncomparison_per_state
+	state_names = para.c.states
+	
+	for i in range(num_models):
+		fig = plt.figure()
+		gs = gridspec.GridSpec(2, 2)
+		fig.suptitle('Model: '+str(i+1))
+		
+		for j in range(num_states):
+			# Mean data
+			state_mean = np.mean(last_input_spikes[i,:,ncom*j:ncom*(j+1)], axis=1)
+			
+			# Cross validate bandwith of kernel estimation
+			params = {'bandwidth': np.logspace(-5, 0.05, 50)}
+			grid = GridSearchCV(KernelDensity(kernel='gaussian'), params)
+			grid.fit(state_mean[:,None])
+			
+			# User best model to estimate new values for plot
+			kde = grid.best_estimator_
+			xvals = np.linspace(0,1,100)
+			estimates = np.exp(kde.score_samples(xvals[:,None]))
+			
+			# Plot histogram and density
+			ax = plt.subplot(gs[j])
+			ax.hist(state_mean, bins=50, range=(0,1), color='#F44336', alpha=0.9)
+			ax.plot(xvals, estimates, color='#3F51B5')
+			ax.set_title('State: '+state_names[j])
+			ax.set_xlim(xmin=0, xmax=1)
+			ax.set_ylim(ymin=0, ymax=120)
+		
+		plt.savefig(plotpath + '/training_activity_histogram_model'+ str(i+1) +'.'+file_type, format=file_type, transparent=True)
+		plt.close()
+
 ##################################################
 #################### Evaluate ####################
 ##################################################
@@ -826,7 +870,7 @@ if len(para.c.connections_density) > 1:
     #                 suffix="distances_dense_connectivity", ylabel="Transition error", title="dense connectivity", ymax=0.5*y_max)
 
 test_trace_plot(data['transition_distances'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,:],
-                suffix="distances", ylabel="Transition error", ymax=0.08)
+                suffix="distances", ylabel="Transition error")#, ymax=0.3)
 test_trace_plot(stationairy_distances[:,:,:,:],
                 suffix="stationary", ylabel="Stationary error")
 
@@ -855,58 +899,83 @@ if ip == "h_ip_range":
 
 #################### Variance, Entropy, Gini / Lorenz ####################
 
-inequality_distance_correlation_plot(data['transition_distances'][:,:,:,mxthresh_idx,:,dens_idx,:], hpos_idx)
-lorenz_plot(normed_stationaries)
+#inequality_distance_correlation_plot(data['transition_distances'][:,:,:,mxthresh_idx,:,dens_idx,:], hpos_idx)
+#lorenz_plot(normed_stationaries)
 
 #################### Connectivity ####################
 
 if len(para.c.connections_density) > 1:
     connectivity_performance(data['transition_distances'][:, :, :, mxthresh_idx, hpos_idx, :, :])
 
+#################### Activity structur ####################
+
+# runs, models, ..., neurons, steps
+#train_spike_histograms(data['norm_last_input_spikes'][0,:,train_idx,mxthresh_idx,hpos_idx,dens_idx,:,:])  # get first run only
+
 #################### weight strength ####################
-#
-# def flatten(T):
-#     if type(T) != types.TupleType: return (T,)
-#     elif len(T) == 0: return ()
-#     else: return flatten(T[0]) + flatten(T[1:])
-#
-# # stationary [ 0.25 ,  0.375,  0.25 ,  0.125]
-#
-# max_train = np.shape(data['weights_ee'])[2]-1
-# weights_ee = data['weights_ee'][:,:,max_train,mxthresh_idx,hpos_idx,:]
-# weights_eu = data['weights_eu'][:,:,max_train,mxthresh_idx,hpos_idx,:]
-# # now: runs / models / weight dense
-#
-# shape = np.shape(weights_ee)
-#
-# num_states = len(para.c.states)
-# cluster_coefficient = np.zeros(flatten((np.shape(weights_ee)[0:3], (num_states,num_states))))
-# num_connections = np.copy(cluster_coefficient)
-# for g in range(shape[0]):
-#     for h in range(shape[1]):
-#         for k in range(shape[2]):
-#             tmp_weights_eu = weights_eu[g, h, k, :, :]
-#             tmp_weights_ee = weights_ee[g, h, k, :, :]
-#
-#             for i in range(num_states):
-#                 for j in range(num_states):
-#                     # Get weights of neurons for input state i and j
-#                     # and make boolean out of it ('true' if neuron has input, 'false' if not)
-#                     idx_i = tmp_weights_eu[:, i].astype(bool)
-#                     idx_j = tmp_weights_eu[:, j].astype(bool)
-#                     # Weights between neurons of state i and state j
-#                     weights_ij = tmp_weights_ee[idx_i, :][:, idx_j]
-#                     # Sum all weights to obtain coefficient
-#                     cluster_coefficient[g, h, k, i, j] = np.sum(weights_ij)
-#
-#                     weights_ij[weights_ij < 0.0001] = 0
-#                     num_connections[g, h, k, i, j] = np.sum(weights_ij.astype(bool))
-#
-# cluster_coefficient_mean = np.mean(cluster_coefficient, axis=0)
-# num_connections_mean = np.mean(num_connections, axis=0)
-#
-# plt.imshow(num_connections_mean[0,0], origin='upper', cmap='copper', interpolation='none')
-# plt.xticks(np.arange(num_states), para.c.states)
-# plt.yticks(np.arange(num_states), para.c.states)
-# plt.colorbar()
-#
+
+def flatten(T):
+    if type(T) != types.TupleType: return (T,)
+    elif len(T) == 0: return ()
+    else: return flatten(T[0]) + flatten(T[1:])
+
+# stationary [ 0.25 ,  0.375,  0.25 ,  0.125]
+
+max_train = np.shape(data['weights_ee'])[2]-1
+weights_ee = data['weights_ee'][:,:,max_train,mxthresh_idx,hpos_idx,:]
+weights_eu = data['weights_eu'][:,:,max_train,mxthresh_idx,hpos_idx,:]
+# now: runs / models / weight dense
+
+shape = np.shape(weights_ee)
+print(shape)
+#weight_threshold = 0.01  #0.0001
+
+num_states = len(para.c.states)
+alphabet = set("".join(para.c.states))
+lookup = dict(zip(alphabet, range(num_states)))
+
+cluster_coefficient = np.zeros(flatten((np.shape(weights_ee)[0:3], (num_states,num_states))))
+num_connections = np.copy(cluster_coefficient)
+for g in range(shape[0]):  # runs
+    for h in range(shape[1]):  # models
+        for k in range(shape[2]):  # weight dense
+            tmp_weights_eu = weights_eu[g, h, k, :, :]
+            tmp_weights_ee = weights_ee[g, h, k, :, :]
+
+            for i in range(num_states):
+            	# Get weights of neurons for input state i and j
+                # and make boolean out of it ('true' if neuron has input, 'false' if not)
+            	state_i = lookup[para.c.states[i]]
+            	idx_i = tmp_weights_eu[:, state_i].astype(bool)
+            	
+                for j in range(num_states):
+                    state_j = lookup[para.c.states[j]]
+                    idx_j = tmp_weights_eu[:, state_j].astype(bool)
+                    
+                    # Weights between neurons of state i and state j
+                    weights_ij = tmp_weights_ee[idx_i, :][:, idx_j]
+                    
+                    # Remove weights which are very small
+                    #weights_ij[weights_ij < weight_threshold] = 0
+                    
+                    # Sum all weights to obtain coefficient
+                    cluster_coefficient[g, h, k, i, j] = np.sum(weights_ij)
+                    #num_connections[g, h, k, i, j] = np.sum(weights_ij.astype(bool)) # makes no sense! it highly depends on initialization?
+
+cluster_coefficient_mean = np.mean(cluster_coefficient, axis=0)
+#num_connections_mean = np.mean(num_connections, axis=0)
+
+for i in range(shape[1]):  # num_models
+    values = cluster_coefficient_mean[i,0]
+    plt.imshow(values, clim=(0,1), origin='upper', cmap='copper_r', interpolation='none')
+    for (k,l),label in np.ndenumerate(values):
+        col = 'black' if values[l,k] < 0.5 else 'white'
+        plt.text(k, l, np.around(values[l,k], 2), color=col, size=11, ha='center', va='center')
+    plt.xlabel('To')
+    plt.xticks(np.arange(num_states), para.c.states)
+    plt.ylabel('From')
+    plt.yticks(np.arange(num_states), para.c.states)
+    plt.colorbar()
+    plt.title('Model '+str(i+1))
+    plt.savefig(plotpath + '/weight_structure_model'+str(i+1)+'.'+file_type, format=file_type, transparent=True)
+    plt.close()

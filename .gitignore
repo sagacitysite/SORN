@@ -11,3 +11,5 @@
 backup/
 # Ignore PyCharm files #
 .idea/
+# Ignore python version file
+.python-version

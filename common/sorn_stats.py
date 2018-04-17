@@ -238,11 +238,16 @@ class NormLastStat(AbstractStat):
                     raise Exception(
                         'Not enough occurencies in state '+str(i)+', decreae parameter c.stats.ncomparison_per_state or increase number of training steps c.steps_noplastic_train')
 
-
                 norm_last_input_spikes[:, ncom*i:ncom*(i+1)] = input_spikes[:,state_occurencies[-ncom:]]
                 norm_last_input_index[ncom*i:ncom*(i+1)] = input_index[state_occurencies[-ncom:]]
 
         # Store in numpy file
+        sorn.c.state.data = norm_last_input_spikes
+        utils.logdata("../data/norm_last_input_spikes/"+sorn.c.file_name+".npy", sorn.c)
+        
+        sorn.c.state.data = norm_last_input_index
+        utils.logdata("../data/norm_last_input_index/"+sorn.c.file_name+".npy", sorn.c)
+        
         sorn.c.state.data = np.array([np.shape(norm_last_input_index)[0]])
         utils.logdata("../data/ncomparison/"+sorn.c.file_name+".npy", sorn.c)
 
