@@ -58,7 +58,7 @@ c.input_gain = 0.5
 c.eta_ip = 0.001
 
 c.h_ip_mean = float(2*c.N_u_e)/float(c.N_e)
-c.h_ip_range = np.array([0.01])  #np.array([0, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03])  # np.array([0.01])
+c.h_ip_range = np.array([0.02])  #np.array([0, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03])  # np.array([0.01])
 #h_ip_range = 0.01
 
 #c.h_ip = np.random.rand(c.N_e)*h_ip_range*2 + h_ip_mean - h_ip_range

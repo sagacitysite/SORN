@@ -770,7 +770,7 @@ def train_spike_histograms(last_input_spikes):
 		fig.suptitle('Model: '+str(i+1))
 		
 		for j in range(num_states):
-			# Mean data
+			# Mean data, data was already sorted before saving
 			state_mean = np.mean(last_input_spikes[i,:,ncom*j:ncom*(j+1)], axis=1)
 			
 			# Cross validate bandwith of kernel estimation
@@ -934,23 +934,34 @@ num_states = len(para.c.states)
 alphabet = set("".join(para.c.states))
 lookup = dict(zip(alphabet, range(num_states)))
 
-cluster_coefficient = np.zeros(flatten((np.shape(weights_ee)[0:3], (num_states,num_states))))
-num_connections = np.copy(cluster_coefficient)
+cluster_coefficient = np.zeros(flatten((np.shape(weights_ee)[0:3], (num_states+1,num_states+1))))
 for g in range(shape[0]):  # runs
     for h in range(shape[1]):  # models
         for k in range(shape[2]):  # weight dense
             tmp_weights_eu = weights_eu[g, h, k, :, :]
             tmp_weights_ee = weights_ee[g, h, k, :, :]
+            
+            others = np.sum(tmp_weights_eu, axis=1)
+            others[others > 0] = True
+            idx_others = np.invert(others.astype(bool))
+            #print(idx_others)
+            #sys.exit()
 
-            for i in range(num_states):
+            for i in range(num_states+1):
             	# Get weights of neurons for input state i and j
                 # and make boolean out of it ('true' if neuron has input, 'false' if not)
-            	state_i = lookup[para.c.states[i]]
-            	idx_i = tmp_weights_eu[:, state_i].astype(bool)
+                if i < num_states:
+                	state_i = lookup[para.c.states[i]]
+                	idx_i = tmp_weights_eu[:, state_i].astype(bool)
+                else:
+                    idx_i = idx_others
             	
-                for j in range(num_states):
-                    state_j = lookup[para.c.states[j]]
-                    idx_j = tmp_weights_eu[:, state_j].astype(bool)
+                for j in range(num_states+1):
+                    if j < num_states:
+                        state_j = lookup[para.c.states[j]]
+                        idx_j = tmp_weights_eu[:, state_j].astype(bool)
+                    else:
+                        idx_i = idx_others
                     
                     # Weights between neurons of state i and state j
                     weights_ij = tmp_weights_ee[idx_i, :][:, idx_j]
@@ -959,22 +970,24 @@ for g in range(shape[0]):  # runs
                     #weights_ij[weights_ij < weight_threshold] = 0
                     
                     # Sum all weights to obtain coefficient
-                    cluster_coefficient[g, h, k, i, j] = np.sum(weights_ij)
-                    #num_connections[g, h, k, i, j] = np.sum(weights_ij.astype(bool)) # makes no sense! it highly depends on initialization?
+                    cluster_coefficient[g, h, k, i, j] = np.mean(weights_ij)
+                
+                # Normalize
+                coeff_sum = np.sum(cluster_coefficient[g, h, k, i, :])
+                cluster_coefficient[g, h, k, i, :] = cluster_coefficient[g, h, k, i, :]/coeff_sum
 
 cluster_coefficient_mean = np.mean(cluster_coefficient, axis=0)
-#num_connections_mean = np.mean(num_connections, axis=0)
 
 for i in range(shape[1]):  # num_models
     values = cluster_coefficient_mean[i,0]
-    plt.imshow(values, clim=(0,1), origin='upper', cmap='copper_r', interpolation='none')
+    plt.imshow(values, clim=(0,0.4), origin='upper', cmap='copper_r', interpolation='none')
     for (k,l),label in np.ndenumerate(values):
-        col = 'black' if values[l,k] < 0.5 else 'white'
+        col = 'black' if values[l,k] < 0.25 else 'white'
         plt.text(k, l, np.around(values[l,k], 2), color=col, size=11, ha='center', va='center')
     plt.xlabel('To')
-    plt.xticks(np.arange(num_states), para.c.states)
+    plt.xticks(np.arange(num_states+1), np.append(para.c.states, 'Others'))
     plt.ylabel('From')
-    plt.yticks(np.arange(num_states), para.c.states)
+    plt.yticks(np.arange(num_states+1), np.append(para.c.states, 'Others'))
     plt.colorbar()
     plt.title('Model '+str(i+1))
     plt.savefig(plotpath + '/weight_structure_model'+str(i+1)+'.'+file_type, format=file_type, transparent=True)
