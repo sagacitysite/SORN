@@ -189,11 +189,13 @@ c.connections_density_array = c.connections_density
 # Set values
 num_iterations = range(c.N_iterations)
 
-# Start multi processing
-pool = Pool(3)
-pool.map(runAll, num_iterations)
-pool.close()
-pool.join()
+## Start multi processing
+#pool = Pool(3)
+#pool.map(runAll, num_iterations)
+#pool.close()
+#pool.join()
 
+for i in num_iterations:
+	runAll(i)
 #runAll(0)
 #runAll(1)
