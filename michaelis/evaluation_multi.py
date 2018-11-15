@@ -111,22 +111,29 @@ if ip == "h_ip_factor":
 if ip == "h_ip_range":
     ip.plot(data['transition_distances'][:,:,train_idx,mxthresh_idx,:,dens_idx,:], legend_labels="$\sigma^{IP}$")
 
-sys.exit()
+"""
+Variance, Entropy, Gini / Lorenz
+"""
 
-#################### Variance, Entropy, Gini / Lorenz ####################
+performance_correlation.plot_inequality(data['transition_distances'][:,:,:,mxthresh_idx,:,dens_idx,:], hpos_idx)
 
-inequality_distance_correlation_plot(data['transition_distances'][:,:,:,mxthresh_idx,:,dens_idx,:], hpos_idx)
 #lorenz_plot(normed_stationaries)
 
-#################### Connectivity ####################
+"""
+Connectivity
+"""
 
-if len(para.c.connections_density) > 1:
-    connectivity_performance(data['transition_distances'][:, :, :, mxthresh_idx, hpos_idx, :, :])
-
-#################### Activity structur ####################
+if len(PARA.c.connections_density) > 1:
+    connectivity.plot_performance(data['transition_distances'][:, :, :, mxthresh_idx, hpos_idx, :, :])
+    
+"""
+Activity structur
+"""
 
 # runs, models, ..., neurons, steps
-#train_spike_histograms(data['norm_last_input_spikes'][0,:,train_idx,mxthresh_idx,hpos_idx,dens_idx,:,:])  # get first run only
+#spikes.plot_train_histograms(data['norm_last_input_spikes'][0,:,train_idx,mxthresh_idx,hpos_idx,dens_idx,:,:])  # get first run only
+
+sys.exit()
 
 #################### weight strength ####################
 

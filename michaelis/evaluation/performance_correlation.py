@@ -1,7 +1,8 @@
 from evaluation import *
 
 def plot_activity(distances, activity):
-    #global plotpath, test_step_size
+    print('# Performance correlation: Activity plot')
+    #global PLOTPATH, test_step_size
 
     # Get results for highest train step only
     last_idx_train_steps = np.shape(distances)[2] - 1
@@ -18,13 +19,14 @@ def plot_activity(distances, activity):
         y = actis[:,i,:].flatten()
         plt.scatter(x, y)
         #plt.title('Correlation Activity/Distances (%.2f)' % pearsonr(x, y)[0])
-        plt.xlabel('Transition error', color=fig_color)
-        plt.ylabel('Activity (percentage)', color=fig_color)
-        plt.savefig(plotpath + '/correlation_activity_model' + str(i+1) + '.'+file_type, format=file_type, transparent=True)
+        plt.xlabel('Transition error', color=FIG_COLOR)
+        plt.ylabel('Activity (percentage)', color=FIG_COLOR)
+        plt.savefig(PLOTPATH + '/correlation_activity_model' + str(i+1) + '.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
         plt.close()
 
 def plot_ncomparison(distances, ncomparison):
-    #global plotpath, test_step_size
+    print('# Performance correlation: nComparison plot')
+    #global PLOTPATH, test_step_size
 
     # Get results for highest train step only
     last_idx_train_steps = np.shape(distances)[2] - 1
@@ -52,14 +54,14 @@ def plot_ncomparison(distances, ncomparison):
     # Add decoration
     #plt.title('Correlation NComparison/Distances (%.2f)' % pearsonr(np.mean(ncomp, axis=0), np.mean(dists, axis=(0,2)))[0])
     #print('Ncomparison correlation static: '+str(pearsonr(np.mean(ncomp0, axis=0), np.mean(dists0, axis=(0,2)))[0]))
-    plt.xlabel('Transition error', color=fig_color)
-    plt.ylabel('Number of comparison states', color=fig_color)
+    plt.xlabel('Transition error', color=FIG_COLOR)
+    plt.ylabel('Number of comparison states', color=FIG_COLOR)
     plt.legend(prop={'size': legend_size})
     plt.xlim(xmin=0)
     plt.ylim(ymin=0, ymax=3000)
 
     # Save and close plit
-    plt.savefig(plotpath + '/correlation_ncomparison_distances_static.'+file_type, format=file_type, transparent=True)
+    plt.savefig(PLOTPATH + '/correlation_ncomparison_distances_static.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
 
     # Plot (train)
@@ -74,35 +76,35 @@ def plot_ncomparison(distances, ncomparison):
     # Add decoration
     #plt.title('Correlation NComparison/Distances (%.2f)' % pearsonr(np.mean(ncomp, axis=0), np.mean(dists, axis=(0,2)))[0])
     #print('Ncomparison correlation: '+str(pearsonr(np.mean(ncomp, axis=0), np.mean(dists, axis=(0,2)))[0]))
-    plt.xlabel('Transition error', color=fig_color)
-    plt.ylabel('Number of comparison states', color=fig_color)
+    plt.xlabel('Transition error', color=FIG_COLOR)
+    plt.ylabel('Number of comparison states', color=FIG_COLOR)
     plt.legend(prop={'size': legend_size})
     plt.xlim(xmin=0)
     plt.ylim(ymin=0, ymax=3000)
 
     # Save and close plit
-    plt.savefig(plotpath + '/correlation_ncomparison_distances.'+file_type, format=file_type, transparent=True)
+    plt.savefig(PLOTPATH + '/correlation_ncomparison_distances.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
     
 def plot_inequality(distances, hpos_idx):
-    #global plotpath, para
+    print('# Performance correlation: Inequality plot')
     
     # runs, models, train steps, h_ip, test chunks
 
     # Calculate stationary distributions from markov chains
-    stationaries = np.array([stationaryDistribution.calculate(transition) for transition in para.c.source.transitions])
+    stationaries = np.array([_helper.stationary_distribution(transition) for transition in PARA.c.source.transitions])
 
     # Get variance, entropy and gini
     states = np.arange(np.shape(stationaries)[1])+1
     variance = np.var(stationaries, axis=1)
     variance[variance < 1e-16] = 0
     #variance = np.sum(np.multiply(stationaries, (states - np.mean(states)) ** 2), axis=1)
-    kl = np.array([scipy.stats.entropy(s, np.repeat(0.25, np.shape(para.c.source.transitions)[1])) for s in stationaries])
+    kl = np.array([scipy.stats.entropy(s, np.repeat(0.25, np.shape(PARA.c.source.transitions)[1])) for s in stationaries])
     kl[kl < 1e-16] = 0
-    transition_entropy = np.array([stationaryDistribution.transition_entropy(t) for t in para.c.source.transitions])
+    transition_entropy = np.array([stationaryDistribution.transition_entropy(t) for t in PARA.c.source.transitions])
     ginis = np.array([calc_gini(x) for x in stationaries])
     ginis[ginis < 1e-15] = 0
-    traces = np.array([np.trace(t) for t in para.c.source.transitions])
+    traces = np.array([np.trace(t) for t in PARA.c.source.transitions])
 
     # Get number of train steps
     num_models = np.shape(distances)[1]
@@ -129,9 +131,9 @@ def plot_inequality(distances, hpos_idx):
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('Traces/Distances')
-    plt.xlabel('Trace', color=fig_color)
-    plt.ylabel('Transition error', color=fig_color)
-    plt.savefig(plotpath + '/correlation_inequality_trace.'+file_type, format=file_type, transparent=True)
+    plt.xlabel('Trace', color=FIG_COLOR)
+    plt.ylabel('Transition error', color=FIG_COLOR)
+    plt.savefig(PLOTPATH + '/correlation_inequality_trace.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
 
     # Variance (highest train, standard h_ip)
@@ -141,14 +143,14 @@ def plot_inequality(distances, hpos_idx):
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('Variance/Distances')
-    plt.xlabel('Variance', color=fig_color)
-    plt.ylabel('Transition error', color=fig_color)
-    plt.savefig(plotpath + '/correlation_inequality_variance.'+file_type, format=file_type, transparent=True)
+    plt.xlabel('Variance', color=FIG_COLOR)
+    plt.ylabel('Transition error', color=FIG_COLOR)
+    plt.savefig(PLOTPATH + '/correlation_inequality_variance.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
 
     # Variance train
     for i in range(train_steps):
-        legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
+        legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
         plt.errorbar(variance, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend, yerr=np.std(dists[:,:,i,hpos_idx], axis=0), fmt='o',
                      color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
 
@@ -156,17 +158,17 @@ def plot_inequality(distances, hpos_idx):
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('Variance/Distances')
-    plt.xlabel('Variance', color=fig_color)
-    plt.ylabel('Transition error', color=fig_color)
-    plt.savefig(plotpath + '/correlation_inequality_variance_train.'+file_type, format=file_type, transparent=True)
+    plt.xlabel('Variance', color=FIG_COLOR)
+    plt.ylabel('Transition error', color=FIG_COLOR)
+    plt.savefig(PLOTPATH + '/correlation_inequality_variance_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
 
     # Variance h_ip
     #hips = None
     #if ip == 'h_ip_factor':
-    #    hips = np.round(np.mean(para.c[ip], axis=0), 3)
+    #    hips = np.round(np.mean(PARA.c[ip], axis=0), 3)
     #else:
-    #    hips = para.c[ip]
+    #    hips = PARA.c[ip]
 
     #if len(hips) > 1:
     #    for i in range(hip_steps):
@@ -179,28 +181,28 @@ def plot_inequality(distances, hpos_idx):
     #    plt.ylim(ymin=0)
     #    #plt.grid()
     #    #plt.title('Variance/Distances')
-    #    plt.xlabel('Variance', color=fig_color)
-    #    plt.ylabel('Transition error', color=fig_color)
-    #    plt.savefig(plotpath + '/correlation_inequality_variance_hip.'+file_type, format=file_type, transparent=True)
+    #    plt.xlabel('Variance', color=FIG_COLOR)
+    #    plt.ylabel('Transition error', color=FIG_COLOR)
+    #    plt.savefig(PLOTPATH + '/correlation_inequality_variance_hip.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     #    plt.close()
 
     # Variance baseline plot
-    if para.c.steps_plastic[0] == 0:  # only if first training step is zero (baseline)
+    if PARA.c.steps_plastic[0] == 0:  # only if first training step is zero (baseline)
         dists_baseline = np.mean(dists[:, :, 0, hpos_idx], axis=0)
         for i in range(train_steps):
             if i > 0:
                 # Variance with distance difference
                 diff = dists_baseline.flatten() - np.mean(dists[:, :, i, hpos_idx], axis=0)
-                legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, diff)[0], 2))
+                legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, diff)[0], 2))
                 plt.plot(variance, diff, label=legend, color=train_colors[i])
 
         plt.legend(prop={'size': legend_size})
         plt.ylim(ymin=0)
         #plt.grid()
         #plt.title('Baseline: Variance/Distances')
-        plt.xlabel('Variance', color=fig_color)
-        plt.ylabel('Performance increase in relation to baseline', color=fig_color)
-        plt.savefig(plotpath + '/correlation_inequality_variance_train_baseline.'+file_type, format=file_type, transparent=True)
+        plt.xlabel('Variance', color=FIG_COLOR)
+        plt.ylabel('Performance increase in relation to baseline', color=FIG_COLOR)
+        plt.savefig(PLOTPATH + '/correlation_inequality_variance_train_baseline.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
         plt.close()
 
     # KL (highest train, standard h_ip)
@@ -209,14 +211,14 @@ def plot_inequality(distances, hpos_idx):
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('KL/Distances')
-    plt.xlabel('KL', color=fig_color)
-    plt.ylabel('Transition error', color=fig_color)
-    plt.savefig(plotpath + '/correlation_inequality_kl.'+file_type, format=file_type, transparent=True)
+    plt.xlabel('KL', color=FIG_COLOR)
+    plt.ylabel('Transition error', color=FIG_COLOR)
+    plt.savefig(PLOTPATH + '/correlation_inequality_kl.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
 
     # KL train
     for i in range(train_steps):
-        legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(kl, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
+        legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(kl, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
         plt.errorbar(kl, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend, yerr=np.std(dists[:,:,i,hpos_idx], axis=0),  fmt='o',
                      color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
 
@@ -224,9 +226,9 @@ def plot_inequality(distances, hpos_idx):
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('KL/Distances')
-    plt.xlabel('KL', color=fig_color)
-    plt.ylabel('Transition error', color=fig_color)
-    plt.savefig(plotpath + '/correlation_inequality_kl_train.'+file_type, format=file_type, transparent=True)
+    plt.xlabel('KL', color=FIG_COLOR)
+    plt.ylabel('Transition error', color=FIG_COLOR)
+    plt.savefig(PLOTPATH + '/correlation_inequality_kl_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
     
     # Transition entropy (highest train, standard h_ip)
@@ -235,14 +237,14 @@ def plot_inequality(distances, hpos_idx):
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('KL/Distances')
-    plt.xlabel('entropy', color=fig_color)
-    plt.ylabel('Transition error', color=fig_color)
-    plt.savefig(plotpath + '/correlation_inequality_entropy.'+file_type, format=file_type, transparent=True)
+    plt.xlabel('entropy', color=FIG_COLOR)
+    plt.ylabel('Transition error', color=FIG_COLOR)
+    plt.savefig(PLOTPATH + '/correlation_inequality_entropy.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
     
     # Transition entropy train
     for i in range(train_steps):
-        legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(kl, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
+        legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(kl, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
         plt.errorbar(transition_entropy, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend,
                      yerr=np.std(dists[:,:,i,hpos_idx], axis=0),  fmt='o',
                      color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
@@ -251,33 +253,33 @@ def plot_inequality(distances, hpos_idx):
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('KL/Distances')
-    plt.xlabel('entropy', color=fig_color)
-    plt.ylabel('Transition error', color=fig_color)
-    plt.savefig(plotpath + '/correlation_inequality_entropy_train.'+file_type, format=file_type, transparent=True)
+    plt.xlabel('entropy', color=FIG_COLOR)
+    plt.ylabel('Transition error', color=FIG_COLOR)
+    plt.savefig(PLOTPATH + '/correlation_inequality_entropy_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
 
     # KL baseline plot
-    if para.c.steps_plastic[0] == 0:  # only if first training step is zero (baseline)
+    if PARA.c.steps_plastic[0] == 0:  # only if first training step is zero (baseline)
         dists_baseline = np.mean(dists[:, :, 0, hpos_idx], axis=0)
         for i in range(train_steps):
             if i > 0:
                 # Variance with distance difference
                 diff = dists_baseline - np.mean(dists[:, :, i,hpos_idx], axis=0)
-                legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(kl, diff)[0], 2))
+                legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(kl, diff)[0], 2))
                 plt.plot(kl, diff, label=legend, color=train_colors[i])
 
         plt.legend(prop={'size': legend_size})
         plt.ylim(ymin=0)
         #plt.grid()
         #plt.title('Baseline: KL/Distances')
-        plt.xlabel('KL', color=fig_color)
-        plt.ylabel('Performance increase in relation to baseline', color=fig_color)
-        plt.savefig(plotpath + '/correlation_inequality_kl_train_baseline.'+file_type, format=file_type, transparent=True)
+        plt.xlabel('KL', color=FIG_COLOR)
+        plt.ylabel('Performance increase in relation to baseline', color=FIG_COLOR)
+        plt.savefig(PLOTPATH + '/correlation_inequality_kl_train_baseline.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
         plt.close()
 
     # Gini
     for i in range(train_steps):
-        legend = str(para.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(ginis, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
+        legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(ginis, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
         plt.errorbar(ginis, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend, yerr=np.std(dists[:,:,i,hpos_idx], axis=0),  fmt='o',
                      color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
 
@@ -285,7 +287,7 @@ def plot_inequality(distances, hpos_idx):
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('Gini/Distances')
-    plt.xlabel('Gini', color=fig_color)
-    plt.ylabel('Transition error', color=fig_color)
-    plt.savefig(plotpath + '/correlation_inequality_gini_train.'+file_type, format=file_type, transparent=True)
+    plt.xlabel('Gini', color=FIG_COLOR)
+    plt.ylabel('Transition error', color=FIG_COLOR)
+    plt.savefig(PLOTPATH + '/correlation_inequality_gini_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()

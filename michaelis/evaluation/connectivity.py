@@ -1,6 +1,7 @@
 from evaluation import *
 
 def plot_performance(distances, ymaxi=0.4):
+    print('# Connectivity: Performance plot')
     # distances: runs, models, training, connectivity, test chunks
     last_chunk = np.shape(distances)[4]-1
     num_con = np.shape(distances)[3]

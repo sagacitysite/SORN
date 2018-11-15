@@ -1,6 +1,7 @@
 from evaluation import *
 
-def lorenz_plot(normed_stationaries):
+def plot(normed_stationaries):
+    print('Lorenz: Plot')
     #global plotpath, para
     # runs, models, train steps, test chunks, stationary
 
