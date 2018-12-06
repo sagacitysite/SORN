@@ -20,7 +20,7 @@ def transition_entropy(transition):
     P[np.abs(P) < 1e-15] = 0
 
     # Calculate stationary distribution
-    m = calculate(P)
+    m = stationary_distribution(P)
 
     H = 0
     for i in range(np.shape(P)[0]):
@@ -29,7 +29,6 @@ def transition_entropy(transition):
             if P[i,j] != 0:
                 H += m[i]*P[i,j]*np.log(P[i,j])
     return -H
-
 
 def calc_gini(x):
     # Mean absolute difference
@@ -72,3 +71,7 @@ def prepare_hamming(hamming_distances):
     # Calculate hamming means
     return np.mean(hamming_distances, axis=4) / PARA.c.N_e
 
+def flatten(T):
+    if type(T) != types.TupleType: return (T,)
+    elif len(T) == 0: return ()
+    else: return flatten(T[0]) + flatten(T[1:])

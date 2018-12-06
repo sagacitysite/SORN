@@ -9,6 +9,8 @@
 *.mat
 # Ignore Backup #
 backup/
+# Ignore virtenv #
+virtenv/
 # Ignore PyCharm files #
 .idea/
 # Ignore python version file

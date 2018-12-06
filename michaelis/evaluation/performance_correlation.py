@@ -1,3 +1,4 @@
+import evaluation as ev
 from evaluation import *
 
 def plot_activity(distances, activity):
@@ -92,7 +93,7 @@ def plot_inequality(distances, hpos_idx):
     # runs, models, train steps, h_ip, test chunks
 
     # Calculate stationary distributions from markov chains
-    stationaries = np.array([_helper.stationary_distribution(transition) for transition in PARA.c.source.transitions])
+    stationaries = np.array([ev._helper.stationary_distribution(transition) for transition in PARA.c.source.transitions])
 
     # Get variance, entropy and gini
     states = np.arange(np.shape(stationaries)[1])+1
@@ -101,8 +102,8 @@ def plot_inequality(distances, hpos_idx):
     #variance = np.sum(np.multiply(stationaries, (states - np.mean(states)) ** 2), axis=1)
     kl = np.array([scipy.stats.entropy(s, np.repeat(0.25, np.shape(PARA.c.source.transitions)[1])) for s in stationaries])
     kl[kl < 1e-16] = 0
-    transition_entropy = np.array([stationaryDistribution.transition_entropy(t) for t in PARA.c.source.transitions])
-    ginis = np.array([calc_gini(x) for x in stationaries])
+    transition_entropy = np.array([ev._helper.transition_entropy(t) for t in PARA.c.source.transitions])
+    ginis = np.array([ev._helper.calc_gini(x) for x in stationaries])
     ginis[ginis < 1e-15] = 0
     traces = np.array([np.trace(t) for t in PARA.c.source.transitions])
 
@@ -154,7 +155,7 @@ def plot_inequality(distances, hpos_idx):
         plt.errorbar(variance, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend, yerr=np.std(dists[:,:,i,hpos_idx], axis=0), fmt='o',
                      color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
 
-    plt.legend(loc=2,prop={'size': legend_size})
+    plt.legend(loc=2,prop={'size': LEGEND_SIZE})
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('Variance/Distances')
@@ -196,7 +197,7 @@ def plot_inequality(distances, hpos_idx):
                 legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, diff)[0], 2))
                 plt.plot(variance, diff, label=legend, color=train_colors[i])
 
-        plt.legend(prop={'size': legend_size})
+        plt.legend(prop={'size': LEGEND_SIZE})
         plt.ylim(ymin=0)
         #plt.grid()
         #plt.title('Baseline: Variance/Distances')
@@ -222,7 +223,7 @@ def plot_inequality(distances, hpos_idx):
         plt.errorbar(kl, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend, yerr=np.std(dists[:,:,i,hpos_idx], axis=0),  fmt='o',
                      color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
 
-    plt.legend(loc=2,prop={'size': legend_size})
+    plt.legend(loc=2,prop={'size': LEGEND_SIZE})
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('KL/Distances')
@@ -249,7 +250,7 @@ def plot_inequality(distances, hpos_idx):
                      yerr=np.std(dists[:,:,i,hpos_idx], axis=0),  fmt='o',
                      color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
 
-    plt.legend(loc=2,prop={'size': legend_size})
+    plt.legend(loc=2,prop={'size': LEGEND_SIZE})
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('KL/Distances')
@@ -268,7 +269,7 @@ def plot_inequality(distances, hpos_idx):
                 legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(kl, diff)[0], 2))
                 plt.plot(kl, diff, label=legend, color=train_colors[i])
 
-        plt.legend(prop={'size': legend_size})
+        plt.legend(prop={'size': LEGEND_SIZE})
         plt.ylim(ymin=0)
         #plt.grid()
         #plt.title('Baseline: KL/Distances')
@@ -283,7 +284,7 @@ def plot_inequality(distances, hpos_idx):
         plt.errorbar(ginis, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend, yerr=np.std(dists[:,:,i,hpos_idx], axis=0),  fmt='o',
                      color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
 
-    plt.legend(loc=2,prop={'size': legend_size})
+    plt.legend(loc=2,prop={'size': LEGEND_SIZE})
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('Gini/Distances')

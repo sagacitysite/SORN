@@ -58,3 +58,4 @@ from . import performance_correlation
 from . import spikes
 from . import training
 from . import test_trace
+from . import weights

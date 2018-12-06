@@ -292,22 +292,22 @@ class SpontPatternStat(AbstractStat):
         # Remove silent periods from spontspikes
         #last_spont_spikes = last_spont_spikes[:,sum(last_spont_spikes,0)>0]
 
-        # Number of spontaneous trials, including silent ones
+        # Number of spontaneous trials = noplastic testing trials, including silent ones
         N_comp_spont = shape(last_spont_spikes)[1]
 
         # Define empty array for hamming distances
         hamming_distances = np.empty(N_comp_spont)
 
-        # Find for each spontaneous state the evoked state with the
+        # Find for each spontaneous state (= noplastic test) state the evoked state (= noplastic train) with the
         # smallest hamming distance and store the corresponding index
         similar_input = zeros(N_comp_spont)
         for i in xrange(N_comp_spont):
-            # One spontaneous state is subtracted from all input states from testing phase (broadcasting is used)
+            # One spontaneous state (= noplastic test) is subtracted from all input states from noplastic training phase (broadcasting is used)
             most_similar = argmin(sum(abs(norm_last_input_spikes.T - last_spont_spikes[:, i]), axis=1))
 
             hamming_distances[i] = sum(abs(norm_last_input_spikes[:, most_similar] - last_spont_spikes[:, i]))
 
-            # If current state is NOT silent
+            # If current noplastic testing state is NOT silent
             if sum(last_spont_spikes[:,i])>0:
                 if not sorn.c.stats.has_key('hamming_threshold'):
                     # If no threshold is given, just assign states
@@ -321,6 +321,10 @@ class SpontPatternStat(AbstractStat):
             # If current state IS silent
             else:
                 similar_input[i] = -1
+
+        # Store noplastic test steps
+        sorn.c.state.data = spont_spikes
+        utils.logdata("../data/noplastic_test/"+sorn.c.file_name+".npy", sorn.c)
 
         # Store hamming distances for all test states in numpy file
         sorn.c.state.data = hamming_distances

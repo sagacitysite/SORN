@@ -19,12 +19,13 @@ def load(parafile = 'param_mcmc_multi', num_runs=None):
     para = imp.load_source('param_mcmc_multi', PATH+'/michaelis/'+parafile+'.py')
     
     # Set number of runs to evaluate to parameter file if no parameter was set
-    if(num_runs == None):
+    # or chosen num_runs are bigger than avalaible data
+    if num_runs == None or num_runs > para.c.N_iterations:
         num_runs = para.c.N_iterations
     
     # Evaluate ip parameter from parameter file
     ip_param = None
-    if('h_ip_factor' in para.c):
+    if 'h_ip_factor' in para.c:
         ip_param = 'h_ip_factor'
     else:
         if(np.isscalar(para.c.h_ip_range)):
