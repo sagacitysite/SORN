@@ -42,16 +42,17 @@ def get_statistics():
         evoked_indices = np.load(path + '/run' + str(i) + '.npy')
 
         # Calculate spontaneous activity
-        activity.append(spont_activity(spont_spikes))
-
-        sys.exit()
+        #activity.append(spont_activity(spont_spikes))
 
         # Calculate hamming
         hd, markov_state_indices = find_states(spont_spikes, evoked_spikes, evoked_indices)
         hamming_distances.append(hd)
 
+        print(np.shape(hd))
+        print(np.shape(markov_state_indices))
+
         # TODO calculate transitions matrices
-        #learned_transitions.append(get_learned_transitions(markov_state_indices))
+        learned_transitions.append(get_learned_transitions(markov_state_indices))
         
         # TODO calculate transition errors
         # TODO calculate stationaries
@@ -77,18 +78,24 @@ def get_learned_transitions(markov_state_indices):
 
     # TODO
 
-    maxindex = self.c.maxindex
-    transitions = np.zeros((maxindex + 1, maxindex + 1))
+    transition_matrix_dim = np.size(PARA.c.states)
+    transitions = np.zeros((transition_matrix_dim, transition_matrix_dim))
+
+    print(np.shape(markov_state_indices))
+    ind = markov_state_indices
 
     # From all steps count transitions
-    for (i_from, i_to) in zip(input[:-1], input[1:]):
+    for (i_from, i_to) in zip(ind[:-1], ind[1:]):
         transitions[int(i_to), int(i_from)] += 1
 
     # Normalize transitions
-    for i in range(shape(transitions)[0]):
+    for i in range(np.shape(transitions)[0]):
         # Only normalize if sum of transition is not 0
-        if sum(transitions[:, i]) != 0:
-            transitions[:, i] /= sum(transitions[:, i])
+        if np.sum(transitions[:, i]) != 0:
+            transitions[:, i] /= np.sum(transitions[:, i])
+
+    print(transitions.T)
+    sys.exit()
 
     return(transitions)
 
@@ -126,10 +133,25 @@ def find_states(spont_spikes, evoked_spikes, evoked_indices):
     for i in range(N_spont):
         # One spontaneous state (= noplastic test) is subtracted from all input states from noplastic training phase (broadcasting is used)
         # it is searched for the minimal value, which results in the most similar evoked index
-        most_similar_index = np.argmin(np.sum(np.abs(evoked_spikes - spont_spikes[:,:,:,:,:,:,i,np.newaxis]), axis=5))
+        hamming_results = np.sum(np.abs(evoked_spikes - spont_spikes[:,:,:,:,:,:,i,np.newaxis]), axis=5)
+        most_similar_index = np.argmin(hamming_results, axis=5)
+
+        print(np.min(hamming_results, axis=5))
+        print(np.where(hamming_results == np.min(hamming_results, axis=5)))
+        print(np.shape(hamming_results))
+
+        sys.exit()
+
+        evoked_spikes = np.moveaxis(evoked_spikes, 5, -1)
+        print(np.shape(evoked_spikes))
+        print(np.shape(most_similar_index))
 
         # Hamming distance between most_similar state and current spontaneous state i
+        print(np.shape(evoked_spikes[most_similar_index]))
+        #print(np.shape(np.abs(evoked_spikes[:,:,:,:,:,:,most_similar_index] - spont_spikes[:,:,:,:,:,:,i])))
         hamming_distances[i] = np.sum(np.abs(evoked_spikes[:,:,:,:,:,:,most_similar_index] - spont_spikes[:,:,:,:,:,:,i]))
+        print(hamming_distances[i])
+        sys.exit()
 
         # If current noplastic testing state is NOT silent
         if np.sum(spont_spikes[:,:,:,:,:,:,i]) > 0:
