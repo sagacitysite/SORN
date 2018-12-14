@@ -31,7 +31,7 @@ def get_statistics():
     for i in range(NUM_RUNS):
         # Load spontaneous activity for current run
         path = glob.glob(os.path.join(DATAPATH, 'noplastic_test'))[0]
-        spont_spikes = np.load(path + '/run' + str(i) + '.npy')
+        spont_spikes = np.load(path + '/run' + str(i) + '.npy')[:,:,:,:,:,:,0:100]
 
         # Load evoked activity for current run
         path = glob.glob(os.path.join(DATAPATH, 'norm_last_input_spikes'))[0]
@@ -45,7 +45,7 @@ def get_statistics():
         #activity.append(spont_activity(spont_spikes))
 
         # Calculate hamming
-        hd, markov_state_indices = find_states(spont_spikes, evoked_spikes, evoked_indices)
+        hd, markov_state_indices = classify_spont_activtiy(spont_spikes, evoked_spikes, evoked_indices)
         hamming_distances.append(hd)
 
         print(np.shape(hd))
@@ -120,51 +120,57 @@ def spont_activity(spont_spikes):
 """
 @desc: Calculate hamming distances and find markov states in spontaneous activity
 """
-def find_states(spont_spikes, evoked_spikes, evoked_indices):
+def classify_spont_activtiy(spont_spikes, evoked_spikes, evoked_indices):
+    print('# Classify spont activtiy')
+
     # Number of spontaneous trials = noplastic testing trials, including silent ones
     N_spont = np.shape(spont_spikes)[6]
 
     # Define empty array for hamming distances
-    hamming_distances = np.zeros(N_spont)
+    smallest_hamming_distances = []
+    markov_state_indices = []
 
     # Find for each spontaneous state (= noplastic test) state the evoked state (= noplastic train) with the
     # smallest hamming distance and store the corresponding index
-    markov_state_indices = np.zeros(N_spont)
     for i in range(N_spont):
         # One spontaneous state (= noplastic test) is subtracted from all input states from noplastic training phase (broadcasting is used)
         # it is searched for the minimal value, which results in the most similar evoked index
-        hamming_results = np.sum(np.abs(evoked_spikes - spont_spikes[:,:,:,:,:,:,i,np.newaxis]), axis=5)
-        most_similar_index = np.argmin(hamming_results, axis=5)
+        h = np.sum(np.abs(evoked_spikes - spont_spikes[:,:,:,:,:,:,i,np.newaxis]), axis=5)
+        most_similar_index = np.argmin(h, axis=5)
 
-        print(np.min(hamming_results, axis=5))
-        print(np.where(hamming_results == np.min(hamming_results, axis=5)))
-        print(np.shape(hamming_results))
+        # Hamming distance between most_similar state and current spontaneous state
+        shp = [np.arange(x) for x in h.shape]
+        hd = h[shp[0], shp[1], shp[2], shp[3], shp[4], np.squeeze(most_similar_index)]
+        hd = np.reshape(hd, tuple(np.asarray(h.shape)[:-1]))
+        
+        smallest_hamming_distances.append(hd)
 
-        sys.exit()
+        # TODO
 
-        evoked_spikes = np.moveaxis(evoked_spikes, 5, -1)
-        print(np.shape(evoked_spikes))
-        print(np.shape(most_similar_index))
+        # Classify markov states
+        shp = [np.arange(x) for x in evoked_indices.shape]
+        msi = evoked_indices[shp[0], shp[1], shp[2], shp[3], shp[4], np.squeeze(most_similar_index)]
+        msi = np.reshape(msi, tuple(np.asarray(h.shape)[:-1]))
 
-        # Hamming distance between most_similar state and current spontaneous state i
-        print(np.shape(evoked_spikes[most_similar_index]))
-        #print(np.shape(np.abs(evoked_spikes[:,:,:,:,:,:,most_similar_index] - spont_spikes[:,:,:,:,:,:,i])))
-        hamming_distances[i] = np.sum(np.abs(evoked_spikes[:,:,:,:,:,:,most_similar_index] - spont_spikes[:,:,:,:,:,:,i]))
-        print(hamming_distances[i])
-        sys.exit()
+        markov_state_indices.append(msi)
 
-        # If current noplastic testing state is NOT silent
-        if np.sum(spont_spikes[:,:,:,:,:,:,i]) > 0:
-            if not PARA.c.stats.has_key('hamming_threshold'):
-                # If no threshold is given, just assign states
-                markov_state_indices[i] = evoked_indices[:,:,:,:,:,most_similar_index]
-            else:
-                # If threshold was met, apply state otherwise apply silent
-                markov_state_indices[i] = evoked_indices[:,:,:,:,:,most_similar_index] if hamming_distances[i] < PARA.c.stats.hamming_threshold else -1
+        # # If current noplastic testing state is NOT silent
+        # if np.sum(spont_spikes[:,:,:,:,:,:,i]) > 0:
+        #     if not PARA.c.stats.has_key('hamming_threshold'):
+        #         # If no threshold is given, just assign states
+        #         markov_state_indices[i] = evoked_indices[:,:,:,:,:,most_similar_index]
+        #     else:
+        #         # If threshold was met, apply state otherwise apply silent
+        #         markov_state_indices[i] = evoked_indices[:,:,:,:,:,most_similar_index] if hd < PARA.c.stats.hamming_threshold else -1
 
-        # If current state IS silent
-        else:
-            markov_state_indices[i] = -1
+        # # If current state IS silent
+        # else:
+        #     markov_state_indices[i] = -1
 
-    return hamming_distances, markov_state_indices
+    shd = np.stack(smallest_hamming_distances, axis=5)
+    msi = np.stack(markov_state_indices, axis=5)
+    print(msi)
+    sys.exit()
+
+    return shd, msi
 
