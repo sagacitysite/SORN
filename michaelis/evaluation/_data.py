@@ -1,5 +1,6 @@
 from evaluation import *
 import glob
+import pandas
 
 """
 @desc: Prepare data from files to numpy array
@@ -31,7 +32,7 @@ def get_statistics():
     for i in range(NUM_RUNS):
         # Load spontaneous activity for current run
         path = glob.glob(os.path.join(DATAPATH, 'noplastic_test'))[0]
-        spont_spikes = np.load(path + '/run' + str(i) + '.npy')[:,:,:,:,:,:,0:100]
+        spont_spikes = np.load(path + '/run' + str(i) + '.npy')[:,:,:,:,:,:,0:500]
 
         # Load evoked activity for current run
         path = glob.glob(os.path.join(DATAPATH, 'norm_last_input_spikes'))[0]
@@ -48,13 +49,14 @@ def get_statistics():
         hd, markov_state_indices = classify_spont_activtiy(spont_spikes, evoked_spikes, evoked_indices)
         hamming_distances.append(hd)
 
-        print(np.shape(hd))
-        print(np.shape(markov_state_indices))
-
-        # TODO calculate transitions matrices
+        # Calculate transitions matrices
         learned_transitions.append(get_learned_transitions(markov_state_indices))
+
+        print(learned_transitions)
         
         # TODO calculate transition errors
+        
+
         # TODO calculate stationaries
 
         sys.exit()
@@ -70,34 +72,33 @@ def get_statistics():
 
     return spont_stats_all
 
+"""
+@desc: Helper function, uses pandas crosstab function to calculate cross table of indices
+"""
+def calc_crosstable(ind):
+    # Arguments for crosstab function: from = ind[:-1], to = ind[1:]
+    # Transform pandas format to numpy array
+    cross_table = np.array(pandas.crosstab(ind[:-1], ind[1:])).astype(float)
+
+    # If some states are missing in the cross table, throw an error
+    if np.shape(cross_table)[0] < np.size(PARA.c.states):
+        raise Exception(
+                'Some states did not occure. Probably the number of test steps needs to be increased')
+
+    # Normalize cross table
+    for i in range(np.shape(cross_table)[0]):
+        # Only normalize if sum of transition is not 0
+        if np.sum(cross_table[:, i]) != 0:
+            cross_table[:, i] /= np.sum(cross_table[:, i])
+    
+    return cross_table.T
 
 """
 @desc: Calculate transition matrices
 """
 def get_learned_transitions(markov_state_indices):
-
-    # TODO
-
-    transition_matrix_dim = np.size(PARA.c.states)
-    transitions = np.zeros((transition_matrix_dim, transition_matrix_dim))
-
-    print(np.shape(markov_state_indices))
-    ind = markov_state_indices
-
-    # From all steps count transitions
-    for (i_from, i_to) in zip(ind[:-1], ind[1:]):
-        transitions[int(i_to), int(i_from)] += 1
-
-    # Normalize transitions
-    for i in range(np.shape(transitions)[0]):
-        # Only normalize if sum of transition is not 0
-        if np.sum(transitions[:, i]) != 0:
-            transitions[:, i] /= np.sum(transitions[:, i])
-
-    print(transitions.T)
-    sys.exit()
-
-    return(transitions)
+    # Caculate transitions for all data
+    return np.apply_along_axis(calc_crosstable, 5, markov_state_indices)
 
 """
 @desc: Statistic: sponaneous activity for one run
@@ -169,8 +170,6 @@ def classify_spont_activtiy(spont_spikes, evoked_spikes, evoked_indices):
 
     shd = np.stack(smallest_hamming_distances, axis=5)
     msi = np.stack(markov_state_indices, axis=5)
-    print(msi)
-    sys.exit()
 
     return shd, msi
 
