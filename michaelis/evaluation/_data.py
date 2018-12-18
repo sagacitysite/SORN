@@ -22,6 +22,18 @@ def load(sources):
         data[d] = np.stack(arrays, axis=0)
     return data
 
+
+"""
+@desc: Chunk data
+"""
+def chunk_data(data, axis, moveto):
+    # Chunk data
+    chunked = np.split(data, NUM_CHUNKS, axis=axis)
+
+    # Move axis and return chunked data
+    return np.moveaxis(chunked, 0, moveto)
+
+
 """
 @desc: Derive statistics from data
 """
@@ -29,10 +41,14 @@ def get_statistics():
     activity = []
     hamming_distances = []
     learned_transitions = []
+    l1_errors = []
+    l2_errors = []
     for i in range(NUM_RUNS):
+        print('# Prepare data for run '+str(i+1))
+
         # Load spontaneous activity for current run
         path = glob.glob(os.path.join(DATAPATH, 'noplastic_test'))[0]
-        spont_spikes = np.load(path + '/run' + str(i) + '.npy')[:,:,:,:,:,:,0:500]
+        spont_spikes = np.load(path + '/run' + str(i) + '.npy')
 
         # Load evoked activity for current run
         path = glob.glob(os.path.join(DATAPATH, 'norm_last_input_spikes'))[0]
@@ -43,34 +59,64 @@ def get_statistics():
         evoked_indices = np.load(path + '/run' + str(i) + '.npy')
 
         # Calculate spontaneous activity
-        #activity.append(spont_activity(spont_spikes))
+        activity.append(spont_activity(spont_spikes))
 
         # Calculate hamming
         hd, markov_state_indices = classify_spont_activtiy(spont_spikes, evoked_spikes, evoked_indices)
         hamming_distances.append(hd)
 
         # Calculate transitions matrices
-        learned_transitions.append(get_learned_transitions(markov_state_indices))
+        lt = get_learned_transitions(markov_state_indices)
+        learned_transitions.append(lt)
 
-        print(learned_transitions)
-        
-        # TODO calculate transition errors
-        
+        # Calculate errors
+        l1_error, l2_error = get_errors(lt)
+        l1_errors.append(l1_error)
+        l2_errors.append(l2_error)
 
         # TODO calculate stationaries
+        # Is this still necessary at that place in code?
 
-        sys.exit()
-
-        # ...
+        # TODO ncomparison
+        # Is this still necessary?
     
     # Stack all statistics together
     spont_stats_all = np.stack(activity, axis=0)
     # ...
 
-    #print(np.shape(spont_stats_all))
-    # Axes: runs, models, train steps, thresholds, h_ip, #ee-connections, neurons, chunks
-
+    # Axes: runs, models, train steps, thresholds, h_ip, #ee-connections, neurons
     return spont_stats_all
+
+"""
+@desc: Calculate transition errors
+"""
+def get_errors(learned_transitions):
+    print(np.shape(learned_transitions))
+    # Get learned transitions and initally chosen transitions (used to train the network)
+    lt = np.moveaxis(learned_transitions, 0, -3)  # Move 'models' axis to the third last one
+    it = PARA.c.source.transitions
+
+    # Number of steps, where transition matrix is calculated for
+    num_steps = np.size(PARA.c.states)
+
+    print(np.shape(lt))
+
+    # Normalized L1 matrix norm of differences
+    l1_error = np.sum(np.abs(lt - it), axis=(6,7))/np.square(num_steps)
+    print(np.shape(l1_error))
+    l1_error = np.moveaxis(l1_error, 5, 0)
+    print(np.shape(l1_error))
+
+    # Normalized L2 matrix norm of difference
+    l2_error = np.sqrt(np.sum(np.square(lt - it), axis=(6,7)))/num_steps
+    print(np.shape(l2_error))
+    l2_error = np.moveaxis(l2_error, 5, 0)
+    print(np.shape(l2_error))
+    sys.exit()
+
+    # TODO Apply network with 15000 steps (3 chunks) and check if dimensions are correct
+
+    return l1_error, l2_error
 
 """
 @desc: Helper function, uses pandas crosstab function to calculate cross table of indices
@@ -98,32 +144,26 @@ def calc_crosstable(ind):
 """
 def get_learned_transitions(markov_state_indices):
     # Caculate transitions for all data
-    return np.apply_along_axis(calc_crosstable, 5, markov_state_indices)
+    return np.apply_along_axis(calc_crosstable, 6, markov_state_indices)
 
 """
 @desc: Statistic: sponaneous activity for one run
 """
 def spont_activity(spont_spikes):
-    chunk_size = PARA.c.stats.transition_step_size
-    spont_spikes_steps = PARA.c.steps_noplastic_test
-    num_transition_steps = int(round((spont_spikes_steps / chunk_size) - 0.5))
-
-    # Chunk the activity
-    spont_activity_chunks = [spont_spikes[:,:,:,:,:,:,i*chunk_size:(i+1)*chunk_size] for i in range(num_transition_steps)]
+    # Chunk spikes
+    spont_spikes = chunk_data(spont_spikes, axis=6, moveto=-3)
     # Mean over neurons and chunks
-    spont_activity_chunks_mean = np.mean(spont_activity_chunks, axis=(6,7))
+    spont_activity_mean = np.mean(spont_spikes, axis=(6,7))
     # Move chunk axis to the end of the array (sucht that it replaces steps)
-    spont_activity_chunks_mean = np.moveaxis(spont_activity_chunks_mean, 0, -1)
+    spont_activity_mean = np.moveaxis(spont_activity_mean, 0, -1)
     # Axes: models, train steps, thresholds, h_ip, #ee-connections, chunks
 
-    return spont_activity_chunks_mean
+    return spont_activity_mean
 
 """
 @desc: Calculate hamming distances and find markov states in spontaneous activity
 """
 def classify_spont_activtiy(spont_spikes, evoked_spikes, evoked_indices):
-    print('# Classify spont activtiy')
-
     # Number of spontaneous trials = noplastic testing trials, including silent ones
     N_spont = np.shape(spont_spikes)[6]
 
@@ -146,8 +186,6 @@ def classify_spont_activtiy(spont_spikes, evoked_spikes, evoked_indices):
         
         smallest_hamming_distances.append(hd)
 
-        # TODO
-
         # Classify markov states
         shp = [np.arange(x) for x in evoked_indices.shape]
         msi = evoked_indices[shp[0], shp[1], shp[2], shp[3], shp[4], np.squeeze(most_similar_index)]
@@ -155,21 +193,7 @@ def classify_spont_activtiy(spont_spikes, evoked_spikes, evoked_indices):
 
         markov_state_indices.append(msi)
 
-        # # If current noplastic testing state is NOT silent
-        # if np.sum(spont_spikes[:,:,:,:,:,:,i]) > 0:
-        #     if not PARA.c.stats.has_key('hamming_threshold'):
-        #         # If no threshold is given, just assign states
-        #         markov_state_indices[i] = evoked_indices[:,:,:,:,:,most_similar_index]
-        #     else:
-        #         # If threshold was met, apply state otherwise apply silent
-        #         markov_state_indices[i] = evoked_indices[:,:,:,:,:,most_similar_index] if hd < PARA.c.stats.hamming_threshold else -1
-
-        # # If current state IS silent
-        # else:
-        #     markov_state_indices[i] = -1
-
-    shd = np.stack(smallest_hamming_distances, axis=5)
-    msi = np.stack(markov_state_indices, axis=5)
+    shd = chunk_data(np.stack(smallest_hamming_distances, axis=5), axis=5, moveto=-2)
+    msi = chunk_data(np.stack(markov_state_indices, axis=5), axis=5, moveto=-2)
 
     return shd, msi
-

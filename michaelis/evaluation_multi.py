@@ -14,6 +14,9 @@ sources = ev._configure.sources()
 
 stats = ev._data.get_statistics()
 
+print('stats')
+print(stats)
+
 sys.exit()
 
 # Indices

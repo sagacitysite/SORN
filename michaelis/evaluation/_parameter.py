@@ -32,5 +32,10 @@ def load(parafile = 'param_mcmc_multi', num_runs=None):
             ip_param = 'eta_ip'
         elif(np.isscalar(para.c.eta_ip)):
             ip_param = 'h_ip_range'
+
+    # Calculate number of chunks
+    chunk_size = para.c.stats.transition_step_size
+    spont_spikes_steps = para.c.steps_noplastic_test
+    num_chunks = int(round((spont_spikes_steps / chunk_size) - 0.5))
             
-    return para, num_runs, ip_param
+    return para, num_runs, ip_param, num_chunks

@@ -497,7 +497,7 @@ class SpontTransitionDistance(AbstractStat):
         
         # Matrix norm (normalize to values between 0 (no error) and 1 (max error))
         n = np.shape(transitions)[1]
-        transnorms = np.abs(np.sum(np.square(transitions), axis=(1,2)) - np.sum(np.square(transitions_org)))/(n-1)
+        transnorms = np.abs(np.sum(np.square(transitions) - np.square(transitions_org), axis=(1,2)))/(n-1)
         
         # Store norm in numpy file
         sorn.c.state.data = transnorms

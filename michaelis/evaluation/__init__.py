@@ -40,7 +40,7 @@ Initialize evaluation module
 
 # Load parameter
 from . import _parameter
-PARA, NUM_RUNS, IP = _parameter.load(num_runs = 2)
+PARA, NUM_RUNS, IP, NUM_CHUNKS = _parameter.load(num_runs = 2)
 
 # Load configs
 from . import _configure
