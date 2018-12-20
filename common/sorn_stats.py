@@ -108,8 +108,8 @@ class ActivityStat(AbstractStat):
         test_activity_chunks_mean = mean(test_activity_chunks, axis=1)
 
         # Save mean activity in numpy file
-        sorn.c.state.data = test_activity_chunks_mean
-        utils.logdata("../data/activity/"+sorn.c.file_name+".npy", sorn.c)
+        #sorn.c.state.data = test_activity_chunks_mean
+        #utils.logdata("../data/activity/"+sorn.c.file_name+".npy", sorn.c)
 
         return activity
         
@@ -248,8 +248,8 @@ class NormLastStat(AbstractStat):
         sorn.c.state.data = norm_last_input_index
         utils.logdata("../data/norm_last_input_index/"+sorn.c.file_name+".npy", sorn.c)
         
-        sorn.c.state.data = np.array([np.shape(norm_last_input_index)[0]])
-        utils.logdata("../data/ncomparison/"+sorn.c.file_name+".npy", sorn.c)
+        #sorn.c.state.data = np.array([np.shape(norm_last_input_index)[0]])
+        #utils.logdata("../data/ncomparison/"+sorn.c.file_name+".npy", sorn.c)
 
         # Shuffle to avoid argmin-problem of selecting only first match
         indices = arange(shape(norm_last_input_index)[0])
@@ -286,54 +286,54 @@ class SpontPatternStat(AbstractStat):
         maxindex = c.maxindex
         N_comparison = c.N_comparison
 
-        #last_spont_spikes = spont_spikes[:,-N_comparison:]
-        last_spont_spikes = spont_spikes
+        # #last_spont_spikes = spont_spikes[:,-N_comparison:]
+        # last_spont_spikes = spont_spikes
 
-        # Remove silent periods from spontspikes
-        #last_spont_spikes = last_spont_spikes[:,sum(last_spont_spikes,0)>0]
+        # # Remove silent periods from spontspikes
+        # #last_spont_spikes = last_spont_spikes[:,sum(last_spont_spikes,0)>0]
 
-        # Number of spontaneous trials = noplastic testing trials, including silent ones
-        N_comp_spont = shape(last_spont_spikes)[1]
+        # # Number of spontaneous trials = noplastic testing trials, including silent ones
+        # N_comp_spont = shape(last_spont_spikes)[1]
 
-        # Define empty array for hamming distances
-        hamming_distances = np.empty(N_comp_spont)
+        # # Define empty array for hamming distances
+        # hamming_distances = np.empty(N_comp_spont)
 
-        # Find for each spontaneous state (= noplastic test) state the evoked state (= noplastic train) with the
-        # smallest hamming distance and store the corresponding index
-        similar_input = zeros(N_comp_spont)
-        for i in xrange(N_comp_spont):
-            # One spontaneous state (= noplastic test) is subtracted from all input states from noplastic training phase (broadcasting is used)
-            most_similar = argmin(sum(abs(norm_last_input_spikes.T - last_spont_spikes[:, i]), axis=1))
+        # # Find for each spontaneous state (= noplastic test) state the evoked state (= noplastic train) with the
+        # # smallest hamming distance and store the corresponding index
+        # similar_input = zeros(N_comp_spont)
+        # for i in xrange(N_comp_spont):
+        #     # One spontaneous state (= noplastic test) is subtracted from all input states from noplastic training phase (broadcasting is used)
+        #     most_similar = argmin(sum(abs(norm_last_input_spikes.T - last_spont_spikes[:, i]), axis=1))
 
-            hamming_distances[i] = sum(abs(norm_last_input_spikes[:, most_similar] - last_spont_spikes[:, i]))
+        #     hamming_distances[i] = sum(abs(norm_last_input_spikes[:, most_similar] - last_spont_spikes[:, i]))
 
-            # If current noplastic testing state is NOT silent
-            if sum(last_spont_spikes[:,i])>0:
-                if not sorn.c.stats.has_key('hamming_threshold'):
-                    # If no threshold is given, just assign states
-                    similar_input[i] = norm_last_input_index[most_similar]
-                else:
-                    # If threshold was met, apply state otherwise apply silent
-                    similar_input[i] = norm_last_input_index[most_similar] if hamming_distances[i] < sorn.c.stats.hamming_threshold else -1
+        #     # If current noplastic testing state is NOT silent
+        #     if sum(last_spont_spikes[:,i])>0:
+        #         if not sorn.c.stats.has_key('hamming_threshold'):
+        #             # If no threshold is given, just assign states
+        #             similar_input[i] = norm_last_input_index[most_similar]
+        #         else:
+        #             # If threshold was met, apply state otherwise apply silent
+        #             similar_input[i] = norm_last_input_index[most_similar] if hamming_distances[i] < sorn.c.stats.hamming_threshold else -1
 
-                #similar_input[i] = norm_last_input_index[most_similar]
+        #         #similar_input[i] = norm_last_input_index[most_similar]
 
-            # If current state IS silent
-            else:
-                similar_input[i] = -1
+        #     # If current state IS silent
+        #     else:
+        #         similar_input[i] = -1
 
         # Store noplastic test steps
         sorn.c.state.data = spont_spikes
         utils.logdata("../data/noplastic_test/"+sorn.c.file_name+".npy", sorn.c)
 
         # Store hamming distances for all test states in numpy file
-        sorn.c.state.data = hamming_distances
-        utils.logdata("../data/hamming_distances/"+sorn.c.file_name+".npy", sorn.c)
+        #sorn.c.state.data = hamming_distances
+        #utils.logdata("../data/hamming_distances/"+sorn.c.file_name+".npy", sorn.c)
 
         # If more than 50% of all trials are silent, throw error
-        if np.count_nonzero(similar_input == -1) > 0.50*N_comp_spont:
-            raise Exception(
-                'There are too many silent passes to calculate statistics, please change the parameters')
+        # if np.count_nonzero(similar_input == -1) > 0.50*N_comp_spont:
+        #     raise Exception(
+        #         'There are too many silent passes to calculate statistics, please change the parameters')
 
 
 
@@ -355,39 +355,39 @@ class SpontPatternStat(AbstractStat):
         # # Separate similar_input into chunks of size
         # similar_input
 
-        # Count the number of spontaneous states for each index
-        index = range(maxindex+1)
-        if self.collection == 'gatherv':
-            adding = 2
-        else:
-            adding = 1
-        pattern_freqs = zeros((2,maxindex+adding))
-        barcolor = []
-        for i in index:
-            pattern_freqs[0,i] = sum(similar_input==index[i])
+        # # Count the number of spontaneous states for each index
+        # index = range(maxindex+1)
+        # if self.collection == 'gatherv':
+        #     adding = 2
+        # else:
+        #     adding = 1
+        # pattern_freqs = zeros((2,maxindex+adding))
+        # barcolor = []
+        # for i in index:
+        #     pattern_freqs[0,i] = sum(similar_input==index[i])
 
-        # Compare patterns
-        # Forward patterns ([0,1,2,3],[4,5,6,7],...)
-        patterns = array([arange(len(w))+source_plastic.glob_ind[i] \
-                         for (i,w) in enumerate(source_plastic.words)])
-        rev_patterns = array([x[::-1] for x in patterns])
-        maxlen = max([len(x) for x in patterns])
-        # Also get the reversed patterns
-        if maxlen>1: # Single letters can't be reversed
-            allpatterns = array(patterns.tolist()+rev_patterns.tolist())
-        else:
-            allpatterns = array(patterns.tolist())
-        for (i,p) in enumerate(allpatterns):
-            patternlen = len(p)
-            for j in xrange(N_comp_spont-maxlen):
-                if all(similar_input[j:j+patternlen] == p):
-                    pattern_freqs[1,i] += 1
-        # Marker for end of freqs
-        if self.collection == 'gatherv':
-            pattern_freqs[:,-1] = -1
-        c.similar_input = similar_input
+        # # Compare patterns
+        # # Forward patterns ([0,1,2,3],[4,5,6,7],...)
+        # patterns = array([arange(len(w))+source_plastic.glob_ind[i] \
+        #                  for (i,w) in enumerate(source_plastic.words)])
+        # rev_patterns = array([x[::-1] for x in patterns])
+        # maxlen = max([len(x) for x in patterns])
+        # # Also get the reversed patterns
+        # if maxlen>1: # Single letters can't be reversed
+        #     allpatterns = array(patterns.tolist()+rev_patterns.tolist())
+        # else:
+        #     allpatterns = array(patterns.tolist())
+        # for (i,p) in enumerate(allpatterns):
+        #     patternlen = len(p)
+        #     for j in xrange(N_comp_spont-maxlen):
+        #         if all(similar_input[j:j+patternlen] == p):
+        #             pattern_freqs[1,i] += 1
+        # # Marker for end of freqs
+        # if self.collection == 'gatherv':
+        #     pattern_freqs[:,-1] = -1
+        # c.similar_input = similar_input
 
-        return(pattern_freqs)
+        return spont_spikes
 
 class SpontTransitionAllStat(AbstractStat):
     """
@@ -444,8 +444,8 @@ class SpontTransitionAllStat(AbstractStat):
         c.transitions = transition_matrices
 
         # Store stationary
-        sorn.c.state.data = stationaries
-        utils.logdata("../data/estimated_stationaries/"+sorn.c.file_name+".npy", sorn.c)
+        #sorn.c.state.data = stationaries
+        #utils.logdata("../data/estimated_stationaries/"+sorn.c.file_name+".npy", sorn.c)
         #sorn.c.state.data = transition_matrices
         #utils.logdata("../data/transition_matrices/"+sorn.c.file_name+".npy", sorn.c)
 
@@ -492,22 +492,22 @@ class SpontTransitionDistance(AbstractStat):
         distances = np.sum(np.square(transitions - np.transpose(transitions_org)), axis=(1,2))
         
         # Store distances in numpy file
-        sorn.c.state.data = distances
-        utils.logdata("../data/transition_distances/" + sorn.c.file_name + ".npy", sorn.c)
+        #sorn.c.state.data = distances
+        #utils.logdata("../data/transition_distances/" + sorn.c.file_name + ".npy", sorn.c)
         
         # Matrix norm (normalize to values between 0 (no error) and 1 (max error))
-        n = np.shape(transitions)[1]
-        transnorms = np.abs(np.sum(np.square(transitions) - np.square(transitions_org), axis=(1,2)))/(n-1)
+        #n = np.shape(transitions)[1]
+        #transnorms = np.abs(np.sum(np.square(transitions) - np.square(transitions_org), axis=(1,2)))/(n-1)
         
         # Store norm in numpy file
-        sorn.c.state.data = transnorms
-        utils.logdata("../data/transition_norms/" + sorn.c.file_name + ".npy", sorn.c)
+        #sorn.c.state.data = transnorms
+        #utils.logdata("../data/transition_norms/" + sorn.c.file_name + ".npy", sorn.c)
 
         return(distances)
 
-class EEWeightStats(AbstractStat):
+class WeightStat(AbstractStat):
     def __init__(self):
-        self.name = 'EEWeightStats'
+        self.name = 'WeightStat'
         self.collection = 'gather'
     def clear(self,c,sorn):
         pass

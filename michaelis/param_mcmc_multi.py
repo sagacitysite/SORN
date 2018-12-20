@@ -42,7 +42,7 @@ c.W_ie = utils.Bunch(use_sparse=False,
 
 c.steps_plastic = np.array([20000])  #np.array([0, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]) # default: np.array([50000])
 c.steps_noplastic_train = 20000  #50000
-c.steps_noplastic_test = 10000  #40000
+c.steps_noplastic_test = 15000  #40000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train + c.steps_noplastic_test
 c.display = False # Stop displaying stuff
 

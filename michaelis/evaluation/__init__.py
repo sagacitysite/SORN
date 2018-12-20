@@ -40,11 +40,7 @@ Initialize evaluation module
 
 # Load parameter
 from . import _parameter
-PARA, NUM_RUNS, IP, NUM_CHUNKS = _parameter.load(num_runs = 2)
-
-# Load configs
-from . import _configure
-FIG_COLOR, LEGEND_SIZE, FILE_TYPE = _configure.plots()
+PARA, NUM_RUNS, IP, NUM_CHUNKS, FIG_COLOR, LEGEND_SIZE, FILE_TYPE = _parameter.load(num_runs = 2)
 
 # Import all other evaluation functions
 from . import _data

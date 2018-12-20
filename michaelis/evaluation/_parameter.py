@@ -1,6 +1,34 @@
 from evaluation import *
 
 """
+@desc: Configure plots
+"""
+def get_plot_parameters():
+    fig_color = '#000000'
+    legend_size = 12  # 12/14
+    file_type = 'png'  # svg, pdf
+
+    rcParams['font.family'] = 'CMU Serif'
+    rcParams['font.size'] = '14'  # 14/20
+    rcParams['text.color'] = fig_color
+    rcParams['axes.edgecolor'] = fig_color
+    rcParams['xtick.color'] = fig_color
+    rcParams['ytick.color'] = fig_color
+    rcParams['axes.grid'] = True
+    rcParams['grid.linestyle'] = ':'
+    rcParams['grid.linewidth'] = 0.5
+    rcParams['grid.color'] = fig_color
+    rcParams['legend.fancybox'] = True
+    rcParams['legend.framealpha'] = 0.2  # 0.75
+    rcParams['patch.linewidth'] = 0
+    #rcParams['figure.autolayout'] = True
+    
+    #print(rcParams.keys())
+    
+    return fig_color, legend_size, file_type
+
+
+"""
 @desc: Load parameters
 """
 def load(parafile = 'param_mcmc_multi', num_runs=None):
@@ -37,5 +65,8 @@ def load(parafile = 'param_mcmc_multi', num_runs=None):
     chunk_size = para.c.stats.transition_step_size
     spont_spikes_steps = para.c.steps_noplastic_test
     num_chunks = int(round((spont_spikes_steps / chunk_size) - 0.5))
+
+    # Load plot parameters
+    fig_color, legend_size, file_type = get_plot_parameters()
             
-    return para, num_runs, ip_param, num_chunks
+    return para, num_runs, ip_param, num_chunks, fig_color, legend_size, file_type

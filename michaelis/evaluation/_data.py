@@ -1,51 +1,40 @@
 from evaluation import *
+import evaluation as ev
 import glob
 import pandas
-
-"""
-@desc: Prepare data from files to numpy array
-"""
-def load(sources):
-    print('# Load data')
-    
-    data = sources
-    for d in sources:
-        folder = None
-        if (d == 'transition_distances'):
-            folder = 'transition_norms'
-        else:
-            folder = d
-        # Get folder and store files in arrays
-        path = glob.glob(os.path.join(DATAPATH, folder))[0]
-        arrays = [np.load(path + '/run' + str(run) + '.npy') for run in range(NUM_RUNS)]
-        # Stack arrays to one array
-        data[d] = np.stack(arrays, axis=0)
-    return data
-
-
-"""
-@desc: Chunk data
-"""
-def chunk_data(data, axis, moveto):
-    # Chunk data
-    chunked = np.split(data, NUM_CHUNKS, axis=axis)
-
-    # Move axis and return chunked data
-    return np.moveaxis(chunked, 0, moveto)
-
 
 """
 @desc: Derive statistics from data
 """
 def get_statistics():
-    activity = []
-    hamming_distances = []
-    learned_transitions = []
-    l1_errors = []
-    l2_errors = []
-    for i in range(NUM_RUNS):
-        print('# Prepare data for run '+str(i+1))
+    # Initalize stats dictionary
+    stats = {
+        'activity': [],
+        'hamming_distances': [],
+        'transition_matrices': [],
+        'stationary_distributions': [],
+        'l1_errors': [],
+        'l2_errors': [],
+        'weights_ee': [],
+        'weights_eu': [] }
+    
+    # If statistics are already cached, just get them from cache file
+    cache_path = DATAPATH + '/statistics_cache.npz'
+    if os.path.exists(cache_path):
+        print('# Load statistics')
+        return np.load(cache_path)    
 
+    # If statistics are not cached, run the procedure
+    sys.stdout.write('# Prepare statistics ')
+    sys.stdout.flush()
+
+    for i in range(NUM_RUNS):
+        sys.stdout.write('.')
+        sys.stdout.flush()
+
+        """
+        Load data from selected backup folder
+        """
         # Load spontaneous activity for current run
         path = glob.glob(os.path.join(DATAPATH, 'noplastic_test'))[0]
         spont_spikes = np.load(path + '/run' + str(i) + '.npy')
@@ -58,63 +47,77 @@ def get_statistics():
         path = glob.glob(os.path.join(DATAPATH, 'norm_last_input_index'))[0]
         evoked_indices = np.load(path + '/run' + str(i) + '.npy')
 
+        # Load weights EE
+        path = glob.glob(os.path.join(DATAPATH, 'weights_ee'))[0]
+        stats['weights_ee'].append(np.load(path + '/run' + str(i) + '.npy'))
+
+        # Load weights EU
+        path = glob.glob(os.path.join(DATAPATH, 'weights_eu'))[0]
+        stats['weights_eu'].append(np.load(path + '/run' + str(i) + '.npy'))
+
+        """
+        Calculate statistcs, based on the loaded data
+        """
         # Calculate spontaneous activity
-        activity.append(spont_activity(spont_spikes))
+        stats['activity'].append(spont_activity(spont_spikes))
 
         # Calculate hamming
         hd, markov_state_indices = classify_spont_activtiy(spont_spikes, evoked_spikes, evoked_indices)
-        hamming_distances.append(hd)
+        stats['hamming_distances'].append(hd)
 
-        # Calculate transitions matrices
-        lt = get_learned_transitions(markov_state_indices)
-        learned_transitions.append(lt)
+        # Calculate transitions matrices and stationary distributions
+        lt, sd = get_learned_transitions_and_stationaries(markov_state_indices)
+        stats['transition_matrices'].append(lt)
+        stats['stationary_distributions'].append(sd)
 
         # Calculate errors
         l1_error, l2_error = get_errors(lt)
-        l1_errors.append(l1_error)
-        l2_errors.append(l2_error)
-
-        # TODO calculate stationaries
-        # Is this still necessary at that place in code?
+        stats['l1_errors'].append(l1_error)
+        stats['l2_errors'].append(l2_error)
 
         # TODO ncomparison
         # Is this still necessary?
-    
+
+    print(' .')
+
     # Stack all statistics together
-    spont_stats_all = np.stack(activity, axis=0)
-    # ...
+    for key in stats:
+        stats[key] = np.stack(stats[key], axis=0)
+
+    # Cache results
+    np.savez_compressed(cache_path, **stats)
 
     # Axes: runs, models, train steps, thresholds, h_ip, #ee-connections, neurons
-    return spont_stats_all
+    return stats
+
+"""
+@desc: Chunk data
+"""
+def chunk_data(data, axis, moveto):
+    # Chunk data (note: be carful, NUM_CHUNKS is calculated initially, depending on overall available data)
+    chunked = np.split(data, NUM_CHUNKS, axis=axis)
+
+    # Move axis and return chunked data
+    return np.moveaxis(chunked, 0, moveto)
 
 """
 @desc: Calculate transition errors
 """
-def get_errors(learned_transitions):
-    print(np.shape(learned_transitions))
+def get_errors(transition_matrices):
     # Get learned transitions and initally chosen transitions (used to train the network)
-    lt = np.moveaxis(learned_transitions, 0, -3)  # Move 'models' axis to the third last one
+    lt = np.moveaxis(transition_matrices, 0, -3)  # Move 'models' axis to the third last one
     it = PARA.c.source.transitions
 
     # Number of steps, where transition matrix is calculated for
-    num_steps = np.size(PARA.c.states)
-
-    print(np.shape(lt))
+    num_states = np.size(PARA.c.states)
 
     # Normalized L1 matrix norm of differences
-    l1_error = np.sum(np.abs(lt - it), axis=(6,7))/np.square(num_steps)
-    print(np.shape(l1_error))
+    l1_error = np.sum(np.abs(lt - it), axis=(6,7))/np.square(num_states)
     l1_error = np.moveaxis(l1_error, 5, 0)
-    print(np.shape(l1_error))
 
     # Normalized L2 matrix norm of difference
-    l2_error = np.sqrt(np.sum(np.square(lt - it), axis=(6,7)))/num_steps
-    print(np.shape(l2_error))
+    l2_error = np.sqrt(np.sum(np.square(lt - it), axis=(6,7)))/num_states
     l2_error = np.moveaxis(l2_error, 5, 0)
-    print(np.shape(l2_error))
-    sys.exit()
-
-    # TODO Apply network with 15000 steps (3 chunks) and check if dimensions are correct
 
     return l1_error, l2_error
 
@@ -140,11 +143,45 @@ def calc_crosstable(ind):
     return cross_table.T
 
 """
+@desc: Helper function to prepare data for calling stationary_distribution() function
+       A reshaped matrix is given, which is reshaped again in normal squared matrix form,
+       before it is applied to the stationary_distribution() function
+"""
+def calc_stationary_distribution(transition_matrix_reshaped):
+    # Reshape transition matrix in squared form
+    num_states = np.size(PARA.c.states)
+    transition_matrix = np.reshape(transition_matrix_reshaped, (num_states, num_states))
+
+    # Calculate stationary distribution
+    stationary = ev._helper.stationary_distribution(transition_matrix)
+    return stationary
+
+"""
 @desc: Calculate transition matrices
 """
-def get_learned_transitions(markov_state_indices):
+def get_learned_transitions_and_stationaries(markov_state_indices):
+    """
+    Calculate transition matices
+    """
     # Caculate transitions for all data
-    return np.apply_along_axis(calc_crosstable, 6, markov_state_indices)
+    transition_matrices = np.apply_along_axis(calc_crosstable, 6, markov_state_indices)
+
+    """
+    Calculate stationary distributions from transitions matrices
+    """
+    # Prepare reshape dimensions
+    shp = list(np.shape(transition_matrices))  # Transform shape to list
+    shp = shp[:len(shp)-2]  # Remove last two dimensions
+    shp.append(np.square(np.size(PARA.c.states)))  # Add squared dimension
+    new_shape = tuple(shp)  # Transform to tuple
+
+    # Reshape matrix to be ready to call apply_along_axis
+    transition_matrices_reshaped = np.reshape(transition_matrices, new_shape)
+    
+    # Call helper function, which calculates stationary distributions for all data
+    stationary_distributions = np.apply_along_axis(calc_stationary_distribution, 6, transition_matrices_reshaped)
+
+    return transition_matrices, stationary_distributions
 
 """
 @desc: Statistic: sponaneous activity for one run
@@ -154,10 +191,8 @@ def spont_activity(spont_spikes):
     spont_spikes = chunk_data(spont_spikes, axis=6, moveto=-3)
     # Mean over neurons and chunks
     spont_activity_mean = np.mean(spont_spikes, axis=(6,7))
-    # Move chunk axis to the end of the array (sucht that it replaces steps)
-    spont_activity_mean = np.moveaxis(spont_activity_mean, 0, -1)
-    # Axes: models, train steps, thresholds, h_ip, #ee-connections, chunks
 
+    # Axes: models, train steps, thresholds, h_ip, #ee-connections, chunks
     return spont_activity_mean
 
 """

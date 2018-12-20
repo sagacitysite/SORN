@@ -71,52 +71,11 @@ class Experiment_mcmc(AbstractExperiment):
                      NormLastStat(),
                      SpontPatternStat(),
                      ParamTrackerStat(),
-                     EvokedPredStat(
-                            traintimes=[c.steps_plastic,
-                                        c.steps_plastic+
-                                        c.steps_noplastic_train//2],
-                            testtimes =[c.steps_plastic+
-                                        c.steps_noplastic_train//2,
-                                        c.steps_plastic+
-                                        c.steps_noplastic_train],
-                                        traintest=c.stats.quenching),
+                     WeightStat()
                     ]
 
-        stats_single = [
-                         ActivityStat(),
-                         #MeanActivityStat(),
-                         # SpikesStat(inhibitory=True),
-                         # ISIsStat(interval=[start_test,c.N_steps]),
-                         # ConnectionFractionStat(),
-                         # EndWeightStat(),
-                         # #~ BalancedStat(), # takes lots of time and mem
-                         # CondProbStat(),
-                         # SpontIndexStat(),
-                         # SVDStat(),
-                         # SVDStat_U(),
-                         # SVDStat_V(),
-                         SpontTransitionAllStat(),
-                         SpontTransitionStat(),
-                         SpontTransitionDistance(),
-                         EEWeightStats()
-                         # InputUnitsStat(),
-                         # PatternProbabilityStat(
-                         #                [[start_train,half_train],
-                         #                 [half_train,inputtrainsteps],
-                         #                 [start_test,half_test],
-                         #                 [half_test,c.N_steps]],
-                         #                  shuffled_indices[:N_subset]),
-                         # WeightHistoryStat('W_ee',record_every_nth=100),
-                         # WeightHistoryStat('W_eu',
-                         #                   record_every_nth=9999999)
-                        ]
-
-        if c.double_synapses:  # if we have two excitatory synapses for each connection
-            stats_single += [WeightHistoryStat('W_ee_2',
-                                           record_every_nth=100)]
-
         # Return inputsource and statistics
-        return (self.inputsource,stats_all+stats_single,stats_all)
+        return (self.inputsource,stats_all)
         
     def reset(self,sorn):
         super(Experiment_mcmc,self).reset(sorn)

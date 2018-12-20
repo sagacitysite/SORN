@@ -213,7 +213,7 @@ class CountingSource(AbstractSource):
         self.ind = 0
         w = self.word_index
         p = self.probs[w,:]
-        self.word_index = find(rand()<=cumsum(p))[0]
+        self.word_index = np.where(rand()<=cumsum(p))[0][0]
 
     def next(self):
         self.ind = self.ind+1

@@ -1,11 +1,11 @@
 from evaluation import *
 
-def stationary_distribution(transition):
+def stationary_distribution(transition_matrix):
     # Correct very small numbers to zero
-    transition[np.abs(transition) < 1e-15] = 0
+    transition_matrix[np.abs(transition_matrix) < 1e-15] = 0
     
     # Calculate eigenvalues and eigenvectors
-    eigvalvec = np.linalg.eig(transition.T)
+    eigvalvec = np.linalg.eig(transition_matrix.T)
 
     # Get position of eigenvalue, where eigenvalue equals 1
     eigval_pos = int(np.argwhere(np.isclose(eigvalvec[0], 1)))

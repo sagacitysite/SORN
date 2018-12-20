@@ -34,7 +34,7 @@ def debugger(type,flag):
 
 def runSORN(c, src):
     # Initialize experiment (source and statictics)
-    (source,stats_single,_) = experiment.start(src)
+    (source,stats_func) = experiment.start(src)
 
     # Initialize SORN network, has simulation() and step() function
     sorn = Sorn(c,source)
@@ -42,7 +42,7 @@ def runSORN(c, src):
     # Create a StatsCollection and fill it with methods for all statistics
     # that should be tracked (and later plotted)
     stats = StatsCollection(sorn)
-    stats.methods = stats_single
+    stats.methods = stats_func
     sorn.stats = stats
 
     # Datalog is used to store all results and parameters
@@ -61,12 +61,11 @@ def runSORN(c, src):
     # Run experiment once
     pickle_objects = experiment.run(sorn)
 
-    # Save sources etc
+    # Backup files
     for key in pickle_objects:
         filename = os.path.join(c.logfilepath,"%s.pickle"%key)
         topickle = pickle_objects[key]
-        pickle.dump(topickle, gzip.open(filename,"wb"),
-         pickle.HIGHEST_PROTOCOL)
+        pickle.dump(topickle, gzip.open(filename,"wb"), pickle.HIGHEST_PROTOCOL)
 
     # Control: Firing-rate model: Substitute spikes by drawing random spikes
     # according to firing rate for each inputindex
