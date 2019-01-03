@@ -74,6 +74,10 @@ class Experiment_mcmc(AbstractExperiment):
                      WeightStat()
                     ]
 
+        if c.double_synapses:  # if we have two excitatory synapses for each connection
+            stats_single += [WeightHistoryStat('W_ee_2',
+                                           record_every_nth=100)]
+
         # Return inputsource and statistics
         return (self.inputsource,stats_all)
         

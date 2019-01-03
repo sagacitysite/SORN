@@ -6,7 +6,7 @@ utils.backup(__file__)
 # see this file for parameter descriptions
 from common.defaults import *
 
-c.N_iterations = 2  # 20
+c.N_iterations = 20  # 20
 
 c.N_e = 200  #200 # TODO if this is changed, eta_stdp has also to change ??
 c.N_i = int(np.floor(0.2*c.N_e))
@@ -40,9 +40,9 @@ c.W_ie = utils.Bunch(use_sparse=False,
                      lamb=np.inf,
                      avoid_self_connections=False)
 
-c.steps_plastic = np.array([20000])  #np.array([0, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]) # default: np.array([50000])
-c.steps_noplastic_train = 20000  #50000
-c.steps_noplastic_test = 15000  #40000
+c.steps_plastic = np.array([50000])  #np.array([0, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]) # default: np.array([50000])
+c.steps_noplastic_train = 50000  #50000
+c.steps_noplastic_test = 40000  #40000
 c.N_steps = c.steps_plastic + c.steps_noplastic_train + c.steps_noplastic_test
 c.display = False # Stop displaying stuff
 
@@ -124,16 +124,47 @@ c.source.control = False # For sequence_test
 from common.sources import CountingSource
 c.states = ['A','B','C','D']
 
+# c.source.transitions = np.array([[[0, 0.5, 0, 0, 0.5],
+#                                   [0.5, 0, 0.5, 0, 0],
+#                                   [0, 0.5, 0, 0.5, 0],
+#                                   [0, 0, 0.5, 0, 0.5],
+#                                   [0.5, 0, 0, 0.5, 0]],
+#                                  [[0, 1/4., 1/4., 1/4., 1/4.],
+#                                   [1/4., 0, 1/4., 1/4., 1/4.],
+#                                   [1/4., 1/4., 0, 1/4., 1/4.],
+#                                   [1/4., 1/4., 1/4., 0, 1/4.],
+#                                   [1/4., 1/4., 1/4., 1/4., 0]],
+#                                  [[1/5., 1/5., 1/5., 1/5., 1/5.],
+#                                   [1/5., 1/5., 1/5., 1/5., 1/5.],
+#                                   [1/5., 1/5., 1/5., 1/5., 1/5.],
+#                                   [1/5., 1/5., 1/5., 1/5., 1/5.],
+#                                   [1/5., 1/5., 1/5., 1/5., 1/5.]]])
+
+# c.source.transitions = np.array([[[0, 0.5, 0.5],
+#                                   [0.5, 0, 0.5],
+#                                   [0.5, 0.5, 0]],
+#                                  [[1/3., 1/3., 1/3.],
+#                                   [1/3., 1/3., 1/3.],
+#                                   [1/3., 1/3., 1/3.]]])
+
 c.source.transitions = np.array([[[0, 0.5, 0, 0.5],
                                  [0.5, 0, 0.5, 0],
                                  [0, 0.5, 0, 0.5],
                                  [0.5, 0, 0.5, 0]],
-                                 [[0, 1, 0, 0],
-                                 [0, 0, 1, 0],
-                                 [0, 0, 0, 1],
-                                 [0.5, 0, 0.5, 0]]])
+                                 [[1/3., 1/3., 0, 1/3.],
+                                 [1/3., 1/3., 1/3., 0],
+                                 [0, 1/3., 1/3., 1/3.],
+                                 [1/3., 0, 1/3., 1/3.]],
+                                 [[0, 1/3., 1/3., 1/3.],
+                                 [1/3., 0, 1/3., 1/3.],
+                                 [1/3., 1/3., 0, 1/3.],
+                                 [1/3., 1/3., 1/3., 0]],
+                                 [[0.25, 0.25, 0.25, 0.25],
+                                 [0.25, 0.25, 0.25, 0.25],
+                                 [0.25, 0.25, 0.25, 0.25],
+                                 [0.25, 0.25, 0.25, 0.25]]])
 
-#c.source.transitions = np.array([
+# c.source.transitions = np.array([
 #                                # 0. transition
 #                                [[0, 1, 0, 0],
 #                                 [0, 0, 1, 0],

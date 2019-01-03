@@ -13,5 +13,7 @@ backup/
 virtenv/
 # Ignore PyCharm files #
 .idea/
+# Ignore Visual Studio Code files #
+.vscode/
 # Ignore python version file
 .python-version
