@@ -3,9 +3,9 @@ from pylab import *
 import utils
 utils.backup(__file__)
 
-from michaelis.plot_single import plot_results as plot_results_single
-from michaelis.plot_cluster import (plot_results
-                                    as plot_results_cluster)
+#from michaelis.plot_single import plot_results as plot_results_single
+#from michaelis.plot_cluster import (plot_results
+#                                    as plot_results_cluster)
 from common.sources import CountingSource, TrialSource, NoSource
 from common.experiments import AbstractExperiment
 from common.sorn_stats import *

@@ -135,12 +135,13 @@ def calc_crosstable(ind):
                 'Some states did not occure. Probably the number of test steps needs to be increased')
 
     # Normalize cross table
+    row_sums = np.sum(cross_table, axis=1)
     for i in range(np.shape(cross_table)[0]):
         # Only normalize if sum of transition is not 0
-        if np.sum(cross_table[:, i]) != 0:
-            cross_table[:, i] /= np.sum(cross_table[:, i])
+        if row_sums[i] != 0:
+            cross_table[i,:] /= row_sums[i]
     
-    return cross_table.T
+    return cross_table
 
 """
 @desc: Helper function to prepare data for calling stationary_distribution() function

@@ -6,8 +6,6 @@ from evaluation import *
 Load and prepare data
 """
 
-# OLD: transition_distances, activity, estimated_stationaries, ncomparison, hamming_distances
-
 # Load data
 stats = ev._data.get_statistics()
 # DICTIONARY: activity, transitions_matrices, stationary_distributions, hamming_distances, l1_errors, l2_errors, weights_ee, weights_eu
@@ -121,7 +119,7 @@ performance_correlation.plot_inequality(stats['l2_errors'][:,:,:,mxthresh_idx,:,
 #lorenz_plot(normed_stationaries)
 
 """
-Connectivity
+Density of connections
 """
 
 if len(PARA.c.connections_density) > 1:
@@ -143,4 +141,37 @@ weights_ee = stats['weights_ee'][:,:,max_train,mxthresh_idx,hpos_idx,:]
 weights_eu = stats['weights_eu'][:,:,max_train,mxthresh_idx,hpos_idx,:]
 # now: runs / models / weight dense
 
-weights.clustering(weights_ee, weights_eu)
+clustered_weights = weights.clustering(weights_ee, weights_eu, with_others=False)
+# now: models
+
+l1_errors_weights, l2_errors_weights = weights.errors(clustered_weights)
+
+"""
+Store l1 and l2 errors regarding spontaneous activity and weights
+"""
+
+# TODO currently dense_idx = 0 (since dense_idx is 0 in weights.clustering function)
+# need to be replaced by dense_idx if dense is varied
+# Takes last chunk
+l2_err = np.mean(stats['l2_errors'][:,:,max_train,mxthresh_idx,hpos_idx,0,-1], axis=0)
+l1_err = np.mean(stats['l1_errors'][:,:,max_train,mxthresh_idx,hpos_idx,0,-1], axis=0)
+#print(l1_err)
+#print(l2_err)
+#print(l1_errors_weights)
+#print(l2_errors_weights)
+
+"""
+Initial and learned transitions matrix
+"""
+
+learned_transitions = stats['transition_matrices'][:,:,max_train,mxthresh_idx,hpos_idx,dens_idx,-1]
+# now: runs / models
+
+transition_matrix.plot_learned(learned_transitions)
+transition_matrix.plot_initial()
+
+"""
+Manual stuff
+"""
+
+#performance.manual_plots()

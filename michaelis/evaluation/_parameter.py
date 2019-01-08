@@ -6,7 +6,7 @@ from evaluation import *
 def get_plot_parameters():
     fig_color = '#000000'
     legend_size = 12  # 12/14
-    file_type = 'png'  # svg, pdf
+    file_type = 'svg'  # png, svg, pdf
 
     rcParams['font.family'] = 'CMU Serif'
     rcParams['font.size'] = '14'  # 14/20

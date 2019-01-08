@@ -50,8 +50,10 @@ from . import connectivity
 from . import hamming
 from . import ip
 from . import lorenz
+from . import performance
 from . import performance_correlation
 from . import spikes
 from . import training
+from . import transition_matrix
 from . import test_trace
 from . import weights

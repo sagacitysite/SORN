@@ -3,9 +3,9 @@ from pylab import *
 import utils
 utils.backup(__file__)
 
-from michaelis.plot_single import plot_results as plot_results_single
-from michaelis.plot_cluster import (plot_results
-                                    as plot_results_cluster)
+#from michaelis.plot_single import plot_results as plot_results_single
+#from michaelis.plot_cluster import (plot_results
+#                                    as plot_results_cluster)
 from common.sources import CountingSource, TrialSource, NoSource
 from common.experiments import AbstractExperiment
 from common.sorn_stats import *
@@ -79,7 +79,7 @@ class Experiment_mcmc_withSTDP(AbstractExperiment):
                                            record_every_nth=100)]
 
         # Return inputsource and statistics
-        return (self.inputsource,stats_all+stats_single,stats_all)
+        return (self.inputsource,stats_all)
         
     def reset(self,sorn):
         super(Experiment_mcmc_withSTDP,self).reset(sorn)

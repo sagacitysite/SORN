@@ -61,7 +61,7 @@ def plot(distances, suffix, ylabel, title=None, ymax=None):
     plt.close()
 
     # Barplot
-    shift = 0.75 if train_min is not None else 0.5
+    shift = 0.75 if train_min is not None else 0.75
     bar_width = 0.25 if train_min is not None else 0.5
     x = np.arange(num_models) + shift
     da = train_max[:, :, np.shape(train_max)[2]-1]
@@ -81,3 +81,4 @@ def plot(distances, suffix, ylabel, title=None, ymax=None):
     plt.ylabel(ylabel, color=FIG_COLOR)
     plt.savefig(PLOTPATH + '/performance_' + suffix + '.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
+
