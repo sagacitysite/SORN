@@ -111,15 +111,15 @@ def get_errors(transition_matrices):
     # Number of steps, where transition matrix is calculated for
     num_states = np.size(PARA.c.states)
 
-    # Normalized L1 matrix norm of differences
-    l1_error = np.sum(np.abs(lt - it), axis=(6,7))/np.square(num_states)
-    l1_error = np.moveaxis(l1_error, 5, 0)
+    # p1 matrix norm of differences
+    p1_error = np.sum(np.abs(lt - it), axis=(6,7))
+    p1_error = np.moveaxis(p1_error, 5, 0)
 
-    # Normalized L2 matrix norm of difference
-    l2_error = np.sqrt(np.sum(np.square(lt - it), axis=(6,7)))/num_states
-    l2_error = np.moveaxis(l2_error, 5, 0)
+    # p2 matrix norm of difference
+    p2_error = np.sqrt(np.sum(np.square(lt - it), axis=(6,7)))
+    p2_error = np.moveaxis(p2_error, 5, 0)
 
-    return l1_error, l2_error
+    return p1_error, p2_error
 
 """
 @desc: Helper function, uses pandas crosstab function to calculate cross table of indices

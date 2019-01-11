@@ -14,7 +14,7 @@ def stationary_distribution(transition_matrix):
     vec = np.abs(eigvalvec[1][:, eigval_pos])
     return vec / np.sum(vec)
 
-def transition_entropy(transition):
+def transition_entropy(transition):  # entropy rate
     P = transition
     # Correct very small numbers to zero
     P[np.abs(P) < 1e-15] = 0

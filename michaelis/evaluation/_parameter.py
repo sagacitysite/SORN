@@ -14,10 +14,10 @@ def get_plot_parameters():
     rcParams['axes.edgecolor'] = fig_color
     rcParams['xtick.color'] = fig_color
     rcParams['ytick.color'] = fig_color
-    rcParams['axes.grid'] = True
-    rcParams['grid.linestyle'] = ':'
-    rcParams['grid.linewidth'] = 0.5
-    rcParams['grid.color'] = fig_color
+    #rcParams['axes.grid'] = True
+    #rcParams['grid.linestyle'] = ':'
+    #rcParams['grid.linewidth'] = 0.5
+    #rcParams['grid.color'] = fig_color
     rcParams['legend.fancybox'] = True
     rcParams['legend.framealpha'] = 0.2  # 0.75
     rcParams['patch.linewidth'] = 0

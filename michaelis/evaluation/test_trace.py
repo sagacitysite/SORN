@@ -59,26 +59,3 @@ def plot(distances, suffix, ylabel, title=None, ymax=None):
     plt.ylabel(ylabel, color=FIG_COLOR)
     plt.savefig(PLOTPATH + '/test_traces_'+suffix+'.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
-
-    # Barplot
-    shift = 0.75 if train_min is not None else 0.75
-    bar_width = 0.25 if train_min is not None else 0.5
-    x = np.arange(num_models) + shift
-    da = train_max[:, :, np.shape(train_max)[2]-1]
-    legend = '50000 training steps' if train_min is not None else None
-    plt.bar(x+0.25, np.mean(da, axis=0), bar_width, label=legend, linewidth=0, yerr=np.std(da, axis=0))
-    if train_min is not None:
-        da = train_min[:, :, np.shape(train_min)[2]-1]
-        legend = '0 training steps'
-        plt.bar(x, np.mean(da, axis=0), bar_width, color='red', label=legend, linewidth=0, yerr=np.std(da, axis=0), ecolor='red')
-        plt.legend(prop={'size': LEGEND_SIZE})
-    if title:
-        plt.title(title)
-    if ymax:
-        plt.ylim(ymax=ymax)
-    plt.ylim(ymin=0)
-    plt.xlabel('Model', color=FIG_COLOR)
-    plt.ylabel(ylabel, color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/performance_' + suffix + '.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
-    plt.close()
-

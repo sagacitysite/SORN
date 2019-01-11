@@ -79,8 +79,8 @@ c.k_winner_take_all = False
 c.ff_inhibition = False
 c.ff_inhibition_broad = 0.0
 
-c.experiment.module = 'michaelis.experiment_mcmc_withSTDP'  # michaelis.experiment_mcmc_withSTDP
-c.experiment.name = 'Experiment_mcmc_withSTDP'  # experiment_mcmc_withSTDP
+c.experiment.module = 'michaelis.experiment_mcmc'  # michaelis.experiment_mcmc_withSTDP
+c.experiment.name = 'Experiment_mcmc'  # experiment_mcmc_withSTDP
 
 #######################################
 c.stats.file_suffix = 'MCMC_ds_noSTDP'
@@ -169,32 +169,32 @@ c.states = ['A','B','C','D']
 #                                  [0.25, 0.25, 0.25, 0.25],
 #                                  [0.25, 0.25, 0.25, 0.25]]])
 
-c.source.transitions = np.array([
-                               # 0. transition
-                               [[0, 1, 0, 0],
-                                [0, 0, 1, 0],
-                                [0, 0, 0, 1],
-                                [1, 0, 0, 0]],
-                               # 1. transition
-                               [[0, 1, 0, 0],
-                                [0, 0, 1, 0],
-                                [0, 0, 0, 1],
-                                [0.5, 0, 0.5, 0]],
-                               # 2. transition
-                               [[0, 1, 0, 0],
-                                [0, 0, 1, 0],
-                                [0, 0.5, 0, 0.5],
-                                [0.5, 0, 0.5, 0]],
-                               # 3. transition
-                               [[0, 1, 0, 0],
-                                [0.5, 0, 0.5, 0],
-                                [0, 0.5, 0, 0.5],
-                                [0.5, 0, 0.5, 0]],
-                               # 4. transition
-                               [[0, 0.5, 0, 0.5],
-                                [0.5, 0, 0.5, 0],
-                                [0, 0.5, 0, 0.5],
-                                [0.5, 0, 0.5, 0]]])
+# c.source.transitions = np.array([
+#                                # 0. transition
+#                                [[0, 1, 0, 0],
+#                                 [0, 0, 1, 0],
+#                                 [0, 0, 0, 1],
+#                                 [1, 0, 0, 0]],
+#                                # 1. transition
+#                                [[0, 1, 0, 0],
+#                                 [0, 0, 1, 0],
+#                                 [0, 0, 0, 1],
+#                                 [0.5, 0, 0.5, 0]],
+#                                # 2. transition
+#                                [[0, 1, 0, 0],
+#                                 [0, 0, 1, 0],
+#                                 [0, 0.5, 0, 0.5],
+#                                 [0.5, 0, 0.5, 0]],
+#                                # 3. transition
+#                                [[0, 1, 0, 0],
+#                                 [0.5, 0, 0.5, 0],
+#                                 [0, 0.5, 0, 0.5],
+#                                 [0.5, 0, 0.5, 0]],
+#                                # 4. transition
+#                                [[0, 0.5, 0, 0.5],
+#                                 [0.5, 0, 0.5, 0],
+#                                 [0, 0.5, 0, 0.5],
+#                                 [0.5, 0, 0.5, 0]]])
 
 ## Models 1
 #transitions = []
@@ -269,6 +269,24 @@ c.source.transitions = np.array([
 #                        [0, it, 1-(2*it), it],
 #                        [it, 0, it, 1-(2*it)]])
 #c.source.transitions = np.array(transitions)
+
+# Models 7 = VII
+transitions = []
+iterate = np.array([0., 0.0001, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.075, 0.1, 0.125, 0.15, 0.2, 0.23, 0.24, 0.245, 0.25])
+for it in iterate:
+#    transitions.append([[it, 1.-(2*it), it],
+#                        [it, it, 1.-(2*it)],
+#                        [1.-(2*it), it, it]])
+    transitions.append([[it, 1.-(3*it), it, it],
+                        [it, it, 1.-(3*it), it],
+                        [it, it, it, 1.-(3*it)],
+                        [1.-(3*it), it, it, it]])
+#    transitions.append([[it, 1.-(4*it), it, it, it],
+#                        [it, it, 1.-(4*it), it, it],
+#                        [it, it, it, 1.-(4*it), it],
+#                        [it, it, it, it, 1.-(4*it)],
+#                        [1.-(4*it), it, it, it, it]])
+c.source.transitions = np.array(transitions)
 
 c.wait_min_plastic = 0
 c.wait_var_plastic = 0

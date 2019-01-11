@@ -1,6 +1,4 @@
 from __future__ import division # has to be reimported in every file
-#~ import matplotlib # if from ssh
-#~ matplotlib.use('Agg')
 import ipdb # prettier debugger
 import os
 import sys
@@ -17,12 +15,16 @@ from utils.backup import dest_directory
 from common.stats import StatsCollection
 from common.sorn import Sorn
 from multiprocessing import Pool
+#from pathos.multiprocessing import ProcessingPool as Pool
 import datetime
 from common.sources import CountingSource
 import cPickle as pickle
 import gzip
 import numpy as np
 import matplotlib.pyplot as plt
+
+import copy_reg
+import types
 
 # Start debugging mode when an error is raised
 def debugger(type,flag):
@@ -87,7 +89,7 @@ def runSORN(c, src):
     #plt.show()
 
 # Run network for current combinations
-def runAll(i):
+def run_all(i):
 
     j = 0
     # Transitions (Models)
@@ -121,7 +123,7 @@ def runAll(i):
                         #ip_str = str(np.round(eta_ip, 4))  # for eta_ip
                         ip_str = str(h_ip_range)  # for h_ip_range
 
-                        print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / ip "+ ip_str +" / #connections "+ str(connections_density*c.N_e) +" / "+ str(steps))
+                        print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / ip "+ ip_str +" / connections "+ str(connections_density*c.N_e) +" / "+ str(steps))
 
                         # Set transitions and source
                         c.source.transitions = transitions
@@ -190,11 +192,11 @@ num_iterations = range(c.N_iterations)
 
 ## Start multi processing
 #pool = Pool(3)
-#pool.map(runAll, num_iterations)
+#pool.map(run_all, num_iterations)
 #pool.close()
 #pool.join()
 
 for i in num_iterations:
-	runAll(i)
-#runAll(0)
-#runAll(1)
+	run_all(i)
+#run_all(0)
+#run_all(1)

@@ -125,18 +125,6 @@ def plot_inequality(distances, hpos_idx):
 
     hip_colors = cm.rainbow(np.linspace(0, 1, hip_steps))
 
-    # Trace (highest train, standard h_ip)
-    plt.errorbar(traces, np.mean(dists[:, :, train_steps-1, hpos_idx], axis=0),
-                 yerr=np.std(dists[:, :, train_steps-1, hpos_idx], axis=0), fmt='o')
-
-    plt.ylim(ymin=0)
-    #plt.grid()
-    #plt.title('Traces/Distances')
-    plt.xlabel('Trace', color=FIG_COLOR)
-    plt.ylabel('Transition error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_inequality_trace.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
-    plt.close()
-
     # Variance (highest train, standard h_ip)
     plt.errorbar(variance, np.mean(dists[:, :, train_steps-1, hpos_idx], axis=0),
                  yerr=np.std(dists[:, :, train_steps-1, hpos_idx], axis=0) , fmt='o')
@@ -146,7 +134,7 @@ def plot_inequality(distances, hpos_idx):
     #plt.title('Variance/Distances')
     plt.xlabel('Variance', color=FIG_COLOR)
     plt.ylabel('Transition error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_inequality_variance.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    plt.savefig(PLOTPATH + '/correlation_spont_variance.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
 
     # Variance train
@@ -161,7 +149,7 @@ def plot_inequality(distances, hpos_idx):
     #plt.title('Variance/Distances')
     plt.xlabel('Variance', color=FIG_COLOR)
     plt.ylabel('Transition error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_inequality_variance_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    plt.savefig(PLOTPATH + '/correlation_spont_variance_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
 
     # Variance h_ip
@@ -184,7 +172,7 @@ def plot_inequality(distances, hpos_idx):
     #    #plt.title('Variance/Distances')
     #    plt.xlabel('Variance', color=FIG_COLOR)
     #    plt.ylabel('Transition error', color=FIG_COLOR)
-    #    plt.savefig(PLOTPATH + '/correlation_inequality_variance_hip.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    #    plt.savefig(PLOTPATH + '/correlation_spont_variance_hip.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     #    plt.close()
 
     # Variance baseline plot
@@ -203,7 +191,7 @@ def plot_inequality(distances, hpos_idx):
         #plt.title('Baseline: Variance/Distances')
         plt.xlabel('Variance', color=FIG_COLOR)
         plt.ylabel('Performance increase in relation to baseline', color=FIG_COLOR)
-        plt.savefig(PLOTPATH + '/correlation_inequality_variance_train_baseline.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+        plt.savefig(PLOTPATH + '/correlation_spont_variance_train_baseline.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
         plt.close()
 
     # KL (highest train, standard h_ip)
@@ -214,7 +202,7 @@ def plot_inequality(distances, hpos_idx):
     #plt.title('KL/Distances')
     plt.xlabel('KL', color=FIG_COLOR)
     plt.ylabel('Transition error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_inequality_kl.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    plt.savefig(PLOTPATH + '/correlation_spont_kl.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
 
     # KL train
@@ -229,7 +217,7 @@ def plot_inequality(distances, hpos_idx):
     #plt.title('KL/Distances')
     plt.xlabel('KL', color=FIG_COLOR)
     plt.ylabel('Transition error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_inequality_kl_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    plt.savefig(PLOTPATH + '/correlation_spont_kl_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
     
     # Transition entropy (highest train, standard h_ip)
@@ -238,9 +226,9 @@ def plot_inequality(distances, hpos_idx):
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('KL/Distances')
-    plt.xlabel('entropy', color=FIG_COLOR)
-    plt.ylabel('Transition error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_inequality_entropy.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    plt.xlabel('entropy rate', color=FIG_COLOR)
+    plt.ylabel('p2 error', color=FIG_COLOR)
+    plt.savefig(PLOTPATH + '/correlation_spont_entropy.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
     
     # Transition entropy train
@@ -254,9 +242,9 @@ def plot_inequality(distances, hpos_idx):
     plt.ylim(ymin=0)
     #plt.grid()
     #plt.title('KL/Distances')
-    plt.xlabel('entropy', color=FIG_COLOR)
-    plt.ylabel('Transition error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_inequality_entropy_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    plt.xlabel('entropy rate', color=FIG_COLOR)
+    plt.ylabel('p2 error', color=FIG_COLOR)
+    plt.savefig(PLOTPATH + '/correlation_spont_entropy_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
 
     # KL baseline plot
@@ -275,7 +263,7 @@ def plot_inequality(distances, hpos_idx):
         #plt.title('Baseline: KL/Distances')
         plt.xlabel('KL', color=FIG_COLOR)
         plt.ylabel('Performance increase in relation to baseline', color=FIG_COLOR)
-        plt.savefig(PLOTPATH + '/correlation_inequality_kl_train_baseline.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+        plt.savefig(PLOTPATH + '/correlation_spont_kl_train_baseline.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
         plt.close()
 
     # Gini
@@ -290,5 +278,40 @@ def plot_inequality(distances, hpos_idx):
     #plt.title('Gini/Distances')
     plt.xlabel('Gini', color=FIG_COLOR)
     plt.ylabel('Transition error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_inequality_gini_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    plt.savefig(PLOTPATH + '/correlation_spont_gini_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
+
+def plot_entropy_weights(errors, std):
+    # models, errors
+
+    transition_entropy = np.array([ev._helper.transition_entropy(t) for t in PARA.c.source.transitions])
+
+    # Transition entropy (highest train, standard h_ip)
+    plt.errorbar(transition_entropy, errors, yerr=std, fmt='o')
+    plt.ylim(ymin=0)
+    plt.xlabel('entropy rate', color=FIG_COLOR)
+    plt.ylabel('p2 error', color=FIG_COLOR)
+    plt.savefig(PLOTPATH + '/correlation_weights_entropy.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    plt.close()
+
+def plot_entropy_signalnoise(errors_signal, std_signal, errors_noise, std_noise, filename):
+    # models, errors
+    
+    # Calculate entropy
+    transition_entropy = np.array([ev._helper.transition_entropy(t) for t in PARA.c.source.transitions])
+
+    # Plot
+    plt.errorbar(transition_entropy, errors_signal, yerr=std_signal, label='Signal error', fmt='o')
+    plt.errorbar(transition_entropy, errors_noise, yerr=std_noise, label='Noise error', fmt='o')
+    plt.legend(prop={'size': LEGEND_SIZE})
+    plt.ylim(ymin=0)
+    plt.xlabel('entropy rate', color=FIG_COLOR)
+    plt.ylabel('p2 error regarding signal/noise', color=FIG_COLOR)
+    plt.savefig(PLOTPATH + '/'+ filename +'.'+ FILE_TYPE, format=FILE_TYPE, transparent=True)
+    plt.close()
+
+def plot_entropy_signalnoise_weights(errors_signal, std_signal, errors_noise, std_noise):
+    plot_entropy_signalnoise(errors_signal, std_signal, errors_noise, std_noise, filename="correlation_weights_entropy_signalnoise")
+
+def plot_entropy_signalnoise_spont(errors_signal, std_signal, errors_noise, std_noise):
+    plot_entropy_signalnoise(errors_signal, std_signal, errors_noise, std_noise, filename="correlation_spont_entropy_signalnoise")

@@ -133,32 +133,68 @@ Activity structur
 #spikes.plot_train_histograms(stats['norm_last_input_spikes'][0,:,train_idx,mxthresh_idx,hpos_idx,dens_idx,:,:])  # get first run only
 
 """
-Weight Strength
+Weight Analysis
 """
 
 max_train = np.shape(stats['weights_ee'])[2]-1
-weights_ee = stats['weights_ee'][:,:,max_train,mxthresh_idx,hpos_idx,:]
-weights_eu = stats['weights_eu'][:,:,max_train,mxthresh_idx,hpos_idx,:]
-# now: runs / models / weight dense
+weights_ee = stats['weights_ee'][:,:,:,mxthresh_idx,hpos_idx,dens_idx]
+weights_eu = stats['weights_eu'][:,:,:,mxthresh_idx,hpos_idx,dens_idx]
+# now: runs / models / train
 
-clustered_weights = weights.clustering(weights_ee, weights_eu, with_others=False)
-# now: models
+# Get clusters from weight matrix
+clusters, clusters_all = weights.clustering(weights_ee, weights_eu)
+# now: runs, models, train, transitions (incl. others)
 
-l1_errors_weights, l2_errors_weights = weights.errors(clustered_weights)
+# Calculate error
+p1_mean_weights, p1_sd_weights, p2_mean_weights, p2_sd_weights = weights.errors(clusters)
+
+# Plot error
+performance.barplot_weights_p2(p2_mean_weights[:,max_train], p2_sd_weights[:,max_train])
+
+# Plot errors in relation to entropy rate
+performance_correlation.plot_entropy_weights(p2_mean_weights[:,max_train], p2_sd_weights[:,max_train])
+
+# Calculate signal/noise error for weight clusters
+p2_mean_weights_signal, p2_sd_weights_signal, p2_mean_weights_noise, p2_sd_weights_noise = weights.errors_signalnoise(clusters)
+
+# Plot errors in relation to signal/noise
+performance_correlation.plot_entropy_signalnoise_weights(
+    p2_mean_weights_signal[:,max_train], p2_sd_weights_signal[:,max_train],
+    p2_mean_weights_noise[:,max_train], p2_sd_weights_noise[:,max_train])
+
+# Plot weight clusters
+weights.plot_weight_clusters(np.mean(clusters, axis=0)[:,max_train])
+
+"""
+Performance spontaneous activity
+"""
+
+# Takes last chunk
+p2_err = np.mean(stats['l2_errors'][:,:,max_train,mxthresh_idx,hpos_idx,dens_idx,-1], axis=0)
+p1_err = np.mean(stats['l1_errors'][:,:,max_train,mxthresh_idx,hpos_idx,dens_idx,-1], axis=0)
+
+# Plot transition errors
+performance.barplot_spont(stats['l2_errors'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,-1], filename='error_p2_spont', ylabel='p2 error')
+
+# Calculate signal/noise error for spont transitions
+learned_transitions = stats['transition_matrices'][:,:,:,mxthresh_idx,hpos_idx,dens_idx,-1]
+p2_mean_spont_signal, p2_sd_spont_signal, p2_mean_spont_noise, p2_sd_spont_noise = performance.errors_signalnoise(learned_transitions)
+
+# Plot
+performance_correlation.plot_entropy_signalnoise_spont(
+    p2_mean_spont_signal[:,max_train], p2_sd_spont_signal[:,max_train],
+    p2_mean_spont_noise[:,max_train], p2_sd_spont_noise[:,max_train])
+
+sys.exit()
 
 """
 Store l1 and l2 errors regarding spontaneous activity and weights
 """
 
-# TODO currently dense_idx = 0 (since dense_idx is 0 in weights.clustering function)
-# need to be replaced by dense_idx if dense is varied
-# Takes last chunk
-l2_err = np.mean(stats['l2_errors'][:,:,max_train,mxthresh_idx,hpos_idx,0,-1], axis=0)
-l1_err = np.mean(stats['l1_errors'][:,:,max_train,mxthresh_idx,hpos_idx,0,-1], axis=0)
-#print(l1_err)
-#print(l2_err)
-#print(l1_errors_weights)
-#print(l2_errors_weights)
+#print(p1_err)
+#print(p2_err)
+#print(p1_errors_weights)
+#print(p2_errors_weights)
 
 """
 Initial and learned transitions matrix
