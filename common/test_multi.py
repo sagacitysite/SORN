@@ -34,9 +34,9 @@ def debugger(type,flag):
 #~ np.seterrcall(debugger)
 #~ np.seterr(all='call')
 
-def runSORN(c, src):
+def runSORN(c, src, testSource):
     # Initialize experiment (source and statictics)
-    (source,stats_func) = experiment.start(src)
+    (source,stats_func) = experiment.start(src, testSource)
 
     # Initialize SORN network, has simulation() and step() function
     sorn = Sorn(c,source)
@@ -125,14 +125,21 @@ def run_all(i):
 
                         print(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") +": run "+ str(i+1) +" / model "+ str(j+1) +" / threshold "+ str(hamming_threshold) +" / ip "+ ip_str +" / connections "+ str(connections_density*c.N_e) +" / "+ str(steps))
 
-                        # Set transitions and source
-                        c.source.transitions = transitions
-                        source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
+                        testSource = None
+                        if c.source.testing:
+                            # If testing input is given, train network with given training matrix
+                            c.source.transitions = c.source.training
+                            source = CountingSource(states, c.source.training, c.N_u_e, c.N_u_i, c.source.avoid)
+                            # If testing is varied, add another Counting Source for testing phase, which is given by current loop
+                            testSource = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
+                        else:
+                            # If input is only given while training, vary transitions while training (as usual)
+                            c.source.transitions = transitions
+                            source = CountingSource(states, transitions, c.N_u_e, c.N_u_i, c.source.avoid)
 
                         # Set steps_plastic and correct N_steps
                         c.steps_plastic = steps
-                        c.N_steps = c.steps_plastic + c.steps_noplastic_train \
-                                                    + c.steps_noplastic_test
+                        c.N_steps = c.steps_plastic + c.steps_noplastic_train + c.steps_noplastic_test
 
                         # Set hamming threshold
                         c.stats.hamming_threshold = hamming_threshold
@@ -143,7 +150,7 @@ def run_all(i):
                         # Name of folder for results in this step
                         c.file_name = "run"+str(i)
                         c.state.index = (j, k, h, l, g)  # models, training steps, threshold, h_ip, #EE-connections
-                        runSORN(c, source)
+                        runSORN(c, source, testSource)
 
                         # Free memory
                         gc.collect()

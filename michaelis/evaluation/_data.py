@@ -10,11 +10,12 @@ def get_statistics():
     # Initalize stats dictionary
     stats = {
         'activity': [],
+        'markov_state_indices': [],
         'hamming_distances': [],
         'transition_matrices': [],
         'stationary_distributions': [],
-        'l1_errors': [],
-        'l2_errors': [],
+        'p1_errors': [],
+        'p2_errors': [],
         'weights_ee': [],
         'weights_eu': [] }
     
@@ -22,14 +23,15 @@ def get_statistics():
     cache_path = DATAPATH + '/statistics_cache.npz'
     if os.path.exists(cache_path):
         print('# Load statistics')
-        return np.load(cache_path)    
+        return dict(np.load(cache_path))
 
     # If statistics are not cached, run the procedure
-    sys.stdout.write('# Prepare statistics ')
-    sys.stdout.flush()
+    #sys.stdout.write('# Prepare statistics ')
+    #sys.stdout.flush()
 
     for i in range(NUM_RUNS):
-        sys.stdout.write('.')
+        sys.stdout.write('\r')
+        sys.stdout.write("# Prepare statistics: "+str(i*100./NUM_RUNS)+"%")
         sys.stdout.flush()
 
         """
@@ -63,6 +65,7 @@ def get_statistics():
 
         # Calculate hamming
         hd, markov_state_indices = classify_spont_activtiy(spont_spikes, evoked_spikes, evoked_indices)
+        stats['markov_state_indices'].append(markov_state_indices)
         stats['hamming_distances'].append(hd)
 
         # Calculate transitions matrices and stationary distributions
@@ -71,14 +74,15 @@ def get_statistics():
         stats['stationary_distributions'].append(sd)
 
         # Calculate errors
-        l1_error, l2_error = get_errors(lt)
-        stats['l1_errors'].append(l1_error)
-        stats['l2_errors'].append(l2_error)
+        p1_error, p2_error = get_errors(lt)
+        stats['p1_errors'].append(p1_error)
+        stats['p2_errors'].append(p2_error)
 
         # TODO ncomparison
         # Is this still necessary?
 
-    print(' .')
+    sys.stdout.write('\r')
+    print("# Prepare statistics: 100%")
 
     # Stack all statistics together
     for key in stats:
@@ -161,6 +165,7 @@ def calc_stationary_distribution(transition_matrix_reshaped):
 @desc: Calculate transition matrices
 """
 def get_learned_transitions_and_stationaries(markov_state_indices):
+
     """
     Calculate transition matices
     """
@@ -216,16 +221,12 @@ def classify_spont_activtiy(spont_spikes, evoked_spikes, evoked_indices):
         most_similar_index = np.argmin(h, axis=5)
 
         # Hamming distance between most_similar state and current spontaneous state
-        shp = [np.arange(x) for x in h.shape]
-        hd = h[shp[0], shp[1], shp[2], shp[3], shp[4], np.squeeze(most_similar_index)]
-        hd = np.reshape(hd, tuple(np.asarray(h.shape)[:-1]))
+        hd = np.take_along_axis(h, most_similar_index[:,:,:,:,:,None], axis=5)[:,:,:,:,:,0]
         
         smallest_hamming_distances.append(hd)
 
         # Classify markov states
-        shp = [np.arange(x) for x in evoked_indices.shape]
-        msi = evoked_indices[shp[0], shp[1], shp[2], shp[3], shp[4], np.squeeze(most_similar_index)]
-        msi = np.reshape(msi, tuple(np.asarray(h.shape)[:-1]))
+        msi = np.take_along_axis(evoked_indices, most_similar_index[:,:,:,:,:,None], axis=5)[:,:,:,:,:,0]
 
         markov_state_indices.append(msi)
 

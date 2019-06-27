@@ -65,7 +65,7 @@ class CountingSource(AbstractSource):
     Different of words are presented with individual probabilities.
     """
     def __init__(self, words,probs, N_u_e, N_u_i, avoid=False,
-                permute_ambiguous=False):
+                permute_ambiguous=False, testing=False):
         """
         Initializes variables.
         

@@ -47,6 +47,7 @@ from . import _data
 from . import _helper
 from . import activity
 from . import connectivity
+from . import entropy
 from . import hamming
 from . import ip
 from . import lorenz

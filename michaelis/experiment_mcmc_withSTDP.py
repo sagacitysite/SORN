@@ -67,6 +67,7 @@ class Experiment_mcmc_withSTDP(AbstractExperiment):
         stats_all = [
                      InputIndexStat(),
                      SpikesStat(),
+                     ThresholdsStat(),
                      InputUnitsStat(),
                      NormLastStat(),
                      SpontPatternStat(),

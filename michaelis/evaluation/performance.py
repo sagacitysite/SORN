@@ -2,15 +2,19 @@ import evaluation as ev
 from evaluation import *
 
 def barplot_weights_p1(errors, errors_sd):
+    print('# Error Barplot: Weight clusters p1 error')
     barplot_weights(errors, errors_sd, filename='error_p1_weights', ylabel='p1 error')
 
 def barplot_weights_p2(errors, errors_sd):
+    print('# Error Barplot: Weight clusters p2 error')
     barplot_weights(errors, errors_sd, filename='error_p2_weights', ylabel='p2 error')
+
+def barplot_weights_p2_delta(errors, errors_sd):
+    print('# Error Barplot: Weight clusters p1 error deltas')
+    barplot_weights(errors, errors_sd, filename='error_p2_weights_delta', ylabel='p2 errors delta')
 
 def barplot_weights(errors, errors_sd, filename, ylabel):
     # TODO Generalize for different training steps
-
-    print('# Error Barplot: Weight clusters')
     # models, error
 
     # Initalize variables
@@ -43,7 +47,7 @@ def barplot_spont(errors, filename, ylabel):
     x = np.arange(num_models) + shift
 
     # Plot errors for train max
-    legend = None if train_min == None else str(PARA.c.steps_plastic[-1])+' training steps'
+    legend = None if train_min is None else str(PARA.c.steps_plastic[-1])+' training steps'
     plt.bar(x, np.mean(train_max, axis=0), bar_width, label=legend, linewidth=0, yerr=np.std(train_max, axis=0))
 
     # Plot errors for train min
@@ -92,14 +96,30 @@ def errors_signalnoise(transitions):
     # Get transition matrices (inital and clusters)
     we = transitions
     # FIXME This is a fixed transition matrix for 4 states!
+    # it_signal = np.array([[0, 1, 0],
+    #                      [0, 0, 1],
+    #                      [1, 0, 0]])
+    # it_noise = np.array([[0.25, 0.25, 0.25],
+    #                     [0.25, 0.25, 0.25],
+    #                     [0.25, 0.25, 0.25]])
     it_signal = np.array([[0, 1, 0, 0],
-                          [0, 0, 1, 0],
-                          [0, 0, 0, 1],
-                          [1, 0, 0, 0]])
+                         [0, 0, 1, 0],
+                         [0, 0, 0, 1],
+                         [1, 0, 0, 0]])
     it_noise = np.array([[0.25, 0.25, 0.25, 0.25],
-                         [0.25, 0.25, 0.25, 0.25],
-                         [0.25, 0.25, 0.25, 0.25],
-                         [0.25, 0.25, 0.25, 0.25]])
+                        [0.25, 0.25, 0.25, 0.25],
+                        [0.25, 0.25, 0.25, 0.25],
+                        [0.25, 0.25, 0.25, 0.25]])
+    # it_signal = np.array([[0, 1, 0, 0, 0],
+    #                       [0, 0, 1, 0, 0],
+    #                       [0, 0, 0, 1, 0],
+    #                       [0, 0, 0, 0, 1],
+    #                       [1, 0, 0, 0, 0]])
+    # it_noise = np.array([[0.25, 0.25, 0.25, 0.25, 0.25],
+    #                      [0.25, 0.25, 0.25, 0.25, 0.25],
+    #                      [0.25, 0.25, 0.25, 0.25, 0.25],
+    #                      [0.25, 0.25, 0.25, 0.25, 0.25],
+    #                      [0.25, 0.25, 0.25, 0.25, 0.25]])
 
     # p2 matrix norm regarding signal
     p2_signal = np.sqrt(np.sum(np.square(we - it_signal), axis=(3,4)))

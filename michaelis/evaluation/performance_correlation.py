@@ -126,31 +126,31 @@ def plot_inequality(distances, hpos_idx):
     hip_colors = cm.rainbow(np.linspace(0, 1, hip_steps))
 
     # Variance (highest train, standard h_ip)
-    plt.errorbar(variance, np.mean(dists[:, :, train_steps-1, hpos_idx], axis=0),
-                 yerr=np.std(dists[:, :, train_steps-1, hpos_idx], axis=0) , fmt='o')
+    # plt.errorbar(variance, np.mean(dists[:, :, train_steps-1, hpos_idx], axis=0),
+    #              yerr=np.std(dists[:, :, train_steps-1, hpos_idx], axis=0) , fmt='o')
 
-    plt.ylim(ymin=0)
-    #plt.grid()
-    #plt.title('Variance/Distances')
-    plt.xlabel('Variance', color=FIG_COLOR)
-    plt.ylabel('Transition error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_spont_variance.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
-    plt.close()
+    # plt.ylim(ymin=0)
+    # #plt.grid()
+    # #plt.title('Variance/Distances')
+    # plt.xlabel('Variance', color=FIG_COLOR)
+    # plt.ylabel('Transition error', color=FIG_COLOR)
+    # plt.savefig(PLOTPATH + '/correlation_spont_variance.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    # plt.close()
 
     # Variance train
-    for i in range(train_steps):
-        legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
-        plt.errorbar(variance, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend, yerr=np.std(dists[:,:,i,hpos_idx], axis=0), fmt='o',
-                     color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
+    # for i in range(train_steps):
+    #     legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
+    #     plt.errorbar(variance, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend, yerr=np.std(dists[:,:,i,hpos_idx], axis=0), fmt='o',
+    #                  color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
 
-    plt.legend(loc=2,prop={'size': LEGEND_SIZE})
-    plt.ylim(ymin=0)
-    #plt.grid()
-    #plt.title('Variance/Distances')
-    plt.xlabel('Variance', color=FIG_COLOR)
-    plt.ylabel('Transition error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_spont_variance_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
-    plt.close()
+    # plt.legend(loc=2,prop={'size': LEGEND_SIZE})
+    # plt.ylim(ymin=0)
+    # #plt.grid()
+    # #plt.title('Variance/Distances')
+    # plt.xlabel('Variance', color=FIG_COLOR)
+    # plt.ylabel('Transition error', color=FIG_COLOR)
+    # plt.savefig(PLOTPATH + '/correlation_spont_variance_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    # plt.close()
 
     # Variance h_ip
     #hips = None
@@ -176,123 +176,168 @@ def plot_inequality(distances, hpos_idx):
     #    plt.close()
 
     # Variance baseline plot
-    if PARA.c.steps_plastic[0] == 0:  # only if first training step is zero (baseline)
-        dists_baseline = np.mean(dists[:, :, 0, hpos_idx], axis=0)
-        for i in range(train_steps):
-            if i > 0:
-                # Variance with distance difference
-                diff = dists_baseline.flatten() - np.mean(dists[:, :, i, hpos_idx], axis=0)
-                legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, diff)[0], 2))
-                plt.plot(variance, diff, label=legend, color=train_colors[i])
+    # if PARA.c.steps_plastic[0] == 0:  # only if first training step is zero (baseline)
+    #     dists_baseline = np.mean(dists[:, :, 0, hpos_idx], axis=0)
+    #     for i in range(train_steps):
+    #         if i > 0:
+    #             # Variance with distance difference
+    #             diff = dists_baseline.flatten() - np.mean(dists[:, :, i, hpos_idx], axis=0)
+    #             legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(variance, diff)[0], 2))
+    #             plt.plot(variance, diff, label=legend, color=train_colors[i])
 
-        plt.legend(prop={'size': LEGEND_SIZE})
-        plt.ylim(ymin=0)
-        #plt.grid()
-        #plt.title('Baseline: Variance/Distances')
-        plt.xlabel('Variance', color=FIG_COLOR)
-        plt.ylabel('Performance increase in relation to baseline', color=FIG_COLOR)
-        plt.savefig(PLOTPATH + '/correlation_spont_variance_train_baseline.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
-        plt.close()
+    #     plt.legend(prop={'size': LEGEND_SIZE})
+    #     plt.ylim(ymin=0)
+    #     #plt.grid()
+    #     #plt.title('Baseline: Variance/Distances')
+    #     plt.xlabel('Variance', color=FIG_COLOR)
+    #     plt.ylabel('Performance increase in relation to baseline', color=FIG_COLOR)
+    #     plt.savefig(PLOTPATH + '/correlation_spont_variance_train_baseline.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    #     plt.close()
 
     # KL (highest train, standard h_ip)
-    plt.errorbar(kl, np.mean(dists[:, :, train_steps-1, hpos_idx], axis=0),
-                 yerr=np.std(dists[:, :, train_steps-1, hpos_idx], axis=0), fmt='o')
-    plt.ylim(ymin=0)
-    #plt.grid()
-    #plt.title('KL/Distances')
-    plt.xlabel('KL', color=FIG_COLOR)
-    plt.ylabel('Transition error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_spont_kl.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
-    plt.close()
+    # plt.errorbar(kl, np.mean(dists[:, :, train_steps-1, hpos_idx], axis=0),
+    #              yerr=np.std(dists[:, :, train_steps-1, hpos_idx], axis=0), fmt='o')
+    # plt.ylim(ymin=0)
+    # #plt.grid()
+    # #plt.title('KL/Distances')
+    # plt.xlabel('KL', color=FIG_COLOR)
+    # plt.ylabel('Transition error', color=FIG_COLOR)
+    # plt.savefig(PLOTPATH + '/correlation_spont_kl.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    # plt.close()
 
     # KL train
-    for i in range(train_steps):
-        legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(kl, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
-        plt.errorbar(kl, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend, yerr=np.std(dists[:,:,i,hpos_idx], axis=0),  fmt='o',
-                     color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
+    # for i in range(train_steps):
+    #     legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(kl, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
+    #     plt.errorbar(kl, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend, yerr=np.std(dists[:,:,i,hpos_idx], axis=0),  fmt='o',
+    #                  color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
 
-    plt.legend(loc=2,prop={'size': LEGEND_SIZE})
-    plt.ylim(ymin=0)
-    #plt.grid()
-    #plt.title('KL/Distances')
-    plt.xlabel('KL', color=FIG_COLOR)
-    plt.ylabel('Transition error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_spont_kl_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
-    plt.close()
+    # plt.legend(loc=2,prop={'size': LEGEND_SIZE})
+    # plt.ylim(ymin=0)
+    # #plt.grid()
+    # #plt.title('KL/Distances')
+    # plt.xlabel('KL', color=FIG_COLOR)
+    # plt.ylabel('Transition error', color=FIG_COLOR)
+    # plt.savefig(PLOTPATH + '/correlation_spont_kl_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    # plt.close()
     
-    # Transition entropy (highest train, standard h_ip)
+    # Entropy rate (highest train, standard h_ip)
     plt.errorbar(transition_entropy, np.mean(dists[:, :, train_steps-1, hpos_idx], axis=0),
                  yerr=np.std(dists[:, :, train_steps-1, hpos_idx], axis=0), fmt='o')
     plt.ylim(ymin=0)
     #plt.grid()
-    #plt.title('KL/Distances')
     plt.xlabel('entropy rate', color=FIG_COLOR)
     plt.ylabel('p2 error', color=FIG_COLOR)
     plt.savefig(PLOTPATH + '/correlation_spont_entropy.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
     
-    # Transition entropy train
-    for i in range(train_steps):
-        legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(kl, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
-        plt.errorbar(transition_entropy, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend,
-                     yerr=np.std(dists[:,:,i,hpos_idx], axis=0),  fmt='o',
-                     color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
-
-    plt.legend(loc=2,prop={'size': LEGEND_SIZE})
-    plt.ylim(ymin=0)
-    #plt.grid()
-    #plt.title('KL/Distances')
-    plt.xlabel('entropy rate', color=FIG_COLOR)
-    plt.ylabel('p2 error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_spont_entropy_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
-    plt.close()
-
-    # KL baseline plot
-    if PARA.c.steps_plastic[0] == 0:  # only if first training step is zero (baseline)
-        dists_baseline = np.mean(dists[:, :, 0, hpos_idx], axis=0)
+    # Entropy rate train
+    if train_steps > 1:
         for i in range(train_steps):
-            if i > 0:
-                # Variance with distance difference
-                diff = dists_baseline - np.mean(dists[:, :, i,hpos_idx], axis=0)
-                legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(kl, diff)[0], 2))
-                plt.plot(kl, diff, label=legend, color=train_colors[i])
+            legend = 'static reservoir' if ((i == 0) and (PARA.c.steps_plastic[0] == 0)) else str(PARA.c.steps_plastic[i]) + ' training steps'
+            plt.errorbar(transition_entropy, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend,
+                        yerr=np.std(dists[:,:,i,hpos_idx], axis=0),  fmt='o',
+                        color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
 
         plt.legend(prop={'size': LEGEND_SIZE})
         plt.ylim(ymin=0)
         #plt.grid()
-        #plt.title('Baseline: KL/Distances')
-        plt.xlabel('KL', color=FIG_COLOR)
-        plt.ylabel('Performance increase in relation to baseline', color=FIG_COLOR)
-        plt.savefig(PLOTPATH + '/correlation_spont_kl_train_baseline.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+        plt.xlabel('entropy rate', color=FIG_COLOR)
+        plt.ylabel('p2 error', color=FIG_COLOR)
+        plt.savefig(PLOTPATH + '/correlation_spont_entropy_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
         plt.close()
 
-    # Gini
-    for i in range(train_steps):
-        legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(ginis, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
-        plt.errorbar(ginis, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend, yerr=np.std(dists[:,:,i,hpos_idx], axis=0),  fmt='o',
-                     color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
+    # Entropy rate baseline (highest train, compared to static)
+    if (train_steps > 1) and (PARA.c.steps_plastic[0] == 0):
+        p2_diff = np.abs(dists[:,:,train_steps-1,hpos_idx] - dists[:,:,0,hpos_idx])
+        plt.errorbar(transition_entropy, np.mean(p2_diff, axis=0), yerr=np.std(p2_diff, axis=0), fmt='o')
+        plt.ylim(ymin=0)
+        #plt.grid()
+        plt.xlabel('entropy rate', color=FIG_COLOR)
+        plt.ylabel('p2 error difference', color=FIG_COLOR)
+        plt.savefig(PLOTPATH + '/correlation_spont_entropy_static_baseline.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+        plt.close()
 
-    plt.legend(loc=2,prop={'size': LEGEND_SIZE})
-    plt.ylim(ymin=0)
-    #plt.grid()
-    #plt.title('Gini/Distances')
-    plt.xlabel('Gini', color=FIG_COLOR)
-    plt.ylabel('Transition error', color=FIG_COLOR)
-    plt.savefig(PLOTPATH + '/correlation_spont_gini_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
-    plt.close()
+    # KL baseline plot
+    # if PARA.c.steps_plastic[0] == 0:  # only if first training step is zero (baseline)
+    #     dists_baseline = np.mean(dists[:, :, 0, hpos_idx], axis=0)
+    #     for i in range(train_steps):
+    #         if i > 0:
+    #             # Variance with distance difference
+    #             diff = dists_baseline - np.mean(dists[:, :, i,hpos_idx], axis=0)
+    #             legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(kl, diff)[0], 2))
+    #             plt.plot(kl, diff, label=legend, color=train_colors[i])
+
+    #     plt.legend(prop={'size': LEGEND_SIZE})
+    #     plt.ylim(ymin=0)
+    #     #plt.grid()
+    #     #plt.title('Baseline: KL/Distances')
+    #     plt.xlabel('KL', color=FIG_COLOR)
+    #     plt.ylabel('Performance increase in relation to baseline', color=FIG_COLOR)
+    #     plt.savefig(PLOTPATH + '/correlation_spont_kl_train_baseline.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    #     plt.close()
+
+    # Gini
+    # for i in range(train_steps):
+    #     legend = str(PARA.c.steps_plastic[i]) + ' training steps, r=' + str(np.round(pearsonr(ginis, np.mean(dists[:,:,i,hpos_idx], axis=0))[0],2))
+    #     plt.errorbar(ginis, np.mean(dists[:,:,i,hpos_idx], axis=0), label=legend, yerr=np.std(dists[:,:,i,hpos_idx], axis=0),  fmt='o',
+    #                  color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
+
+    # plt.legend(loc=2,prop={'size': LEGEND_SIZE})
+    # plt.ylim(ymin=0)
+    # #plt.grid()
+    # #plt.title('Gini/Distances')
+    # plt.xlabel('Gini', color=FIG_COLOR)
+    # plt.ylabel('Transition error', color=FIG_COLOR)
+    # plt.savefig(PLOTPATH + '/correlation_spont_gini_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    # plt.close()
 
 def plot_entropy_weights(errors, std):
-    # models, errors
+    # models, train, errors
+
+    num_train_steps = np.shape(errors)[1]
 
     transition_entropy = np.array([ev._helper.transition_entropy(t) for t in PARA.c.source.transitions])
 
-    # Transition entropy (highest train, standard h_ip)
-    plt.errorbar(transition_entropy, errors, yerr=std, fmt='o')
+    # Define color palette
+    if num_train_steps > 2:
+        train_colors = cm.rainbow(np.linspace(0, 1, train_steps))
+    elif num_train_steps == 2:
+        train_colors = [(1,0,0), (0,0,1)]  # red, blue
+    else:
+        train_colors = [(0,0,1)]  # blue
+
+    # Entropy rate (highest train, standard h_ip)
+    plt.errorbar(transition_entropy, errors[:,-1], yerr=std[:,-1], fmt='o')
     plt.ylim(ymin=0)
     plt.xlabel('entropy rate', color=FIG_COLOR)
     plt.ylabel('p2 error', color=FIG_COLOR)
     plt.savefig(PLOTPATH + '/correlation_weights_entropy.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
+
+    # Entropy rate train
+    if num_train_steps > 1:
+        for i in range(num_train_steps):
+            legend = 'static reservoir' if ((i == 0) and (PARA.c.steps_plastic[0] == 0)) else str(PARA.c.steps_plastic[i]) + ' training steps'
+            plt.errorbar(transition_entropy, errors[:,i], yerr=std[:,i], fmt='o', label=legend,
+                         color=train_colors[i], ecolor=np.append(train_colors[i][0:3], 0.5))
+
+        plt.ylim(ymin=0)
+        plt.legend(prop={'size': LEGEND_SIZE})
+        plt.xlabel('entropy rate', color=FIG_COLOR)
+        plt.ylabel('p2 error', color=FIG_COLOR)
+        plt.savefig(PLOTPATH + '/correlation_weights_entropy_train.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+        plt.close()
+    
+    # TODO use raw data and mean over it afterwards, in order to get std
+    # Entropy rate baseline (highest train, compared to static)
+    # if (num_train_steps > 1) and (PARA.c.steps_plastic[0] == 0):
+    #     errors_diff = np.abs(errors[:,-1] - errors[:,0])
+    #     plt.errorbar(transition_entropy, errors[:,-1], yerr=std[:,-1], fmt='o')
+    #     plt.ylim(ymin=0)
+    #     plt.xlabel('entropy rate', color=FIG_COLOR)
+    #     plt.ylabel('p2 error', color=FIG_COLOR)
+    #     plt.savefig(PLOTPATH + '/correlation_weights_entropy_static_baseline.'+FILE_TYPE, format=FILE_TYPE, transparent=True)
+    #     plt.close()
 
 def plot_entropy_signalnoise(errors_signal, std_signal, errors_noise, std_noise, filename):
     # models, errors
@@ -300,13 +345,37 @@ def plot_entropy_signalnoise(errors_signal, std_signal, errors_noise, std_noise,
     # Calculate entropy
     transition_entropy = np.array([ev._helper.transition_entropy(t) for t in PARA.c.source.transitions])
 
+    # Calculate theoretical p2 errors
+    it_signal = np.array([[0, 1, 0, 0],
+                         [0, 0, 1, 0],
+                         [0, 0, 0, 1],
+                         [1, 0, 0, 0]])
+    transitions = []
+    iterate = np.arange(0, 0.25, 0.001)
+    for it in iterate:
+        transitions.append([[it, 1.-(3*it), it, it],
+                            [it, it, 1.-(3*it), it],
+                            [it, it, it, 1.-(3*it)],
+                            [1.-(3*it), it, it, it]])
+    transitions = np.array(transitions)
+
+    # TODO calculate entropies of 'transitions'
+    th_entropy = np.array([ev._helper.transition_entropy(t) for t in transitions])
+    th_errors = np.sqrt(np.sum(np.square(transitions - it_signal), axis=(1,2)))
+
+
     # Plot
-    plt.errorbar(transition_entropy, errors_signal, yerr=std_signal, label='Signal error', fmt='o')
-    plt.errorbar(transition_entropy, errors_noise, yerr=std_noise, label='Noise error', fmt='o')
-    plt.legend(prop={'size': LEGEND_SIZE})
+    plt.plot(th_entropy, th_errors, color='darkorange')
+    #plt.errorbar(transition_entropy, errors_signal[:,-1], yerr=std_signal[:,-1], label='Plastic', fmt='o')
+    #plt.errorbar(transition_entropy, errors_signal[:,0], yerr=std_signal[:,0], label='Static', fmt='o')
+    plt.errorbar(transition_entropy, errors_signal[:,-1], yerr=std_signal[:,-1], fmt='-o', markersize=4, capsize=4)
+    #plt.errorbar(transition_entropy, errors_signal, yerr=std_signal, label='Signal error', fmt='o')
+    #plt.errorbar(transition_entropy, errors_noise, yerr=std_noise, label='Noise error', fmt='o')
+    #plt.legend(prop={'size': LEGEND_SIZE})
+    plt.xlim(xmin=0)
     plt.ylim(ymin=0)
-    plt.xlabel('entropy rate', color=FIG_COLOR)
-    plt.ylabel('p2 error regarding signal/noise', color=FIG_COLOR)
+    plt.xlabel(r'$H_{input}$', color=FIG_COLOR)
+    plt.ylabel(r'$\varepsilon_{signal}$', color=FIG_COLOR)
     plt.savefig(PLOTPATH + '/'+ filename +'.'+ FILE_TYPE, format=FILE_TYPE, transparent=True)
     plt.close()
 
@@ -315,3 +384,43 @@ def plot_entropy_signalnoise_weights(errors_signal, std_signal, errors_noise, st
 
 def plot_entropy_signalnoise_spont(errors_signal, std_signal, errors_noise, std_noise):
     plot_entropy_signalnoise(errors_signal, std_signal, errors_noise, std_noise, filename="correlation_spont_entropy_signalnoise")
+
+def plot_human_experiment():
+    datapath = os.getcwd()
+    exp = np.load(datapath+'/data/human/exp_data.npy')
+
+    stepSize = 0.05
+    maxEntropy = 1.41 # get_entropy(0.25) ~ 1.38
+    bins = np.arange(0, maxEntropy, stepSize)
+
+    # Number of trials
+    performance = []
+    times = []
+    for i in range(bins.shape[0]-1):
+        # Define start and end point to search for noise values
+        fr, to = bins[i], bins[i+1]
+        # Get temporarary part of array where noise lies in range
+        tmp = exp[(exp[:,7] >= fr) & (exp[:,7] < to)]
+        # Get number of trials in chosen range
+        numTrials = tmp.shape[0]
+        #print(numTrials)
+        # Calculate performance
+        performance.append(np.sum(tmp[:,3] == tmp[:,6]).astype(float)/numTrials)
+        # Calculate mean of reaction time
+        times.append(np.mean(tmp[:,4]))
+
+    # Performance
+    performance = np.array(performance)
+
+    # Take time in seconds
+    times = np.array(times)/1000
+
+    # Define values for x axis
+    x = bins[:-1] + stepSize/2
+
+    plt.plot(x, 1-performance, marker="o", markersize=4)
+    plt.ylabel(r'$\varepsilon_{human}$')
+    plt.xlabel(r'$H_{input}$')
+    plt.xlim((-0.01,maxEntropy))
+    plt.ylim((-0.05,0.55))
+    plt.savefig(PLOTPATH + '/error_human.' + FILE_TYPE, format=FILE_TYPE, transparent=True)

@@ -3,15 +3,12 @@ from pylab import *
 import utils
 utils.backup(__file__)
 
-#from michaelis.plot_single import plot_results as plot_results_single
-#from michaelis.plot_cluster import (plot_results
-#                                    as plot_results_cluster)
 from common.sources import CountingSource, TrialSource, NoSource
 from common.experiments import AbstractExperiment
 from common.sorn_stats import *
 
 class Experiment_mcmc(AbstractExperiment):
-    def start(self, src):
+    def start(self, src, testCountSource=None):
         super(Experiment_mcmc,self).start()
         c = self.params.c
 
@@ -38,9 +35,11 @@ class Experiment_mcmc(AbstractExperiment):
 
         # Make inputsource out of source by using TrialSource object from sources.py
         # It now has some nice methods to deal with the network, like generate connections, etc.
-        self.inputsource = TrialSource(src,
-                         c.wait_min_plastic, c.wait_var_plastic, 
-                         zeros(src.N_a), 'reset')
+        self.inputsource = TrialSource(src, c.wait_min_plastic, c.wait_var_plastic, zeros(src.N_a), 'reset')
+
+        self.testsource = None
+        if testCountSource is not None:
+            self.testsource = TrialSource(testCountSource, c.wait_min_plastic, c.wait_var_plastic, zeros(testCountSource.N_a), 'reset')
         
         # Stats
         inputtrainsteps = c.steps_plastic + c.steps_noplastic_train  # steps during self-organization + steps for first phase w/o plasticity
@@ -56,7 +55,7 @@ class Experiment_mcmc(AbstractExperiment):
         shuffled_indices = arange(c.N_e)
         np.random.shuffle(shuffled_indices)
 
-        N_subset = 8 # 8
+        N_subset = 8  # 8
         start_train = c.steps_plastic+burnin  # step when training begins
         half_train = start_train+(inputtrainsteps-start_train)//2  # step when network is half trained
         start_test = inputtrainsteps+burnin  # step when testing begins
@@ -67,6 +66,7 @@ class Experiment_mcmc(AbstractExperiment):
         stats_all = [
                      InputIndexStat(),
                      SpikesStat(),
+                     ThresholdsStat(),
                      InputUnitsStat(),
                      NormLastStat(),
                      SpontPatternStat(),
@@ -78,8 +78,8 @@ class Experiment_mcmc(AbstractExperiment):
             stats_single += [WeightHistoryStat('W_ee_2',
                                            record_every_nth=100)]
 
-        # Return inputsource and statistics
-        return (self.inputsource,stats_all)
+        # Return inputsource, testsource and statistics
+        return (self.inputsource, stats_all)
         
     def reset(self,sorn):
         super(Experiment_mcmc,self).reset(sorn)
@@ -123,7 +123,14 @@ class Experiment_mcmc(AbstractExperiment):
 
         # Prepare noplastic testing
         # Run with spont (input u is always zero)
-        spontsource = NoSource(sorn.source.source.N_a)
+        spontsource = None
+        if self.testsource is None:
+            # If no input is given while testing
+            spontsource = NoSource(sorn.source.source.N_a)
+        else:
+            # If input is given while testing
+            spontsource = TrialSource(self.testsource.source, c.wait_min_train, c.wait_var_train, zeros(self.testsource.source.N_a), 'reset')
+        
         sorn.source = spontsource
         shuffle(sorn.x)
         shuffle(sorn.y)
@@ -135,11 +142,11 @@ class Experiment_mcmc(AbstractExperiment):
         if c.display == True:
             print('\nRun testing:')
         sorn.simulation(c.steps_noplastic_test)
-        
+
         return {'source_plastic':self.inputsource,
                 'source_train':trialsource,
                 'source_test':spontsource}
-     
+    
     def plot_single(self,path,filename):
         #plot_results_single(path,filename,self.params.c)
         pass

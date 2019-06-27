@@ -6,7 +6,7 @@ utils.backup(__file__)
 # see this file for parameter descriptions
 from common.defaults import *
 
-c.N_iterations = 20  # 20
+c.N_iterations = 5  # 20
 
 c.N_e = 200  #200 # TODO if this is changed, eta_stdp has also to change ??
 c.N_i = int(np.floor(0.2*c.N_e))
@@ -43,8 +43,7 @@ c.W_ie = utils.Bunch(use_sparse=False,
 c.steps_plastic = np.array([50000])  #np.array([0, 2500, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]) # default: np.array([50000])
 c.steps_noplastic_train = 50000  #50000
 c.steps_noplastic_test = 40000  #40000
-c.N_steps = c.steps_plastic + c.steps_noplastic_train + c.steps_noplastic_test
-c.display = False # Stop displaying stuff
+c.display = False  # False: Stop displaying stuff
 
 # 0.1 -> ~30% noisespikes, 0.05 -> ~15%, 0.01 -> ~2.5%, 0.005 -> ~1%
 c.noise_sig = 0 #0.045
@@ -99,10 +98,10 @@ c.stats.hamming_threshold = np.array([np.inf]) #np.append(np.arange(20,27,2), np
 
 # Following parameters for randsource
 c.source.use_randsource = False
-c.source.N_words = 10
-c.source.N_letters = 10
-c.source.word_length = np.array([2,6])
-c.source.max_fold_prob = 3
+#c.source.N_words = 10
+#c.source.N_letters = 10
+#c.source.word_length = np.array([2,6])
+#c.source.max_fold_prob = 3
 
 c.source.prob = 0.75 # This is only here to be changed by cluster
 c.source.avoid = False
@@ -124,155 +123,21 @@ c.source.control = False # For sequence_test
 from common.sources import CountingSource
 c.states = ['A','B','C','D']
 
-#c.source.transitions = np.array([[[0, 0.5, 0, 0, 0.5],
-#                                  [0.5, 0, 0.5, 0, 0],
-#                                  [0, 0.5, 0, 0.5, 0],
-#                                  [0, 0, 0.5, 0, 0.5],
-#                                  [0.5, 0, 0, 0.5, 0]],
-#                                 [[1/3., 1/3., 0, 0, 1/3.],
-#                                  [1/3., 1/3., 1/3., 0, 0],
-#                                  [0, 1/3., 1/3., 1/3., 0],
-#                                  [0, 0, 1/3., 1/3., 1/3.],
-#                                  [1/3., 0, 0, 1/3., 1/3.]],
-#                                 [[0, 1/4., 1/4., 1/4., 1/4.],
-#                                  [1/4., 0, 1/4., 1/4., 1/4.],
-#                                  [1/4., 1/4., 0, 1/4., 1/4.],
-#                                  [1/4., 1/4., 1/4., 0, 1/4.],
-#                                  [1/4., 1/4., 1/4., 1/4., 0]],
-#                                 [[1/5., 1/5., 1/5., 1/5., 1/5.],
-#                                  [1/5., 1/5., 1/5., 1/5., 1/5.],
-#                                  [1/5., 1/5., 1/5., 1/5., 1/5.],
-#                                  [1/5., 1/5., 1/5., 1/5., 1/5.],
-#                                  [1/5., 1/5., 1/5., 1/5., 1/5.]]])
+#c.source.transitions = np.array([[[0, 1],
+#                                  [1, 0]]])
 
-# c.source.transitions = np.array([[[0, 0.5, 0.5],
-#                                   [0.5, 0, 0.5],
-#                                   [0.5, 0.5, 0]],
-#                                  [[1/3., 1/3., 1/3.],
-#                                   [1/3., 1/3., 1/3.],
-#                                   [1/3., 1/3., 1/3.]]])
+c.source.testing = True  # If False: apply Markov chain variation while learning, if True: apply while testing
 
-# c.source.transitions = np.array([[[0, 0.5, 0, 0.5],
-#                                  [0.5, 0, 0.5, 0],
-#                                  [0, 0.5, 0, 0.5],
-#                                  [0.5, 0, 0.5, 0]],
-#                                  [[1/3., 1/3., 0, 1/3.],
-#                                  [1/3., 1/3., 1/3., 0],
-#                                  [0, 1/3., 1/3., 1/3.],
-#                                  [1/3., 0, 1/3., 1/3.]],
-#                                  [[0, 1/3., 1/3., 1/3.],
-#                                  [1/3., 0, 1/3., 1/3.],
-#                                  [1/3., 1/3., 0, 1/3.],
-#                                  [1/3., 1/3., 1/3., 0]],
-#                                  [[0.25, 0.25, 0.25, 0.25],
-#                                  [0.25, 0.25, 0.25, 0.25],
-#                                  [0.25, 0.25, 0.25, 0.25],
-#                                  [0.25, 0.25, 0.25, 0.25]]])
-
-# c.source.transitions = np.array([
-#                                # 0. transition
-#                                [[0, 1, 0, 0],
-#                                 [0, 0, 1, 0],
-#                                 [0, 0, 0, 1],
-#                                 [1, 0, 0, 0]],
-#                                # 1. transition
-#                                [[0, 1, 0, 0],
-#                                 [0, 0, 1, 0],
-#                                 [0, 0, 0, 1],
-#                                 [0.5, 0, 0.5, 0]],
-#                                # 2. transition
-#                                [[0, 1, 0, 0],
-#                                 [0, 0, 1, 0],
-#                                 [0, 0.5, 0, 0.5],
-#                                 [0.5, 0, 0.5, 0]],
-#                                # 3. transition
-#                                [[0, 1, 0, 0],
-#                                 [0.5, 0, 0.5, 0],
-#                                 [0, 0.5, 0, 0.5],
-#                                 [0.5, 0, 0.5, 0]],
-#                                # 4. transition
-#                                [[0, 0.5, 0, 0.5],
-#                                 [0.5, 0, 0.5, 0],
-#                                 [0, 0.5, 0, 0.5],
-#                                 [0.5, 0, 0.5, 0]]])
-
-## Models 1
-#transitions = []
-#iterate = np.arange(0.1, 0.51, 0.05)  # 0.025
-#for it in iterate:
-#    transitions.append([[0, 0.5, 0, 0.5],
-#                        [it, 0, 1-it, 0],
-#                        [0, it, 1-(2*it), it],
-#                        [it, 0, 1-it, 0]])
-#c.source.transitions = np.array(transitions)
-
-
-## Models 2 = II
-#transitions = []
-#iterate = np.arange(0.1, 0.51, 0.1)  # 0.025
-#for it in iterate:
-#    transitions.append([[1-(2*it), it, 0, it],
-#                       [0.5, 0, 0.5, 0],
-#                       [0, 0.5, 0, 0.5],
-#                       [0.5, 0, 0.5, 0]])
-#c.source.transitions = np.array(transitions)
-
-## Models 2b = II
-#transitions = []
-#iterate = np.arange(0.35, 0.501, 0.002)  # 0.025
-#for it in iterate:
-#   transitions.append([[1-(2*it), it, 0, it],
-#                       [0.5, 0, 0.5, 0],
-#                       [0, 0.5, 0, 0.5],
-#                       [0.5, 0, 0.5, 0]])
-#c.source.transitions = np.array(transitions)
-
-# Models 3 = VI
-#transitions = []
-#iterate = np.arange(0.05, 0.51, 0.05) # 0.025
-#for it in iterate:
-#   transitions.append([[0.5-it, it, 0, 0.5],
-#                       [it, 0.5-it, 0.5, 0],
-#                       [0, 0.5, 0.5-it, it],
-#                       [0.5, 0, it, 0.5-it]])
-#c.source.transitions = np.array(transitions)
-
-# Models 4 = IV
-#transitions = []
-#iterate = np.arange(0.05, 0.51, 0.05) # 0.025
-#for it in iterate:
-#   transitions.append([[0, it, 0, 1-it],
-#                       [it, 0, 1-it, 0],
-#                       [0, 1-it, 0, it],
-#                       [1-it, 0, it, 0]])
-#c.source.transitions = np.array(transitions)
-
-# Models 5 = V
-#transitions = []
-#iterate = np.arange(0.1, 0.91, 0.05) # 0.025
-#for it in iterate:
-#   transitions.append([[0.9-it, 0.1, 0, it],
-#                       [0.1, 0.9-it, it, 0],
-#                       [0, it, 0.9-it, 0.1],
-#                       [it, 0, 0.1, 0.9-it]])
-#c.source.transitions = np.array(transitions)
-
-#source = CountingSource(c.states,c.source.transitions,
-#                        c.N_u_e,c.N_u_i,c.source.avoid)
-
-# Models 6 = III
-#transitions = []
-#iterate = np.arange(0.1, 0.51, 0.05)  # 0.025
-#for it in iterate:
-#    transitions.append([[0, 0.5, 0, 0.5],
-#                        [it, 1-(2*it), it, 0],
-#                        [0, it, 1-(2*it), it],
-#                        [it, 0, it, 1-(2*it)]])
-#c.source.transitions = np.array(transitions)
+# Only important if c.source.testing is True
+#c.source.training = np.array([[0.01, 0.97, 0.01, 0.01],
+#                              [0.01, 0.01, 0.97, 0.01],
+#                              [0.01, 0.01, 0.01, 0.97],
+#                              [0.97, 0.01, 0.01, 0.01]])
 
 # Models 7 = VII
 transitions = []
-iterate = np.array([0., 0.0001, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.075, 0.1, 0.125, 0.15, 0.2, 0.23, 0.24, 0.245, 0.25])
+iterate = np.array([0., 0.0005, 0.005, 0.02, 0.05, 0.1, 0.2, 0.23, 0.24, 0.25])
+#iterate = np.array([0., 0.1, 0.25])
 for it in iterate:
 #    transitions.append([[it, 1.-(2*it), it],
 #                        [it, it, 1.-(2*it)],

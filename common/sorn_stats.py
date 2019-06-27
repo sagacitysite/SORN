@@ -94,6 +94,7 @@ class ActivityStat(AbstractStat):
         self.step += 1
 
     def report(self,c,sorn):
+
         transition_step_size = sorn.c.stats.transition_step_size
         activity = c.activity
 
@@ -1209,7 +1210,31 @@ class BalancedStat(AbstractStat):
         self.step += 1
     def report(self,c,sorn):
         return c.balanced
-        
+
+class ThresholdsStat(AbstractStat):
+    """
+    This stat records the firing thresholds
+    """
+    def __init__(self):
+        self.name='FiringThreshold'
+        self.collection='gather'
+    def clear(self,c,sorn):
+        c.firing_thresholds = zeros((sorn.c.N_e,sorn.c.steps_noplastic_test))
+        self.step = 0
+        self.step_test = 0
+        self.N_e = sorn.c.N_e
+    def add(self,c,sorn):
+        if self.step > (sorn.c.steps_plastic + sorn.c.steps_noplastic_train):
+            c.firing_thresholds[:,self.step_test] = sorn.T_e
+            self.step_test += 1
+        self.step += 1
+    def report(self,c,sorn):
+        # Store firing thresholds
+        sorn.c.state.data = c.firing_thresholds
+        utils.logdata("../data/firing_thresholds/"+sorn.c.file_name+".npy", sorn.c)
+
+        return c.firing_thresholds
+
 class RateStat(AbstractStat):
     """
     This stat returns a matrix of firing rates of each presynaptic
